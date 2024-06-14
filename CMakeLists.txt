@@ -39,11 +39,11 @@ if (NOT raylib_FOUND)
 endif()
 
 # PROJECT SETUP
-add_executable($(PROJECT_NAME))
+add_executable(${PROJECT_NAME})
 add_subdirectory(src) # NOTE: tells cmake to look for another cmake file in src dir
 
 # NOTE: this will build the binary to projectname/projectname.exe
-set_target_properties($(PROJECT_NAME) PROPERTIES
+set_target_properties(${PROJECT_NAME} PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${PROJECT_NAME})
 
 # NOTE: this copies the resources from src/resources to be at build folder

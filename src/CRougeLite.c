@@ -20,6 +20,14 @@
 
 #include "raylib.h"
 
+#include "CRougeLite.h" // NOTE: declare global extern vars
+
+//========================================================
+// Global Shared Variables
+// NOTE: this must be defined as externs in the .h file
+//========================================================
+Music music = {0};
+
 //========================================================
 // LOCAL VARIABLE DIFINATIONS (local to this file)
 //========================================================
@@ -32,9 +40,34 @@ static const int screenHeight = 450;
 int main(void) {
   InitWindow(screenWidth, screenHeight, "C rougelite game");
 
-  InitAudioDevice();
-
   // load global assets
+  InitAudioDevice();
+  music = LoadMusicStream("resources/ambient.ogg");
+
+  SetMusicVolume(music, 1.0f);
+  PlayMusicStream(music);
+
+  SetTargetFPS(60);
+
+  // Main Game Loop
+  while (!WindowShouldClose()) {
+    UpdateMusicStream(music);
+
+    BeginDrawing();
+    ClearBackground(GRAY);
+    DrawGrid(10, 10);
+
+    EndDrawing();
+  }
+
+  // Unload assets and cleaning
+  UnloadMusicStream(music);
+
+  CloseAudioDevice();
+
+  CloseWindow();
+
+  return 0;
 }
 
 /*********************************************************
