@@ -42,7 +42,9 @@ int main(void) {
 
   // load global assets
   InitAudioDevice();
-  music = LoadMusicStream("resources/ambient.ogg");
+  music = LoadMusicStream("./src/"
+                          "./resources/ambient.ogg");
+  // NOTE: All paths must start from the src dir
 
   SetMusicVolume(music, 1.0f);
   PlayMusicStream(music);

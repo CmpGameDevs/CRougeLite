@@ -42,7 +42,7 @@ endif()
 add_executable(${PROJECT_NAME})
 add_subdirectory(src) # NOTE: tells cmake to look for another cmake file in src dir
 
-# NOTE: this will build the binary to projectname/projectname.exe
+# NOTE: this will build the binary to build/projectname/projectname.exe
 set_target_properties(${PROJECT_NAME} PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${PROJECT_NAME})
 
