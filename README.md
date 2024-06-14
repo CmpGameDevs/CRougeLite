@@ -1,3 +1,7 @@
+# CRougeLite Game
+
+## building
+
 ### CMake
 
 - Run the command one time
@@ -10,4 +14,10 @@ cmake -S . -B build
 
 ```bash
 cmake --build build
+```
+
+- to run
+
+```bash
+./build/CRougeLite/CRougeLite
 ```
