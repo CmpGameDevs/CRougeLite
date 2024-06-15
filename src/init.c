@@ -34,8 +34,8 @@ static const int DEFAULT_MAX_ENEMIES = 100;
 // Init Functions
 //========================================================
 
-void initGameSystem(Game_System* gameSystemInstance) {
-  gameSystemInstance = (Game_System*)malloc(sizeof(Game_System));
+Game_System* initGameSystem() {
+  Game_System* gameSystemInstance = (Game_System*)malloc(sizeof(Game_System));
   if (gameSystemInstance != NULL) {
     // Initialize Players Related Variables
     gameSystemInstance->MAX_NUM_OF_PLAYERS = DEFAULT_MAX_PLAYERS;
@@ -47,8 +47,12 @@ void initGameSystem(Game_System* gameSystemInstance) {
 
     // Initialize Other General Variables
     gameSystemInstance->level = 1;
+    gameSystemInstance->game_over = false;
+    gameSystemInstance->finished = false;
     initSettings(gameSystemInstance);
   }  
+
+  return gameSystemInstance;
 }
 
 void initSettings(Game_System* gameSystemInstance) {
@@ -60,7 +64,7 @@ void initSettings(Game_System* gameSystemInstance) {
 }
 
 void initPlayer(Player *player, const char *name, P_TYPE type, P_WEAPON weapon) {
-    player->name = strdup(name);  // Allocate and copy the name
+    player->name = strdup(name);
     player->type = type;
     player->weapon = weapon;
     player->position.x = 0.0;

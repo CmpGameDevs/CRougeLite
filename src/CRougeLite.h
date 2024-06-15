@@ -15,11 +15,12 @@
 #ifndef CROUGELITE_H
 #define CROUGELITE_H
 #include <raylib.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 //========================================================
 // Defines
 //========================================================
-#define NULL ((void *)0)
 
 //========================================================
 // Structs & Enums
@@ -91,6 +92,8 @@ typedef struct {
   int num_of_enemies;
   Enemy* enemies;
   int level;
+  bool game_over;
+  bool finished;
 
   Settings settings;
 } Game_System;
@@ -106,7 +109,7 @@ extern Music music;
 Game_System *getGameSystemInstance();
 
 // Init Functions
-void initGameSystem(Game_System* gameSystemInstance);
+Game_System* initGameSystem();
 void initSettings(Game_System* gameSystemInstance);
 void initPlayer(Player *player, const char *name, P_TYPE type, P_WEAPON weapon);
 void initEnemy(Enemy *enemy, E_TYPE type, E_WEAPON weapon);
