@@ -22,8 +22,8 @@
 
 #include "CRougeLite.h" // NOTE: declare global extern vars
 
-#include "engine/draw.h"
-#include "engine/input.h"
+#include "system/draw.h"
+#include "system/input.h"
 
 //========================================================
 // Global Shared Variables

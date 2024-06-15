@@ -1,12 +1,6 @@
-/*********************************************************
- *
- *
- *********************************************************/
-
 #include "raylib.h"
 
-#include "CRougeLite.h" // NOTE: declare global extern vars
-#include "defs.h"
+#include "../CRougeLite.h" // NOTE: declare global extern vars
 #include <string.h>
 
 //========================================================
