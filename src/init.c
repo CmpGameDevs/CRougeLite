@@ -1,34 +1,17 @@
 /*********************************************************
  *
  *
- *    ███╗   ███╗ █████╗ ██╗███╗   ██╗
- *    ████╗ ████║██╔══██╗██║████╗  ██║
- *    ██╔████╔██║███████║██║██╔██╗ ██║
- *    ██║╚██╔╝██║██╔══██║██║██║╚██╗██║
- *    ██║ ╚═╝ ██║██║  ██║██║██║ ╚████║
- *    ╚═╝     ╚═╝╚═╝  ╚═╝╚═╝╚═╝  ╚═══╝
- *
- *    Main File of the game where the main loop happens.
- *    Game Authors:
- *
- *    - Moamen
- *    - Marwan
- *    - Akram
- *    - Amir
- *
  *********************************************************/
 
-#include "defs.h"
 #include "raylib.h"
 
 #include "CRougeLite.h" // NOTE: declare global extern vars
+#include "defs.h"
 #include <string.h>
 
 //========================================================
 // LOCAL VARIABLE DIFINATIONS (local to this file)
 //========================================================
-static const int DEFAULT_MAX_PLAYERS = 4;
-static const int DEFAULT_MAX_ENEMIES = 100;
 
 //========================================================
 // Init Functions
@@ -38,13 +21,11 @@ Game_System *initGameSystem() {
   Game_System *gameSystemInstance = (Game_System *)malloc(sizeof(Game_System));
   if (gameSystemInstance != NULL) {
     // Initialize Players Related Variables
-    gameSystemInstance->MAX_NUM_OF_PLAYERS = DEFAULT_MAX_PLAYERS;
     gameSystemInstance->players =
         (Player *)malloc(sizeof(Player) * DEFAULT_MAX_PLAYERS);
     gameSystemInstance->num_of_players = 0;
 
     // Initialize Enemies Related Variables
-    gameSystemInstance->MAX_NUM_OF_ENEMIES = DEFAULT_MAX_ENEMIES;
     gameSystemInstance->enemies =
         (Enemy *)malloc(sizeof(Enemy) * DEFAULT_MAX_ENEMIES);
     gameSystemInstance->num_of_enemies = 0;
@@ -78,8 +59,8 @@ Player *initPlayer(const char *name, P_TYPE type, P_WEAPON weapon) {
   player->name = strdup(name);
   player->type = type;
   player->weapon = weapon;
-  player->position.x = SCREEN_WIDTH / 2;
-  player->position.y = SCREEN_HEIGHT / 2;
+  player->position.x = SCREEN_WIDTH / 2.0f;
+  player->position.y = SCREEN_HEIGHT / 2.0f;
   player->health = 100.0;
   player->speed = 5.0;
   player->acceleration = 0.1;
