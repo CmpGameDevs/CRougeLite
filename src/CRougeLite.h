@@ -23,6 +23,8 @@
 //========================================================
 extern Music music;
 extern Player player;
+extern Entity bullet;
+extern State state;
 
 #endif // CROUGELITE_H
 

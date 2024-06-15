@@ -10,5 +10,11 @@ void drawScene() {
 
   DrawTexturePro(player.texture, source, dest, (Vector2){0, 0}, 0, WHITE);
 
+  Rectangle bulletSource = {0, 16 * 3, 16, 16};
+  Rectangle bulletDest = {bullet.x, bullet.y, 32, 32};
+  if (bullet.health > 0)
+    DrawTexturePro(bullet.texture, bulletSource, bulletDest, (Vector2){0, 0}, 0,
+                   WHITE);
+
   EndDrawing();
 }

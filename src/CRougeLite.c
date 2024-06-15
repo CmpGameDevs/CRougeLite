@@ -31,6 +31,8 @@
 //========================================================
 Music music = {0};
 Player player = {0};
+Entity bullet = {0};
+State state = {0};
 
 //========================================================
 // MAIN ENTRY POINT
@@ -53,12 +55,33 @@ int main(void) {
   player.y = SCREEN_HEIGHT / 2;
   player.texture = LoadTexture("./src/"
                                "./resources/knight.png");
+  bullet.texture = LoadTexture("./src/"
+                               "./resources/bullet.png");
+  bullet.health = 0;
+  state.isFiring = false;
 
   // Main Game Loop
   while (!WindowShouldClose()) {
     UpdateMusicStream(music);
 
     handleInput();
+
+    if (state.isFiring && bullet.health == 0) {
+      bullet.x = player.x;
+      bullet.y =
+          player.y + player.texture.height / 2 - bullet.texture.height / 2;
+      bullet.dx = 5;
+      bullet.dy = 0;
+      bullet.health = 1;
+    }
+
+    bullet.x += bullet.dx;
+    bullet.y += bullet.dy;
+
+    if (bullet.x > SCREEN_WIDTH || bullet.x < 0 || bullet.y > SCREEN_HEIGHT ||
+        bullet.y < 0) {
+      bullet.health = 0;
+    }
 
     drawScene();
   }

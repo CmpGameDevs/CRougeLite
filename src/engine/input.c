@@ -17,4 +17,9 @@ void handleInput() {
   if (IsKeyDown(KEY_D)) {
     player.x += PLAYER_SPEED;
   }
+  if (IsKeyDown(KEY_SPACE)) {
+    state.isFiring = true;
+  } else {
+    state.isFiring = false;
+  }
 }
