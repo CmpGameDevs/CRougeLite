@@ -28,11 +28,28 @@
 //========================================================
 Music music = {0};
 
+Game_System* getGameSystemInstance() {
+  static Game_System *game = NULL;
+  if (game == NULL) {
+    initGameSystem(game);
+  }
+  return game;
+}
+
 //========================================================
 // LOCAL VARIABLE DIFINATIONS (local to this file)
 //========================================================
 static const int screenWidth = 800;
 static const int screenHeight = 450;
+
+//========================================================
+// Local Functions Headers
+//========================================================
+static void loadResources();
+static void eventHandler();
+static void update();
+static void draw();
+static void clearResources();
 
 //========================================================
 // MAIN ENTRY POINT
@@ -55,11 +72,7 @@ int main(void) {
   while (!WindowShouldClose()) {
     UpdateMusicStream(music);
 
-    BeginDrawing();
-    ClearBackground(GRAY);
-    DrawGrid(10, 10);
-
-    EndDrawing();
+    draw();
   }
 
   // Unload assets and cleaning
@@ -70,6 +83,14 @@ int main(void) {
   CloseWindow();
 
   return 0;
+}
+
+static void draw() {
+  BeginDrawing();
+  ClearBackground(GRAY);
+  DrawGrid(10, 10);
+
+  EndDrawing();
 }
 
 /*********************************************************
