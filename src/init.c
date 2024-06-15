@@ -78,8 +78,8 @@ Player *initPlayer(const char *name, P_TYPE type, P_WEAPON weapon) {
   player->name = strdup(name);
   player->type = type;
   player->weapon = weapon;
-  player->position.x = 0.0;
-  player->position.y = 0.0;
+  player->position.x = SCREEN_WIDTH / 2;
+  player->position.y = SCREEN_HEIGHT / 2;
   player->health = 100.0;
   player->speed = 5.0;
   player->acceleration = 0.1;

@@ -93,7 +93,7 @@ static void loadResources(Settings *settings) {
       (Vector2){settings->screen_width / 2.0, settings->screen_height / 2.0};
   Game_System *game = getGameSystemInstance();
   game->players->texture = LoadTexture("./src/"
-                                       "./resources/knight.png");
+                                       "./resources/Meow-Knight_Idle.png");
 }
 
 static void update() { UpdateMusicStream(music); }
