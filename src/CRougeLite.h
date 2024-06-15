@@ -19,6 +19,7 @@
 #include "structs.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
 
 //========================================================
 // Global Shared Variables
@@ -33,8 +34,9 @@ Game_System *getGameSystemInstance();
 // Init Functions
 Game_System* initGameSystem();
 void initSettings(Game_System* gameSystemInstance);
-Player *initPlayer(const char *name, P_TYPE type, P_WEAPON weapon);
+Player *initPlayer(const char *name, P_TYPE type, P_WEAPON weapon,int ID);
 Enemy *initEnemy(E_TYPE type, E_WEAPON weapon);
+Bullet *initBullet(P_WEAPON weapon, int playerID, Vector2 src,Vector2 dest);
 
 // Clear Resources Functions
 void clearGameSystem();
