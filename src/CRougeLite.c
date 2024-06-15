@@ -22,6 +22,9 @@
 
 #include "CRougeLite.h" // NOTE: declare global extern vars
 
+#include "engine/draw.h"
+#include "engine/input.h"
+
 //========================================================
 // Global Shared Variables
 // NOTE: this must be defined as externs in the .h file
@@ -29,16 +32,10 @@
 Music music = {0};
 
 //========================================================
-// LOCAL VARIABLE DIFINATIONS (local to this file)
-//========================================================
-static const int screenWidth = 800;
-static const int screenHeight = 450;
-
-//========================================================
 // MAIN ENTRY POINT
 //========================================================
 int main(void) {
-  InitWindow(screenWidth, screenHeight, "C rougelite game");
+  InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "C rougelite game");
 
   // load global assets
   InitAudioDevice();
@@ -55,11 +52,9 @@ int main(void) {
   while (!WindowShouldClose()) {
     UpdateMusicStream(music);
 
-    BeginDrawing();
-    ClearBackground(GRAY);
-    DrawGrid(10, 10);
+    handleInput();
 
-    EndDrawing();
+    drawScene();
   }
 
   // Unload assets and cleaning

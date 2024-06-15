@@ -15,6 +15,7 @@
 #ifndef CROUGELITE_H
 #define CROUGELITE_H
 #include <raylib.h>
+#include "defs.h"
 
 //========================================================
 // Global Shared Variables
