@@ -33,7 +33,7 @@ typedef struct {
   double speed;
   double acceleration;
   double fire_rate;
-  int score
+  int score;
 } Player;
 
 typedef enum {

@@ -18,15 +18,15 @@
  *
  *********************************************************/
 
+#include "defs.h"
 #include "raylib.h"
 
 #include "CRougeLite.h" // NOTE: declare global extern vars
+#include <string.h>
 
 //========================================================
 // LOCAL VARIABLE DIFINATIONS (local to this file)
 //========================================================
-static const int DEFAULT_SCREEN_WIDTH = 800;
-static const int DEFAULT_SCREEN_HEIGHT = 450;
 static const int DEFAULT_MAX_PLAYERS = 4;
 static const int DEFAULT_MAX_ENEMIES = 100;
 
@@ -34,17 +34,19 @@ static const int DEFAULT_MAX_ENEMIES = 100;
 // Init Functions
 //========================================================
 
-Game_System* initGameSystem() {
-  Game_System* gameSystemInstance = (Game_System*)malloc(sizeof(Game_System));
+Game_System *initGameSystem() {
+  Game_System *gameSystemInstance = (Game_System *)malloc(sizeof(Game_System));
   if (gameSystemInstance != NULL) {
     // Initialize Players Related Variables
     gameSystemInstance->MAX_NUM_OF_PLAYERS = DEFAULT_MAX_PLAYERS;
-    gameSystemInstance->players = (Player *)malloc(sizeof(Player) * DEFAULT_MAX_PLAYERS);
+    gameSystemInstance->players =
+        (Player *)malloc(sizeof(Player) * DEFAULT_MAX_PLAYERS);
     gameSystemInstance->num_of_players = 0;
 
     // Initialize Enemies Related Variables
     gameSystemInstance->MAX_NUM_OF_ENEMIES = DEFAULT_MAX_ENEMIES;
-    gameSystemInstance->enemies = (Enemy *)malloc(sizeof(Enemy) * DEFAULT_MAX_ENEMIES);
+    gameSystemInstance->enemies =
+        (Enemy *)malloc(sizeof(Enemy) * DEFAULT_MAX_ENEMIES);
     gameSystemInstance->num_of_enemies = 0;
 
     // Initialize Other General Variables
@@ -52,14 +54,14 @@ Game_System* initGameSystem() {
     gameSystemInstance->game_over = false;
     gameSystemInstance->finished = false;
     initSettings(gameSystemInstance);
-  }  
+  }
 
   return gameSystemInstance;
 }
 
-void initSettings(Game_System* gameSystemInstance) {
-  gameSystemInstance->settings.screen_width = DEFAULT_SCREEN_WIDTH;
-  gameSystemInstance->settings.screen_height = DEFAULT_SCREEN_HEIGHT;
+void initSettings(Game_System *gameSystemInstance) {
+  gameSystemInstance->settings.screen_width = SCREEN_WIDTH;
+  gameSystemInstance->settings.screen_height = SCREEN_HEIGHT;
   gameSystemInstance->settings.volume = 50;
   gameSystemInstance->settings.music_on = true;
   gameSystemInstance->settings.sfx_on = true;

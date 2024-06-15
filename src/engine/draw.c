@@ -2,7 +2,7 @@
 #include "../CRougeLite.h"
 #include <raylib.h>
 
-static drawPlayers(Game_System *game) {
+static void drawPlayers(Game_System *game) {
   Player *players = game->players;
   int player_num = game->num_of_players;
   Rectangle source = {0, 0, 32, 32};
@@ -18,7 +18,7 @@ void drawScene() {
   Game_System *gameSystemInstance = getGameSystemInstance();
   BeginDrawing();
   ClearBackground(GetColor(0x052c46ff));
-  
+
   drawPlayers(gameSystemInstance);
 
   EndDrawing();

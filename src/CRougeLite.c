@@ -31,7 +31,7 @@
 //========================================================
 Music music = {0};
 
-Game_System* getGameSystemInstance() {
+Game_System *getGameSystemInstance() {
   static Game_System *game = NULL;
   if (game == NULL) {
     game = initGameSystem();
@@ -57,8 +57,9 @@ int main(void) {
   Game_System *game = getGameSystemInstance();
   Settings *settings = &(game->settings);
 
-  InitWindow(settings->screen_width, settings->screen_height, "C rougelite game");
-    //printf("TEST\n");
+  InitWindow(settings->screen_width, settings->screen_height,
+             "C rougelite game");
+  // printf("TEST\n");
   loadResources(settings);
 
   SetTargetFPS(60);
@@ -77,7 +78,7 @@ int main(void) {
   return 0;
 }
 
-static void loadResources(Settings* settings) {
+static void loadResources(Settings *settings) {
   // load global assets
   InitAudioDevice();
   music = LoadMusicStream("./src/"
@@ -88,14 +89,14 @@ static void loadResources(Settings* settings) {
   PlayMusicStream(music);
 
   Player *player = initPlayer("Marcus", KNIGHT, LONG_SWORD);
-  player->position = (Vector2){ settings->screen_width / 2.0, settings->screen_height / 2.0};
-  player->texture = LoadTexture("./src/"
-                               "./resources/knight.png");
+  player->position =
+      (Vector2){settings->screen_width / 2.0, settings->screen_height / 2.0};
+  Game_System *game = getGameSystemInstance();
+  game->players->texture = LoadTexture("./src/"
+                                       "./resources/knight.png");
 }
 
-static void update() {
-  UpdateMusicStream(music);
-}
+static void update() { UpdateMusicStream(music); }
 
 static void clearResources() {
   clearGameSystem();
