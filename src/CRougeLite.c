@@ -22,45 +22,83 @@
 
 #include "CRougeLite.h" // NOTE: declare global extern vars
 
+#include "engine/draw.h"
+#include "engine/input.h"
+
 //========================================================
 // Global Shared Variables
 // NOTE: this must be defined as externs in the .h file
 //========================================================
 Music music = {0};
 
+Game_System* getGameSystemInstance() {
+  static Game_System *game = NULL;
+  if (game == NULL) {
+    game = initGameSystem();
+  }
+  return game;
+}
+
 //========================================================
 // LOCAL VARIABLE DIFINATIONS (local to this file)
 //========================================================
-static const int screenWidth = 800;
-static const int screenHeight = 450;
+
+//========================================================
+// Local Functions Headers
+//========================================================
+static void loadResources(Settings *settings);
+static void update();
+static void clearResources();
 
 //========================================================
 // MAIN ENTRY POINT
 //========================================================
 int main(void) {
-  InitWindow(screenWidth, screenHeight, "C rougelite game");
+  Game_System *game = getGameSystemInstance();
+  Settings *settings = &(game->settings);
 
+  InitWindow(settings->screen_width, settings->screen_height, "C rougelite game");
+    //printf("TEST\n");
+  loadResources(settings);
+
+  SetTargetFPS(60);
+
+  // Main Game Loop
+  bool *quit = &(game->finished);
+  while (!WindowShouldClose() && !(*quit)) {
+    handleInput();
+    update();
+
+    drawScene();
+  }
+
+  clearResources();
+
+  return 0;
+}
+
+static void loadResources(Settings* settings) {
   // load global assets
   InitAudioDevice();
   music = LoadMusicStream("./src/"
                           "./resources/ambient.ogg");
   // NOTE: All paths must start from the src dir
 
-  SetMusicVolume(music, 1.0f);
+  SetMusicVolume(music, settings->volume / 100.0);
   PlayMusicStream(music);
 
-  SetTargetFPS(60);
+  Player *player = initPlayer("Marcus", KNIGHT, LONG_SWORD);
+  player->position = (Vector2){ settings->screen_width / 2.0, settings->screen_height / 2.0};
+  player->texture = LoadTexture("./src/"
+                               "./resources/knight.png");
+}
 
-  // Main Game Loop
-  while (!WindowShouldClose()) {
-    UpdateMusicStream(music);
+static void update() {
+  UpdateMusicStream(music);
+}
 
-    BeginDrawing();
-    ClearBackground(GRAY);
-    DrawGrid(10, 10);
-
-    EndDrawing();
-  }
+static void clearResources() {
+  clearGameSystem();
 
   // Unload assets and cleaning
   UnloadMusicStream(music);
@@ -68,8 +106,6 @@ int main(void) {
   CloseAudioDevice();
 
   CloseWindow();
-
-  return 0;
 }
 
 /*********************************************************
