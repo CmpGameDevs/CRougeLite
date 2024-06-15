@@ -30,6 +30,7 @@
 // NOTE: this must be defined as externs in the .h file
 //========================================================
 Music music = {0};
+Player player = {0};
 
 //========================================================
 // MAIN ENTRY POINT
@@ -47,6 +48,11 @@ int main(void) {
   PlayMusicStream(music);
 
   SetTargetFPS(60);
+
+  player.x = SCREEN_WIDTH / 2;
+  player.y = SCREEN_HEIGHT / 2;
+  player.texture = LoadTexture("./src/"
+                               "./resources/knight.png");
 
   // Main Game Loop
   while (!WindowShouldClose()) {

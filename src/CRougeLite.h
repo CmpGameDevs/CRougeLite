@@ -16,11 +16,13 @@
 #define CROUGELITE_H
 #include <raylib.h>
 #include "defs.h"
+#include "structs.h"
 
 //========================================================
 // Global Shared Variables
 //========================================================
 extern Music music;
+extern Player player;
 
 #endif // CROUGELITE_H
 
