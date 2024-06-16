@@ -17,6 +17,7 @@
 #ifndef STRUCTS_H
 #define STRUCTS_H
 
+#include "defs.h"
 #include <raylib.h>
 
 // TODO: Make enum for all stats related to the specified types
@@ -112,6 +113,17 @@ typedef struct
   bool sfx_on;
 } Settings;
 
+
+typedef struct AtlasImage
+{
+  char filename[MAX_FILENAME_LENGTH];
+  Rectangle rect;
+  Texture2D texture;
+  struct AtlasImage *next;
+} AtlasImage;
+
+
+
 typedef struct
 {
   int num_of_players;
@@ -124,8 +136,8 @@ typedef struct
   int level;
   bool game_over;
   bool finished;
+  Texture2D atlasTexture;
 
   Settings settings;
 } Game_System;
-
 #endif // STRUCTS_H

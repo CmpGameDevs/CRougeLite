@@ -1,7 +1,7 @@
 #ifndef DRAW_H
 #define DRAW_H
 
-#include <raylib.h>
+#include "../CRougeLite.h"
 
 void drawScene();
 
