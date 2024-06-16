@@ -31,9 +31,11 @@
 //========================================================
 Music music = {0};
 
-Game_System *getGameSystemInstance() {
+Game_System *getGameSystemInstance()
+{
   static Game_System *game = NULL;
-  if (game == NULL) {
+  if (game == NULL)
+  {
     game = initGameSystem();
   }
   return game;
@@ -53,7 +55,8 @@ static void clearResources();
 //========================================================
 // MAIN ENTRY POINT
 //========================================================
-int main(void) {
+int main(void)
+{
   Game_System *game = getGameSystemInstance();
   Settings *settings = &(game->settings);
 
@@ -66,7 +69,8 @@ int main(void) {
 
   // Main Game Loop
   bool *quit = &(game->finished);
-  while (!WindowShouldClose() && !(*quit)) {
+  while (!WindowShouldClose() && !(*quit))
+  {
     handleInput();
     update();
 
@@ -78,7 +82,8 @@ int main(void) {
   return 0;
 }
 
-static void loadResources(Settings *settings) {
+static void loadResources(Settings *settings)
+{
   // load global assets
   InitAudioDevice();
   music = LoadMusicStream("./src/"
@@ -88,17 +93,20 @@ static void loadResources(Settings *settings) {
   SetMusicVolume(music, settings->volume / 100.0);
   PlayMusicStream(music);
 
-  Player *player = initPlayer("Marcus", KNIGHT, LONG_SWORD);
+  Player *player = initPlayer("Marcus", KNIGHT, LONG_SWORD,0);
   player->position =
       (Vector2){settings->screen_width / 2.0, settings->screen_height / 2.0};
   Game_System *game = getGameSystemInstance();
   game->players->texture = LoadTexture("./src/"
                                        "./resources/Meow-Knight_Idle.png");
+  game->bulletTexture = LoadTexture("./src/"
+                                    "./resources/bullet.png");
 }
 
 static void update() { UpdateMusicStream(music); }
 
-static void clearResources() {
+static void clearResources()
+{
   clearGameSystem();
 
   // Unload assets and cleaning
