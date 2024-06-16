@@ -18,6 +18,7 @@
 #include "defs.h"
 #include "structs.h"
 #include <stdlib.h>
+#include <string.h>
 #include <stdio.h>
 #include <math.h>
 
