@@ -76,6 +76,7 @@ typedef struct
   int score;
   int fire;
   int drawDirection;    // 1 for right, -1 for left
+  bool isMoving;
   DIRECTIONS direction; // to get info on the direction the player is facing.
 } Player;
 
@@ -122,7 +123,14 @@ typedef struct AtlasImage
   struct AtlasImage *next;
 } AtlasImage;
 
-
+typedef struct SpriteAnimation {
+  int numOfFrames;
+  char **frameNames;
+  int currentFrame;   // NOTE: still not used
+  int framesPerSecond;
+  bool loop;          // NOTE: still not used
+  bool finished;      // NOTE: still not used
+} SpriteAnimation;
 
 typedef struct
 {

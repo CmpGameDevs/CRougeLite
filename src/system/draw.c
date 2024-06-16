@@ -1,4 +1,5 @@
 #include "draw.h"
+#include "anime.h"
 #include "atlas.h"
 #include <raylib.h>
 
@@ -21,20 +22,47 @@ static void drawPlayers(Game_System *game) {
   Player *players = game->players;
   int player_num = game->num_of_players;
 
+  SpriteAnimation idle = createSpriteAnimation(4,
+                                               (char *[]){
+                                                   "slime_0_0",
+                                                   "slime_0_1",
+                                                   "slime_0_2",
+                                                   "slime_0_3",
+                                               },
+                                               6, true);
+
+  SpriteAnimation walk = createSpriteAnimation(4,
+                                               (char *[]){
+                                                   "slime_1_0",
+                                                   "slime_1_1",
+                                                   "slime_1_2",
+                                                   "slime_1_3",
+                                               },
+                                               8, true);
+
   while (player_num--) {
     Vector2 pos = players->position;
     bool flip = (players->drawDirection == -1) ? true : false;
-    DrawAtlasSpritePro("slime_1_2", (Rectangle){pos.x, pos.y, 64, 64},
-                       (Vector2){0, 0}, 0, WHITE, flip);
+    if (players->isMoving) {
+      drawSpriteAnimationPro(&walk, (Rectangle){pos.x, pos.y, 64, 64},
+                             (Vector2){0, 0}, 0, WHITE, flip);
+    } else {
+      drawSpriteAnimationPro(&idle, (Rectangle){pos.x, pos.y, 64, 64},
+                             (Vector2){0, 0}, 0, WHITE, flip);
+    }
 
     players++;
   }
+
+  disposeSpriteAnimation(&idle);
+  disposeSpriteAnimation(&walk);
 }
 
 static void drawBullets(Game_System *game) {
   int x = 320, y = 96;
   int bulletNum = game->num_of_bullets;
   Bullet *bullets = game->bullets;
+
   while (bulletNum--) {
     Vector2 pos = bullets->position;
     Rectangle dest = {pos.x, pos.y, 16, 16};
@@ -55,8 +83,23 @@ void drawScene() {
 
   // TODO: Delete Me later
   // Example for using atlas
-  DrawAtlasSpritePro("vampire_1", (Rectangle){0, 0, 64, 64}, (Vector2){0, 0}, 0,
-                     WHITE, false);
+  // DrawAtlasSpritePro("vampire_1", (Rectangle){0, 0, 64, 64}, (Vector2){0, 0},
+  // 0, WHITE, false);
+
+  // TODO: Delete Me later
+  SpriteAnimation anim = createSpriteAnimation(4,
+                                               (char *[]){
+                                                   "vampire_1",
+                                                   "vampire_2",
+                                                   "vampire_3",
+                                                   "vampire_4",
+                                               },
+                                               6, true);
+
+  drawSpriteAnimationPro(&anim, (Rectangle){128, 128, 64, 64}, (Vector2){0, 0},
+                         0, WHITE, false);
+
+  disposeSpriteAnimation(&anim);
 
   EndDrawing();
 }
