@@ -122,7 +122,14 @@ typedef struct AtlasImage
   struct AtlasImage *next;
 } AtlasImage;
 
-
+typedef struct SpriteAnimation {
+  int numOfFrames;
+  char **frameNames;
+  int currentFrame;   // NOTE: still not used
+  int framesPerSecond;
+  bool loop;          // NOTE: still not used
+  bool finished;      // NOTE: still not used
+} SpriteAnimation;
 
 typedef struct
 {

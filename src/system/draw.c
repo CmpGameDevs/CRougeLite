@@ -1,4 +1,5 @@
 #include "draw.h"
+#include "anime.h"
 #include "atlas.h"
 #include <raylib.h>
 
@@ -21,14 +22,25 @@ static void drawPlayers(Game_System *game) {
   Player *players = game->players;
   int player_num = game->num_of_players;
 
+  SpriteAnimation anim = createSpriteAnimation(4,
+                                               (char *[]){
+                                                   "slime_0_0",
+                                                   "slime_0_1",
+                                                   "slime_0_2",
+                                                   "slime_0_3",
+                                               },
+                                               6, true);
+
   while (player_num--) {
     Vector2 pos = players->position;
     bool flip = (players->drawDirection == -1) ? true : false;
-    DrawAtlasSpritePro("slime_1_2", (Rectangle){pos.x, pos.y, 64, 64},
-                       (Vector2){0, 0}, 0, WHITE, flip);
+    drawSpriteAnimationPro(&anim, (Rectangle){pos.x, pos.y, 64, 64},
+                           (Vector2){0, 0}, 0, WHITE, flip);
 
     players++;
   }
+
+  disposeSpriteAnimation(&anim);
 }
 
 static void drawBullets(Game_System *game) {
@@ -55,8 +67,23 @@ void drawScene() {
 
   // TODO: Delete Me later
   // Example for using atlas
-  DrawAtlasSpritePro("vampire_1", (Rectangle){0, 0, 64, 64}, (Vector2){0, 0}, 0,
-                     WHITE, false);
+  // DrawAtlasSpritePro("vampire_1", (Rectangle){0, 0, 64, 64}, (Vector2){0, 0},
+  // 0, WHITE, false);
+
+  // TODO: Delete Me later
+  SpriteAnimation anim = createSpriteAnimation(4,
+                                               (char *[]){
+                                                   "vampire_1",
+                                                   "vampire_2",
+                                                   "vampire_3",
+                                                   "vampire_4",
+                                               },
+                                               6, true);
+
+  drawSpriteAnimationPro(&anim, (Rectangle){0, 0, 64, 64}, (Vector2){0, 0}, 0,
+                         WHITE, false);
+
+  disposeSpriteAnimation(&anim);
 
   EndDrawing();
 }
