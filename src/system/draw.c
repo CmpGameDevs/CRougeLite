@@ -22,21 +22,27 @@ static void drawPlayers(Game_System *game) {
   Player *players = game->players;
   int player_num = game->num_of_players;
 
-  SpriteAnimation idle = createSpriteAnimation(4,
+  SpriteAnimation idle = createSpriteAnimation(6,
                                                (char *[]){
-                                                   "slime_0_0",
-                                                   "slime_0_1",
-                                                   "slime_0_2",
-                                                   "slime_0_3",
+                                                   "Meow-Knight_Idle_0_0",
+                                                   "Meow-Knight_Idle_1_0",
+                                                   "Meow-Knight_Idle_2_0",
+                                                   "Meow-Knight_Idle_3_0",
+                                                   "Meow-Knight_Idle_4_0",
+                                                   "Meow-Knight_Idle_5_0",
                                                },
                                                6, true);
 
-  SpriteAnimation walk = createSpriteAnimation(4,
+  SpriteAnimation walk = createSpriteAnimation(8,
                                                (char *[]){
-                                                   "slime_1_0",
-                                                   "slime_1_1",
-                                                   "slime_1_2",
-                                                   "slime_1_3",
+                                                   "Meow-Knight_Run_0_0",
+                                                   "Meow-Knight_Run_1_0",
+                                                   "Meow-Knight_Run_2_0",
+                                                   "Meow-Knight_Run_3_0",
+                                                   "Meow-Knight_Run_4_0",
+                                                   "Meow-Knight_Run_5_0",
+                                                   "Meow-Knight_Run_6_0",
+                                                   "Meow-Knight_Run_7_0",
                                                },
                                                8, true);
 
@@ -63,14 +69,27 @@ static void drawBullets(Game_System *game) {
   int bulletNum = game->num_of_bullets;
   Bullet *bullets = game->bullets;
 
+  SpriteAnimation fireAnime = createSpriteAnimation(6,
+                                                    (char *[]){
+                                                        "fire_1_0_0",
+                                                        "fire_1_0_1",
+                                                        "fire_1_0_2",
+                                                        "fire_1_0_3",
+                                                        "fire_1_0_4",
+                                                        "fire_1_0_5",
+                                                    },
+                                                    12, true);
+
   while (bulletNum--) {
     Vector2 pos = bullets->position;
-    Rectangle dest = {pos.x, pos.y, 16, 16};
-    DrawAtlasSpritePro("tile_7_7", dest, (Vector2){0, 0}, 0, WHITE, false);
+    Rectangle dest = {pos.x, pos.y, 32, 32};
+    drawSpriteAnimationPro(&fireAnime, dest, (Vector2){0, 0}, 0, WHITE, false);
     bullets->position.x += bullets->bulletSpeed * cos(bullets->angle * DEG2RAD);
     bullets->position.y += bullets->bulletSpeed * sin(bullets->angle * DEG2RAD);
     bullets++;
   }
+
+  disposeSpriteAnimation(&fireAnime);
 }
 
 void drawScene() {
@@ -79,7 +98,6 @@ void drawScene() {
   ClearBackground(GetColor(0x052c46ff));
 
   drawPlayers(gameSystemInstance);
-  drawBullets(gameSystemInstance);
 
   // TODO: Delete Me later
   // Example for using atlas
@@ -87,19 +105,34 @@ void drawScene() {
   // 0, WHITE, false);
 
   // TODO: Delete Me later
-  SpriteAnimation anim = createSpriteAnimation(4,
-                                               (char *[]){
-                                                   "vampire_1",
-                                                   "vampire_2",
-                                                   "vampire_3",
-                                                   "vampire_4",
-                                               },
-                                               6, true);
+  SpriteAnimation vampire = createSpriteAnimation(4,
+                                                  (char *[]){
+                                                      "vampire_1",
+                                                      "vampire_2",
+                                                      "vampire_3",
+                                                      "vampire_4",
+                                                  },
+                                                  6, true);
 
-  drawSpriteAnimationPro(&anim, (Rectangle){128, 128, 64, 64}, (Vector2){0, 0},
-                         0, WHITE, false);
+  SpriteAnimation slime = createSpriteAnimation(4,
+                                                (char *[]){
+                                                    "slime_1_0",
+                                                    "slime_1_1",
+                                                    "slime_1_2",
+                                                    "slime_1_3",
+                                                },
+                                                6, true);
 
-  disposeSpriteAnimation(&anim);
+  drawSpriteAnimationPro(&vampire, (Rectangle){128, 128, 64, 64},
+                         (Vector2){0, 0}, 0, WHITE, false);
 
+  drawSpriteAnimationPro(&slime,
+                         (Rectangle){SCREEN_WIDTH - 128 - 64, 128, 64, 64},
+                         (Vector2){0, 0}, 0, WHITE, true);
+
+  drawBullets(gameSystemInstance);
+
+  disposeSpriteAnimation(&slime);
+  disposeSpriteAnimation(&vampire);
   EndDrawing();
 }
