@@ -27,5 +27,7 @@
 
 #define PLAYER_SPEED 5
 
+#define MAX_FILENAME_LENGTH 256
+
 
 #endif // DEFS_H

@@ -1,7 +1,4 @@
-#include "raylib.h"
-
-#include "../CRougeLite.h" // NOTE: declare global extern vars
-#include <string.h>
+#include "init.h"
 
 //========================================================
 // LOCAL VARIABLE DIFINATIONS (local to this file)
@@ -11,11 +8,9 @@
 // Init Functions
 //========================================================
 
-Game_System *initGameSystem()
-{
+Game_System *initGameSystem() {
   Game_System *gameSystemInstance = (Game_System *)malloc(sizeof(Game_System));
-  if (gameSystemInstance != NULL)
-  {
+  if (gameSystemInstance != NULL) {
     // Initialize Players Related Variables
     gameSystemInstance->players =
         (Player *)malloc(sizeof(Player) * DEFAULT_MAX_PLAYERS);
@@ -40,8 +35,7 @@ Game_System *initGameSystem()
   return gameSystemInstance;
 }
 
-void initSettings(Game_System *gameSystemInstance)
-{
+void initSettings(Game_System *gameSystemInstance) {
   gameSystemInstance->settings.screen_width = SCREEN_WIDTH;
   gameSystemInstance->settings.screen_height = SCREEN_HEIGHT;
   gameSystemInstance->settings.volume = 50;
@@ -49,30 +43,27 @@ void initSettings(Game_System *gameSystemInstance)
   gameSystemInstance->settings.sfx_on = true;
 }
 
-static void addPlayer(Player *player)
-{
+static void addPlayer(Player *player) {
   Game_System *game = getGameSystemInstance();
   Player *players = game->players;
   players[game->num_of_players++] = *player;
 }
 
-static void addBullet(Bullet *bullet)
-{
+static void addBullet(Bullet *bullet) {
   Game_System *game = getGameSystemInstance();
   Bullet *bullets = game->bullets;
   bullets[game->num_of_bullets++] = *bullet;
 }
 
-float GetAngleBetweenPoints(Vector2 point1, Vector2 point2)
-{
+float GetAngleBetweenPoints(Vector2 point1, Vector2 point2) {
   float deltaX = point2.x - point1.x;
   float deltaY = point2.y - point1.y;
-  float angle = atan2f(deltaY, deltaX) * (180.0f / PI); // Convert radians to degrees
+  float angle =
+      atan2f(deltaY, deltaX) * (180.0f / PI); // Convert radians to degrees
   return angle;
 }
 
-Bullet *initBullet(P_WEAPON weapon, int playerID, Vector2 src, Vector2 dest)
-{
+Bullet *initBullet(P_WEAPON weapon, int playerID, Vector2 src, Vector2 dest) {
 
   Bullet *bullet = (Bullet *)malloc(sizeof(Bullet));
   bullet->bulletDamage = 10.0;
@@ -86,8 +77,7 @@ Bullet *initBullet(P_WEAPON weapon, int playerID, Vector2 src, Vector2 dest)
   return bullet;
 }
 
-Player *initPlayer(const char *name, P_TYPE type, P_WEAPON weapon, int ID)
-{
+Player *initPlayer(const char *name, P_TYPE type, P_WEAPON weapon, int ID) {
   Player *player = (Player *)malloc(sizeof(Player));
   player->name = strdup(name);
   player->type = type;
@@ -108,8 +98,7 @@ Player *initPlayer(const char *name, P_TYPE type, P_WEAPON weapon, int ID)
   return player;
 }
 
-Enemy *initEnemy(E_TYPE type, E_WEAPON weapon)
-{
+Enemy *initEnemy(E_TYPE type, E_WEAPON weapon) {
   Enemy *enemy = (Enemy *)malloc(sizeof(Enemy));
   enemy->type = type;
   enemy->weapon = weapon;
