@@ -21,3 +21,15 @@ cmake --build build
 ```bash
 ./build/CRougeLite/CRougeLite
 ```
+
+
+## Small Dev Logs
+
+- Animation
+
+
+Uploading 2024-06-16 17-24-16.mp4…
+
+
+
+- Basic char movement and bullets
