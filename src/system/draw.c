@@ -22,7 +22,7 @@ static void drawPlayers(Game_System *game) {
   Player *players = game->players;
   int player_num = game->num_of_players;
 
-  SpriteAnimation anim = createSpriteAnimation(4,
+  SpriteAnimation idle = createSpriteAnimation(4,
                                                (char *[]){
                                                    "slime_0_0",
                                                    "slime_0_1",
@@ -31,22 +31,38 @@ static void drawPlayers(Game_System *game) {
                                                },
                                                6, true);
 
+  SpriteAnimation walk = createSpriteAnimation(4,
+                                               (char *[]){
+                                                   "slime_1_0",
+                                                   "slime_1_1",
+                                                   "slime_1_2",
+                                                   "slime_1_3",
+                                               },
+                                               8, true);
+
   while (player_num--) {
     Vector2 pos = players->position;
     bool flip = (players->drawDirection == -1) ? true : false;
-    drawSpriteAnimationPro(&anim, (Rectangle){pos.x, pos.y, 64, 64},
-                           (Vector2){0, 0}, 0, WHITE, flip);
+    if (players->isMoving) {
+      drawSpriteAnimationPro(&walk, (Rectangle){pos.x, pos.y, 64, 64},
+                             (Vector2){0, 0}, 0, WHITE, flip);
+    } else {
+      drawSpriteAnimationPro(&idle, (Rectangle){pos.x, pos.y, 64, 64},
+                             (Vector2){0, 0}, 0, WHITE, flip);
+    }
 
     players++;
   }
 
-  disposeSpriteAnimation(&anim);
+  disposeSpriteAnimation(&idle);
+  disposeSpriteAnimation(&walk);
 }
 
 static void drawBullets(Game_System *game) {
   int x = 320, y = 96;
   int bulletNum = game->num_of_bullets;
   Bullet *bullets = game->bullets;
+
   while (bulletNum--) {
     Vector2 pos = bullets->position;
     Rectangle dest = {pos.x, pos.y, 16, 16};
@@ -80,8 +96,8 @@ void drawScene() {
                                                },
                                                6, true);
 
-  drawSpriteAnimationPro(&anim, (Rectangle){0, 0, 64, 64}, (Vector2){0, 0}, 0,
-                         WHITE, false);
+  drawSpriteAnimationPro(&anim, (Rectangle){128, 128, 64, 64}, (Vector2){0, 0},
+                         0, WHITE, false);
 
   disposeSpriteAnimation(&anim);
 
