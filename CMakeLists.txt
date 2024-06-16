@@ -53,13 +53,13 @@ add_custom_command(
 	DEPENDS ${PROJECT_NAME})
 
 # NOTE: link raylib
-target_link_libraries(${PROJECT_NAME} raylib)
+target_link_libraries(${PROJECT_NAME} raylib m)
 
 # Web Configurations
 # NOTE: just no that it exist I don't know how to run it yet.
-if (${PLATFORM} STREQUAL "Web")
-    set_target_properties(${PROJECT_NAME} PROPERTIES SUFFIX ".html")
-endif()
+# if (${PLATFORM} STREQUAL "Web")
+#     set_target_properties(${PROJECT_NAME} PROPERTIES SUFFIX ".html")
+# endif()
 
 
 
