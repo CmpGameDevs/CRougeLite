@@ -1,15 +1,32 @@
 #include "draw.h"
+#include "atlas.h"
 #include <raylib.h>
+
+void DrawAtlasSpritePro(char *filename, Rectangle dest, Vector2 origin,
+                        float rotation, Color tint, bool flipX) {
+  Game_System *game = getGameSystemInstance();
+  AtlasImage image = getAtlasImage(filename);
+
+  if (image.filename != NULL) {
+    if (flipX) {
+      image.source.width *= -1;
+    }
+
+    DrawTexturePro(game->atlasTexture, image.source, dest, origin, rotation,
+                   tint);
+  }
+}
 
 static void drawPlayers(Game_System *game) {
   Player *players = game->players;
   int player_num = game->num_of_players;
 
-  Rectangle source = {0, 0, players->drawDirection * 16, 16};
   while (player_num--) {
     Vector2 pos = players->position;
-    Rectangle dest = {pos.x, pos.y, 32, 32};
-    DrawTexturePro(players->texture, source, dest, (Vector2){0, 0}, 0, WHITE);
+    bool flip = (players->drawDirection == -1) ? true : false;
+    DrawAtlasSpritePro("slime_1_2", (Rectangle){pos.x, pos.y, 64, 64},
+                       (Vector2){0, 0}, 0, WHITE, flip);
+
     players++;
   }
 }
@@ -19,11 +36,9 @@ static void drawBullets(Game_System *game) {
   int bulletNum = game->num_of_bullets;
   Bullet *bullets = game->bullets;
   while (bulletNum--) {
-    Rectangle source = {x, y, 16, 16};
     Vector2 pos = bullets->position;
     Rectangle dest = {pos.x, pos.y, 16, 16};
-    DrawTexturePro(game->bulletTexture, source, dest, (Vector2){0, 0},
-                   bullets->angle, WHITE);
+    DrawAtlasSpritePro("tile_7_7", dest, (Vector2){0, 0}, 0, WHITE, false);
     bullets->position.x += bullets->bulletSpeed * cos(bullets->angle * DEG2RAD);
     bullets->position.y += bullets->bulletSpeed * sin(bullets->angle * DEG2RAD);
     bullets++;
@@ -35,11 +50,13 @@ void drawScene() {
   BeginDrawing();
   ClearBackground(GetColor(0x052c46ff));
 
-  // TODO: remove this later just here for testing
-  DrawTexture(gameSystemInstance->atlasTexture, 0, 0, WHITE);
-
   drawPlayers(gameSystemInstance);
   drawBullets(gameSystemInstance);
+
+  // TODO: Delete Me later
+  // Example for using atlas
+  DrawAtlasSpritePro("vampire_1", (Rectangle){0, 0, 64, 64}, (Vector2){0, 0}, 0,
+                     WHITE, false);
 
   EndDrawing();
 }

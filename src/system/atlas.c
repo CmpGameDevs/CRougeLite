@@ -48,7 +48,7 @@ void loadAtlasData() {
       sprite->filename = filename;
       sprite->origin.x = originX;
       sprite->origin.y = originY;
-      sprite->source = (Rectangle){x, y, width, height};
+      sprite->source = (Rectangle){width, height, x, y};
       sprite->next = NULL;
       if (images == NULL) {
         game->atlasImages = sprite;
@@ -58,12 +58,21 @@ void loadAtlasData() {
         images = sprite;
       }
     }
-
-    printf("%s\n", line);
-
     line = strtok(NULL, "\n");
   }
   free(line);
 
   UnloadFileText(atlasData);
+}
+
+AtlasImage getAtlasImage(char *filename) {
+  Game_System *game = getGameSystemInstance();
+  AtlasImage *images = game->atlasImages;
+  while (images != NULL) {
+    if (strcmp(images->filename, filename) == 0) {
+      return *images;
+    }
+    images = images->next;
+  }
+  return (AtlasImage){0};
 }
