@@ -76,6 +76,7 @@ typedef struct
   int score;
   int fire;
   int drawDirection;    // 1 for right, -1 for left
+  bool isMoving;
   DIRECTIONS direction; // to get info on the direction the player is facing.
 } Player;
 
