@@ -25,6 +25,14 @@
 
 typedef enum
 {
+  W = 1,
+  A = 2,
+  S = 5,
+  D = 9,
+} KEYS;
+
+typedef enum
+{
   WEREWOLF,
   PYROMANIAC,
   KNIGHT,

@@ -12,6 +12,11 @@ void handleInput()
   mouseEventHandler(gameSystemInstance);
 }
 
+// 1,2,5,9 theses number if you sum any two numbers you will get a unique number not in the list and not equal the sum of any other two numbers same for 3 numbers.
+// I choose these numbers to make it easy to know the angle of movement without making alot of conditions on key press.
+// 1,2,5,9
+// w,a,s,d
+
 static void keyboardEventHandler(Game_System *game)
 {
   int selected_player = 0;
@@ -20,7 +25,20 @@ static void keyboardEventHandler(Game_System *game)
   DIRECTIONS *direction = &(player->direction);
   int speed = player->speed;
 
+  static int angles[18]; // the size is the sum of the 4 numbers for fast retrieval of the angle.
+  memset(angles, -1, sizeof(angles));
+  angles[W + D + A] = angles[W] = -90;
+  angles[W + S + A] = angles[A] = 180;
+  angles[A + S + D] = angles[S] = 90;
+  angles[W + S + D] = angles[D] = 0;
+  angles[W + A] = -135;
+  angles[W + D] = -45;
+  angles[S + D] = 45;
+  angles[S + A] = 135;
+
   player->isMoving = false;
+
+  int sum = 0;
 
   if (IsKeyDown(KEY_ESCAPE))
   {
@@ -28,30 +46,31 @@ static void keyboardEventHandler(Game_System *game)
   }
   if (IsKeyDown(KEY_W))
   {
-    pos->y -= speed;
+    sum += 1;
     *direction = UP;
-    player->isMoving = true;
   }
   if (IsKeyDown(KEY_S))
   {
-    pos->y += speed;
+    sum += 5;
     *direction = DOWN;
-    player->isMoving = true;
   }
   if (IsKeyDown(KEY_A))
   {
-    pos->x -= speed;
+    sum += 2;
     *direction = LEFT;
-    player->isMoving = true;
     player->drawDirection = -1;
   }
   if (IsKeyDown(KEY_D))
   {
-    pos->x += speed;
+    sum += 9;
     *direction = RIGHT;
-    player->isMoving = true;
     player->drawDirection = 1;
   }
+  if (angles[sum] == -1)
+    return;
+  player->isMoving = true;
+  pos->x += speed * cos(angles[sum] * DEG2RAD);
+  pos->y += speed * sin(angles[sum] * DEG2RAD);
 }
 
 static void mouseEventHandler(Game_System *game)
@@ -60,7 +79,6 @@ static void mouseEventHandler(Game_System *game)
   Player *player = ((game->players) + selected_player);
 
   Vector2 srcPos = {(double)player->position.x + player->body.width / 2, (double)player->position.y + player->body.height / 2};
-
 
   Vector2 mousePos = GetMousePosition();
   if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
@@ -74,9 +92,9 @@ static void mouseEventHandler(Game_System *game)
   float deltaTime = GetFrameTime(); // Get time in seconds for one frame
   if (player->fire == 1 && player->reloadTime <= 0.0f)
   {
-      initBullet(player->weapon, selected_player, srcPos, mousePos);
-      player->reloadTime = player->fireRate;
-    }
-  if(player->reloadTime > 0.0f)
+    initBullet(player->weapon, selected_player, srcPos, mousePos);
+    player->reloadTime = player->fireRate;
+  }
+  if (player->reloadTime > 0.0f)
     player->reloadTime -= deltaTime;
 }
