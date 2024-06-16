@@ -4,7 +4,8 @@
 #include "../CRougeLite.h"
 
 void drawScene();
-
+void DrawAtlasSpritePro(char *filename, Rectangle dest, Vector2 origin,
+                        float rotation, Color tint, bool flipX); 
 
 
 

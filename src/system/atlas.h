@@ -21,6 +21,7 @@
 
 void initAtlas();
 void loadAtlasData();
+AtlasImage getAtlasImage(char *filename);
 
 #endif // ATLAS_H
 
