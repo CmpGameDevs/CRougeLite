@@ -59,15 +59,22 @@ typedef struct
 
 typedef struct
 {
+  double width;
+  double height;
+  //TODO: Add more properties
+}RigidBody2d;
+typedef struct
+{
   // Player Info
   char *name;
   int ID;
+  RigidBody2d body;
   // Player Selection
   P_TYPE type;
   P_WEAPON weapon;
-  Texture2D texture;
 
   // Player Stats
+  double reloadTime;
   Vector2 position;
   double health;
   double speed;
@@ -79,6 +86,7 @@ typedef struct
   bool isMoving;
   DIRECTIONS direction; // to get info on the direction the player is facing.
 } Player;
+
 
 typedef enum
 {
@@ -140,7 +148,6 @@ typedef struct
   Enemy *enemies;
   int num_of_bullets;
   Bullet *bullets;
-  Texture2D bulletTexture;
   int level;
   bool game_over;
   bool finished;

@@ -48,6 +48,7 @@ static void addPlayer(Player *player) {
   Game_System *game = getGameSystemInstance();
   Player *players = game->players;
   players[game->num_of_players++] = *player;
+  printf("Player body width: %f\n", players->body.width);
 }
 
 static void addBullet(Bullet *bullet) {
@@ -78,7 +79,7 @@ Bullet *initBullet(P_WEAPON weapon, int playerID, Vector2 src, Vector2 dest) {
   return bullet;
 }
 
-Player *initPlayer(const char *name, P_TYPE type, P_WEAPON weapon, int ID) {
+Player *initPlayer(const char *name, P_TYPE type, P_WEAPON weapon ,RigidBody2d body, int ID) {
   Player *player = (Player *)malloc(sizeof(Player));
   player->name = strdup(name);
   player->type = type;
@@ -94,6 +95,8 @@ Player *initPlayer(const char *name, P_TYPE type, P_WEAPON weapon, int ID) {
   player->direction = RIGHT;
   player->fire = 0;
   player->ID = ID;
+  player->body = body;  
+  player->reloadTime = 0.0;
   // TODO: Make dictionary for infos related to each type of character.
   addPlayer(player);
   return player;
