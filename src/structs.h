@@ -116,9 +116,9 @@ typedef struct
 
 typedef struct AtlasImage
 {
-  char filename[MAX_FILENAME_LENGTH];
-  Rectangle rect;
-  Texture2D texture;
+  char *filename;
+  Rectangle source;
+  Vector2 origin;
   struct AtlasImage *next;
 } AtlasImage;
 
@@ -137,6 +137,7 @@ typedef struct
   bool game_over;
   bool finished;
   Texture2D atlasTexture;
+  AtlasImage *atlasImages;
 
   Settings settings;
 } Game_System;

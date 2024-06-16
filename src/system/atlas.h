@@ -20,6 +20,7 @@
 #include "../CRougeLite.h"
 
 void initAtlas();
+void loadAtlasData();
 
 #endif // ATLAS_H
 

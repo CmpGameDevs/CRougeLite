@@ -29,6 +29,7 @@ Game_System *initGameSystem() {
     gameSystemInstance->level = 1;
     gameSystemInstance->game_over = false;
     gameSystemInstance->finished = false;
+    gameSystemInstance->atlasImages = NULL;
     initSettings(gameSystemInstance);
   }
 

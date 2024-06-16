@@ -35,6 +35,7 @@ void drawScene() {
   BeginDrawing();
   ClearBackground(GetColor(0x052c46ff));
 
+  // TODO: remove this later just here for testing
   DrawTexture(gameSystemInstance->atlasTexture, 0, 0, WHITE);
 
   drawPlayers(gameSystemInstance);
