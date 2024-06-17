@@ -52,6 +52,12 @@ typedef enum
   LEFT,
   RIGHT,
 } DIRECTIONS;
+typedef struct
+{
+  double width;
+  double height;
+  //TODO: Add more properties
+}RigidBody2d;
 
 typedef struct
 {
@@ -63,14 +69,9 @@ typedef struct
   double angle;
   Vector2 position;
   Texture2D texture;
+  RigidBody2d body;
 } Bullet;
 
-typedef struct
-{
-  double width;
-  double height;
-  //TODO: Add more properties
-}RigidBody2d;
 typedef struct
 {
   // Player Info
@@ -106,6 +107,7 @@ typedef enum
 
 typedef enum
 {
+  E_SWORD,
   NUM_OF_E_WEAPON
 } E_WEAPON;
 
@@ -119,6 +121,10 @@ typedef struct
   double speed;
   double acceleration;
   double fire_rate;
+  Vector2 position;
+  RigidBody2d body;
+    int drawDirection;    // 1 for right, -1 for left
+  bool isMoving;
 } Enemy;
 
 typedef struct

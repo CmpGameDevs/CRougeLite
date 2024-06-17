@@ -96,12 +96,11 @@ static void loadResources(Settings *settings)
   SetMusicVolume(music, settings->volume / 100.0);
   PlayMusicStream(music);
 
-  AtlasImage image = getAtlasImage("Meow-Knight_Idle_0_0");
+  Player *player = initPlayer("Marcus", KNIGHT, LONG_SWORD, (RigidBody2d){64, 64}, (Vector2){settings->screen_width / 2.0, settings->screen_height / 2.0}, 0);
 
-  Player *player = initPlayer("Marcus", KNIGHT, LONG_SWORD, (RigidBody2d){image.source.width, image.source.height}, 0);
+  initEnemy(E_CIVILIAN, E_SWORD, (RigidBody2d){64, 64}, (Vector2){128, 128});
 
-  player->position =
-      (Vector2){settings->screen_width / 2.0, settings->screen_height / 2.0};
+  initEnemy(E_FARMER, E_SWORD, (RigidBody2d){64, 64}, (Vector2){settings->screen_width - 128 - 64, 128});
 }
 
 static void update() { UpdateMusicStream(music); }

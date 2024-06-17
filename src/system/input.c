@@ -78,9 +78,13 @@ static void mouseEventHandler(Game_System *game)
   int selected_player = 0;
   Player *player = ((game->players) + selected_player);
 
-  Vector2 srcPos = {(double)player->position.x + player->body.width / 2, (double)player->position.y + player->body.height / 2};
+  Vector2 srcPos = {(double)player->position.x + player->body.width / 2 - 16, (double)player->position.y + player->body.height / 2 - 16};
 
   Vector2 mousePos = GetMousePosition();
+
+  mousePos.x -= 16;
+  mousePos.y -= 16; 
+
   if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
   {
     player->fire = 1;
@@ -92,7 +96,7 @@ static void mouseEventHandler(Game_System *game)
   float deltaTime = GetFrameTime(); // Get time in seconds for one frame
   if (player->fire == 1 && player->reloadTime <= 0.0f)
   {
-    initBullet(player->weapon, selected_player, srcPos, mousePos);
+    initBullet(player->weapon, selected_player, (RigidBody2d){32, 32}, srcPos, mousePos);
     player->reloadTime = player->fireRate;
   }
   if (player->reloadTime > 0.0f)
