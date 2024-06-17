@@ -103,6 +103,7 @@ typedef struct
   float bulletRange;
   float bulletHealth;
   SpriteRenderer bulletSprite;
+  RigidBody2D rigidBody;
 } BulletInfo;
 
 typedef struct
@@ -116,14 +117,14 @@ typedef struct
 typedef struct {
   float slashRange;
   float slashDamage;
-  int isActive;
+  bool isActive;
+  SpriteRenderer slashSprite;
 } SlashInfo;
 
 typedef struct {
   int playerID;
   SlashInfo slashInfo;
   Transform transform;
-  SpriteRenderer slashSprite;
 } Slash;
 
 
@@ -139,6 +140,7 @@ typedef enum {
 } CombatActionType;
 
 typedef struct {
+  float angle;
   CombatActionUnion action;
   CombatActionType type;
 } CombatAction;
@@ -174,6 +176,7 @@ typedef union {
 } WeaponUnion;
 
 typedef struct {
+  const char *name;
   WeaponType type;
   WeaponUnion weapon;
 } Weapon;
@@ -249,7 +252,6 @@ typedef struct
   
   // Player Selection
   P_TYPE type;
-  P_WEAPON weapon;
 
   // Player Stats
   GameObject object;
@@ -312,7 +314,8 @@ typedef struct
   Texture2D atlasTexture;
   AtlasImage *atlasImages;
 
-  Dictionary *weaponDictionary;
+  Dictionary *playerWeaponDictionary;
+  Dictionary *enemyWeaponDictionary;
   Dictionary *characterDictionary;
 
   Settings settings;
@@ -322,11 +325,6 @@ typedef union {
   Weapon weapon;
 } DictionaryEntry;
 
-/**
- * struct Dictionary
- *
- * Description: opcode and its related struct info
- */
 typedef struct
 {
   int opcode;
