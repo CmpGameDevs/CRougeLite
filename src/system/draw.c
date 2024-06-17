@@ -25,7 +25,7 @@ void DrawAtlasSpritePro(char *filename, Rectangle dest, Vector2 origin,
 static void drawPlayers(Game_System *game)
 {
   Player *players = game->players;
-  int player_num = game->num_of_players;
+  int player_num = game->numOfPlayers;
 
   SpriteAnimation idle = createSpriteAnimation(6,
                                                (char *[]){

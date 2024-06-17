@@ -1,27 +1,39 @@
 #include "init.h"
 
 //========================================================
-// LOCAL VARIABLE DIFINATIONS (local to this file)
+// LOCAL VARIABLE DEFINITIONS (local to this file)
 //========================================================
+static Dictionary* initWeaponDictionary() {
+  Dictionary *dict = malloc(sizeof(Dictionary)*(NUM_OF_P_WEAPON + NUM_OF_E_WEAPON));
+
+  if (dict == NULL) {
+    fprintf(stderr, "Error: malloc failed\n");
+    exit(EXIT_FAILURE);
+  }
+
+  dict[0].opcode = P_GUN;
+  dict[0].entry.weapon = (Weapon){RANGED_WEAPON, .weapon.ranged = {
+      .stats = {10, 0.5, 0, .weaponSprite = {LoadTexture("./src/"), 5, 5}},
+      .bulletInfo = {3, 10, 100, 10, .bulletSprite = {LoadTexture("./src/"), 5, 5}},
+      30, 30}};
+}
 
 //========================================================
 // Init Functions
 //========================================================
 
-Game_System *initGameSystem()
-{
-  Game_System *gameSystemInstance = (Game_System *)malloc(sizeof(Game_System));
-  if (gameSystemInstance != NULL)
-  {
+GameState *initGameState() {
+  GameState *gameSystemInstance = (GameState *)malloc(sizeof(GameState));
+  if (gameSystemInstance != NULL) {
     // Initialize Players Related Variables
     gameSystemInstance->players =
         (Player *)malloc(sizeof(Player) * DEFAULT_MAX_PLAYERS);
-    gameSystemInstance->num_of_players = 0;
+    gameSystemInstance->numOfPlayers = 0;
 
     // Initialize Enemies Related Variables
     gameSystemInstance->enemies =
         (Enemy *)malloc(sizeof(Enemy) * DEFAULT_MAX_ENEMIES);
-    gameSystemInstance->num_of_enemies = 0;
+    gameSystemInstance->numOfEnemies = 0;
     // Initialize Bullets Related Variables
     gameSystemInstance->bullets =
         (Bullet *)malloc(sizeof(Bullet) * DEFAULT_MAX_BULLETS);
@@ -38,20 +50,19 @@ Game_System *initGameSystem()
   return gameSystemInstance;
 }
 
-void initSettings(Game_System *gameSystemInstance)
-{
-  gameSystemInstance->settings.screen_width = SCREEN_WIDTH;
-  gameSystemInstance->settings.screen_height = SCREEN_HEIGHT;
-  gameSystemInstance->settings.volume = 50;
-  gameSystemInstance->settings.music_on = true;
-  gameSystemInstance->settings.sfx_on = true;
+void initSettings() {
+  gameState->settings.screenWidth = SCREEN_WIDTH;
+  gameState->settings.screenHeight = SCREEN_HEIGHT;
+  gameState->settings.musicVolume = 50;
+  gameState->settings.music_on = true;
+  gameState->settings.sfx_on = true;
 }
 
 static void addPlayer(Player *player)
 {
   Game_System *game = getGameSystemInstance();
   Player *players = game->players;
-  players[game->num_of_players++] = *player;
+  players[game->numOfPlayers++] = *player;
 }
 
 static void addEnemy(Enemy *enemy)
@@ -93,10 +104,13 @@ Bullet *initBullet(P_WEAPON weapon, int playerID, RigidBody2d body, Vector2 src,
   return bullet;
 }
 
+Player *initPlayer(const char *name, P_TYPE type, P_WEAPON weapon, int ID) {
+  Settings settings = gameState->settings;
 Player *initPlayer(const char *name, P_TYPE type, P_WEAPON weapon, RigidBody2d body,Vector2 position, int ID)
 {
   Player *player = (Player *)malloc(sizeof(Player));
   player->name = strdup(name);
+  player->ID = ID;
   player->type = type;
   player->weapon = weapon;
   player->health = 100.0;
