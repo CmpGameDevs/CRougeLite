@@ -4,21 +4,26 @@
 #include <raylib.h>
 
 void DrawAtlasSpritePro(char *filename, Rectangle dest, Vector2 origin,
-                        float rotation, Color tint, bool flipX) {
+                        float rotation, Color tint, bool flipX)
+{
   Game_System *game = getGameSystemInstance();
   AtlasImage image = getAtlasImage(filename);
 
-  if (image.filename != NULL) {
-    if (flipX) {
+  if (image.filename != NULL)
+  {
+    if (flipX)
+    {
       image.source.width *= -1;
     }
 
     DrawTexturePro(game->atlasTexture, image.source, dest, origin, rotation,
                    tint);
+    DrawRectangleLines(dest.x, dest.y, dest.width, dest.height, RED);
   }
 }
 
-static void drawPlayers(Game_System *game) {
+static void drawPlayers(Game_System *game)
+{
   Player *players = game->players;
   int player_num = game->num_of_players;
 
@@ -46,13 +51,17 @@ static void drawPlayers(Game_System *game) {
                                                },
                                                8, true);
 
-  while (player_num--) {
+  while (player_num--)
+  {
     Vector2 pos = players->position;
     bool flip = (players->drawDirection == -1) ? true : false;
-    if (players->isMoving) {
+    if (players->isMoving)
+    {
       drawSpriteAnimationPro(&walk, (Rectangle){pos.x, pos.y, 64, 64},
                              (Vector2){0, 0}, 0, WHITE, flip);
-    } else {
+    }
+    else
+    {
       drawSpriteAnimationPro(&idle, (Rectangle){pos.x, pos.y, 64, 64},
                              (Vector2){0, 0}, 0, WHITE, flip);
     }
@@ -64,7 +73,59 @@ static void drawPlayers(Game_System *game) {
   disposeSpriteAnimation(&walk);
 }
 
-static void drawBullets(Game_System *game) {
+static void drawEnemies(Game_System *game)
+{
+  Enemy *enemies = game->enemies;
+  int enemy_num = game->num_of_enemies;
+
+  if (enemies == NULL)
+    return;
+
+  while (enemy_num--)
+  {
+
+    char *frames[4];
+    if (enemies->type == E_CIVILIAN)
+    {
+      frames[0] = "vampire_1";
+      frames[1] = "vampire_2";
+      frames[2] = "vampire_3";
+      frames[3] = "vampire_4";
+    }
+    else if (enemies->type == E_FARMER)
+    {
+      frames[0] = "slime_1_0";
+      frames[1] = "slime_1_1";
+      frames[2] = "slime_1_2";
+      frames[3] = "slime_1_3";
+    }
+
+    SpriteAnimation idle = createSpriteAnimation(4, frames, 6, true);
+
+    Vector2 pos = enemies->position;
+    bool flip = (enemies->drawDirection == -1) ? true : false;
+    if (enemies->isMoving)
+    {
+      // TODO: Change this to the correct animation
+      //  drawSpriteAnimationPro(&walk, (Rectangle){pos.x, pos.y, 64, 64},
+      //                         (Vector2){0, 0}, 0, WHITE, flip);
+    }
+    else
+    {
+      // printf("pos.x: %f, pos.y: %f\n", pos.x, pos.y);
+      drawSpriteAnimationPro(&idle, (Rectangle){pos.x, pos.y, 64, 64},
+                             (Vector2){0, 0}, 0, WHITE, flip);
+    }
+
+    disposeSpriteAnimation(&idle);
+    enemies++;
+  }
+
+  // disposeSpriteAnimation(&walk);
+}
+
+static void drawBullets(Game_System *game)
+{
   int x = 320, y = 96;
   int bulletNum = game->num_of_bullets;
   Bullet *bullets = game->bullets;
@@ -80,7 +141,8 @@ static void drawBullets(Game_System *game) {
                                                     },
                                                     12, true);
 
-  while (bulletNum--) {
+  while (bulletNum--)
+  {
     Vector2 pos = bullets->position;
     Rectangle dest = {pos.x, pos.y, 32, 32};
     drawSpriteAnimationPro(&fireAnime, dest, (Vector2){0, 0}, 0, WHITE, false);
@@ -91,8 +153,47 @@ static void drawBullets(Game_System *game) {
 
   disposeSpriteAnimation(&fireAnime);
 }
+static bool checkCollision(Rectangle rect1, Rectangle rect2)
+{
+  // collision x-axis?
+  bool collisionX = rect1.x + rect1.width >= rect2.x &&
+                    rect2.x + rect2.width >= rect1.x;
+  // collision y-axis?
+  bool collisionY = rect1.y + rect1.height >= rect2.y &&
+                    rect2.y + rect2.height >= rect1.y;
+  // collision only if on both axes
+  return collisionX && collisionY;
+}
 
-void drawScene() {
+static void bulletCollision(Game_System *game)
+{
+  for (int i = 0; i < game->num_of_bullets; i++)
+  {
+    for (int j = 0; j < game->num_of_enemies; j++)
+    {
+      if (checkCollision((Rectangle){game->bullets[i].position.x, game->bullets[i].position.y, game->bullets[i].body.width, game->bullets[i].body.height},
+                         (Rectangle){game->enemies[j].position.x, game->enemies[j].position.y, game->enemies[j].body.width, game->enemies[j].body.height}))
+      {
+        game->bullets[i] = game->bullets[game->num_of_bullets - 1];
+        game->num_of_bullets--;
+        
+        if (game->enemies[j].health > 0)
+          game->enemies[j].health -= game->bullets[i].bulletDamage;
+        else
+          game->enemies[j].health = 0;
+
+        if (game->enemies[j].health == 0)
+        {
+          game->enemies[j] = game->enemies[game->num_of_enemies - 1];
+          game->num_of_enemies--;
+        }
+      }
+    }
+  }
+}
+
+void drawScene()
+{
   Game_System *gameSystemInstance = getGameSystemInstance();
   BeginDrawing();
   ClearBackground(GetColor(0x052c46ff));
@@ -105,34 +206,11 @@ void drawScene() {
   // 0, WHITE, false);
 
   // TODO: Delete Me later
-  SpriteAnimation vampire = createSpriteAnimation(4,
-                                                  (char *[]){
-                                                      "vampire_1",
-                                                      "vampire_2",
-                                                      "vampire_3",
-                                                      "vampire_4",
-                                                  },
-                                                  6, true);
+  bulletCollision(gameSystemInstance);
 
-  SpriteAnimation slime = createSpriteAnimation(4,
-                                                (char *[]){
-                                                    "slime_1_0",
-                                                    "slime_1_1",
-                                                    "slime_1_2",
-                                                    "slime_1_3",
-                                                },
-                                                6, true);
-
-  drawSpriteAnimationPro(&vampire, (Rectangle){128, 128, 64, 64},
-                         (Vector2){0, 0}, 0, WHITE, false);
-
-  drawSpriteAnimationPro(&slime,
-                         (Rectangle){SCREEN_WIDTH - 128 - 64, 128, 64, 64},
-                         (Vector2){0, 0}, 0, WHITE, true);
+  drawEnemies(gameSystemInstance);
 
   drawBullets(gameSystemInstance);
 
-  disposeSpriteAnimation(&slime);
-  disposeSpriteAnimation(&vampire);
   EndDrawing();
 }

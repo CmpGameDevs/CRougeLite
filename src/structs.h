@@ -25,6 +25,14 @@
 
 typedef enum
 {
+  W = 1,
+  A = 2,
+  S = 5,
+  D = 9,
+} KEYS;
+
+typedef enum
+{
   WEREWOLF,
   PYROMANIAC,
   KNIGHT,
@@ -44,6 +52,12 @@ typedef enum
   LEFT,
   RIGHT,
 } DIRECTIONS;
+typedef struct
+{
+  double width;
+  double height;
+  //TODO: Add more properties
+}RigidBody2d;
 
 typedef struct
 {
@@ -55,6 +69,7 @@ typedef struct
   double angle;
   Vector2 position;
   Texture2D texture;
+  RigidBody2d body;
 } Bullet;
 
 typedef struct
@@ -62,12 +77,13 @@ typedef struct
   // Player Info
   char *name;
   int ID;
+  RigidBody2d body;
   // Player Selection
   P_TYPE type;
   P_WEAPON weapon;
-  Texture2D texture;
 
   // Player Stats
+  double reloadTime;
   Vector2 position;
   double health;
   double speed;
@@ -80,6 +96,7 @@ typedef struct
   DIRECTIONS direction; // to get info on the direction the player is facing.
 } Player;
 
+
 typedef enum
 {
   E_CIVILIAN,
@@ -90,6 +107,7 @@ typedef enum
 
 typedef enum
 {
+  E_SWORD,
   NUM_OF_E_WEAPON
 } E_WEAPON;
 
@@ -103,6 +121,10 @@ typedef struct
   double speed;
   double acceleration;
   double fire_rate;
+  Vector2 position;
+  RigidBody2d body;
+    int drawDirection;    // 1 for right, -1 for left
+  bool isMoving;
 } Enemy;
 
 typedef struct
@@ -140,7 +162,6 @@ typedef struct
   Enemy *enemies;
   int num_of_bullets;
   Bullet *bullets;
-  Texture2D bulletTexture;
   int level;
   bool game_over;
   bool finished;
