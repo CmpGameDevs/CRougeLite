@@ -23,16 +23,211 @@
 // TODO: Make enum for all stats related to the specified types
 // instead of no encapsulation.
 
-typedef enum
+typedef struct {
+  Vector2 position;
+  float rotation;
+  Vector2 scale;
+} Transform;
+
+typedef struct {
+  Vector2 velocity;
+  Vector2 acceleration;
+  float drag;
+  bool isKinematic;       // Kinematic object is typically not affected by physics 
+                          // forces but can still interact with other objects in certain ways.
+} RigidBody2D;
+
+typedef struct {
+  Vector2 offset;
+  float width;
+  float height;
+} Collider2D;
+
+typedef struct {
+  Texture2D texture;
+  int width;
+  int height;
+} SpriteRenderer;
+
+typedef struct {
+  char** frameNames;     // Idk what is the type of the animation sprites.
+  int currentFrame;
+  int numOfFrames;
+  int framesPerSecond;
+  float frameTime;
+  float elapsedTime;      // Time elapsed since the last frame change.
+  bool loop;          // NOTE: still not used
+  bool finished;      // NOTE: still not used
+} Animator;
+
+typedef struct {
+  int currentHealth;
+  int maxHealth;
+} Health;
+
+// IDK if those affect the other structs or not (like leveling up)
+typedef struct {
+  float power;
+  float speed;
+  float cooldown;
+} Attack;
+
+typedef struct {
+  int value;
+  int nearHitValue;       // Blocked on the last second.
+  // TODO: Add defense for different type of attacks?
+} Defense;
+
+typedef struct {
+  int xp;
+  int level;
+} Experience;
+
+typedef struct {
+  Health health;
+  Attack attack;
+  Defense defense;
+} Stats;
+
+typedef struct {
+  int up;
+  int down;
+  int left;
+  int right;
+  int shoot;
+  int action;
+} Input;
+
+typedef struct
 {
-  W = 1,
-  A = 2,
-  S = 5,
-  D = 9,
-} KEYS;
+  float bulletSpeed;
+  float bulletDamage;
+  float bulletRange;
+  float bulletHealth;
+  SpriteRenderer bulletSprite;
+  RigidBody2D rigidBody;
+  Collider2D collider;
+} BulletInfo;
+
+typedef struct
+{
+  int playerID;
+  BulletInfo bulletInfo;
+  Vector2 startPosition;      // To know if the bullet exceeded the range.
+  Transform transform;
+} Bullet;
+
+typedef struct {
+  float slashRange;
+  float slashDamage;
+  bool isActive;
+  SpriteRenderer slashSprite;
+  Collider2D collider;
+} SlashInfo;
+
+typedef struct {
+  int playerID;
+  SlashInfo slashInfo;
+  Transform transform;
+} Slash;
+
+typedef union {
+  Bullet bullet;
+  Slash slash;
+} CombatActionUnion;
+
+typedef enum {
+  ACTION_NONE,
+  ACTION_BULLET,
+  ACTION_SLASH
+} CombatActionType;
+
+typedef struct {
+  float angle;
+  CombatActionUnion action;
+  CombatActionType type;
+} CombatAction;
+
+typedef struct {
+  int damage;
+  float cooldown;
+  float lastUseTime;
+  SpriteRenderer weaponSprite;
+} WeaponStats;
+
+typedef struct {
+  WeaponStats stats;
+  BulletInfo bulletInfo;
+  int maxAmmo;
+  int ammo;
+} RangedWeapon;
+
+typedef struct {
+  WeaponStats stats;
+  SlashInfo slashInfo;
+} MeleeWeapon;
+
+typedef enum {
+  RANGED_WEAPON,
+  MELEE_WEAPON,
+  NUM_OF_WEAPON_TYPES
+} WeaponType;
+
+typedef union {
+  RangedWeapon ranged;
+  MeleeWeapon melee;
+} WeaponUnion;
+
+typedef struct {
+  const char *name;
+  WeaponType type;
+  WeaponUnion weapon;
+} Weapon;
+
+typedef struct {
+  int MAX_NUM_OF_WEAPONS;
+  int currentNumOfWeapons;
+  Weapon* weapons;
+} Inventory;
+
+typedef struct {
+  Transform transform;
+  RigidBody2D rigidBody;
+  Collider2D collider;
+  SpriteRenderer spriteRenderer;
+  Animator animator;
+  Stats stats;
+  Weapon weapon;
+} GameObject;
+
+typedef enum {
+  PATROL,
+  IDLE,
+  CHASE,
+  ATTACK,
+  FLEE
+} State;
+
+typedef struct {
+  Vector2 patrolStart;
+  Vector2 patrolEnd;
+  float detectionRange;
+  float attackCooldown;
+  float lastAttackTime;
+  float dodgePercentage;        // Dodge or Parry or Block. Or do these three separately??
+  float speed;
+  State state;
+} EnemyAI;
+
+typedef struct {
+  char *name;
+  GameObject object;
+  EnemyAI ai;
+} Enemy;
 
 typedef enum
 {
+  CAT,
   WEREWOLF,
   PYROMANIAC,
   KNIGHT,
@@ -41,7 +236,8 @@ typedef enum
 
 typedef enum
 {
-  LONG_SWORD,
+  P_GUN,
+  P_LONG_SWORD,
   NUM_OF_P_WEAPON
 } P_WEAPON;
 
@@ -52,43 +248,20 @@ typedef enum
   LEFT,
   RIGHT,
 } DIRECTIONS;
-typedef struct
-{
-  double width;
-  double height;
-  //TODO: Add more properties
-}RigidBody2d;
-
-typedef struct
-{
-  int playerID;
-  double bulletSpeed;
-  double bulletDamage;
-  double bulletRange;
-  double bulletHealth;
-  double angle;
-  Vector2 position;
-  Texture2D texture;
-  RigidBody2d body;
-} Bullet;
 
 typedef struct
 {
   // Player Info
   char *name;
   int ID;
-  RigidBody2d body;
+  
   // Player Selection
   P_TYPE type;
-  P_WEAPON weapon;
 
   // Player Stats
-  double reloadTime;
-  Vector2 position;
-  double health;
-  double speed;
-  double acceleration;
-  double fireRate;
+  GameObject object;
+  Input input;
+  Experience experience;
   int score;
   int fire;
   int drawDirection;    // 1 for right, -1 for left
@@ -113,29 +286,14 @@ typedef enum
 
 typedef struct
 {
-  int health;
-  E_TYPE type;
-  E_WEAPON weapon;
-  Texture2D texture;
-
-  double speed;
-  double acceleration;
-  double fire_rate;
-  Vector2 position;
-  RigidBody2d body;
-    int drawDirection;    // 1 for right, -1 for left
-  bool isMoving;
-} Enemy;
-
-typedef struct
-{
-  int screen_width;
-  int screen_height;
-  int volume;
+  int screenWidth;
+  int screenHeight;
+  bool fullscreen;
+  int musicVolume;
+  int soundVolume;
   bool music_on;
   bool sfx_on;
 } Settings;
-
 
 typedef struct AtlasImage
 {
@@ -145,29 +303,41 @@ typedef struct AtlasImage
   struct AtlasImage *next;
 } AtlasImage;
 
-typedef struct SpriteAnimation {
-  int numOfFrames;
-  char **frameNames;
-  int currentFrame;   // NOTE: still not used
-  int framesPerSecond;
-  bool loop;          // NOTE: still not used
-  bool finished;      // NOTE: still not used
-} SpriteAnimation;
-
 typedef struct
 {
-  int num_of_players;
+  int numOfPlayers;
   Player *players;
-  int num_of_enemies;
+  
+  int numOfEnemies;
   Enemy *enemies;
-  int num_of_bullets;
-  Bullet *bullets;
+
+  int numOfCombatActions;
+  CombatAction *combatActions;
+
   int level;
-  bool game_over;
-  bool finished;
+  bool isGameOver;
+  bool isFinished;
   Texture2D atlasTexture;
   AtlasImage *atlasImages;
 
+  Dictionary *playerWeaponDictionary;
+  Dictionary *enemyWeaponDictionary;
+  Dictionary *characterDictionary;
+  Dictionary *enemyDictionary;
+
   Settings settings;
-} Game_System;
+} GameState;
+
+typedef union {
+  Weapon weapon;
+  Enemy enemy;
+  GameObject character;
+} DictionaryEntry;
+
+typedef struct
+{
+  int opcode;
+  DictionaryEntry entry;
+} Dictionary;
+
 #endif // STRUCTS_H

@@ -26,21 +26,20 @@
 // Global Shared Variables
 //========================================================
 extern Music music;
+extern GameState* gameState;
 
 //========================================================
 // Global Functions
 //========================================================
-Game_System *getGameSystemInstance();
-
 // Init Functions
-Game_System *initGameSystem();
-void initSettings(Game_System *gameSystemInstance);
-Player *initPlayer(const char *name, P_TYPE type, P_WEAPON weapon, RigidBody2d body, Vector2 position, int ID);
-Enemy *initEnemy(E_TYPE type, E_WEAPON weapon, RigidBody2d body, Vector2 position);
-Bullet *initBullet(P_WEAPON weapon, int playerID, RigidBody2d body, Vector2 src, Vector2 dest);
+GameState *initGameState();
+void initSettings();
+Player *initPlayer(const char *name, P_TYPE type, P_WEAPON weapon,Vector2 position, int ID);
+Enemy *initEnemy(E_TYPE type, E_WEAPON weapon, Vector2 position);
+Bullet *initBullet(int ID, BulletInfo* bulletInfo, Vector2 src, Vector2 dest);
 
 // Clear Resources Functions
-void clearGameSystem();
+void clearGameState();
 void clearPlayer(Player **player);
 void clearEnemy(Enemy **enemy);
 

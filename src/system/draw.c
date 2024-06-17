@@ -25,7 +25,7 @@ void DrawAtlasSpritePro(char *filename, Rectangle dest, Vector2 origin,
 static void drawPlayers(Game_System *game)
 {
   Player *players = game->players;
-  int player_num = game->num_of_players;
+  int player_num = game->numOfPlayers;
 
   SpriteAnimation idle = createSpriteAnimation(6,
                                                (char *[]){
@@ -182,6 +182,7 @@ static void bulletCollision(Game_System *game)
         else
           game->enemies[j].health = 0;
 
+        // WTF???? Who wrote this shit??
         if (game->enemies[j].health == 0)
         {
           game->enemies[j] = game->enemies[game->num_of_enemies - 1];
