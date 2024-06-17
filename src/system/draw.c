@@ -182,6 +182,7 @@ static void bulletCollision(Game_System *game)
         else
           game->enemies[j].health = 0;
 
+        // WTF???? Who wrote this shit??
         if (game->enemies[j].health == 0)
         {
           game->enemies[j] = game->enemies[game->num_of_enemies - 1];
