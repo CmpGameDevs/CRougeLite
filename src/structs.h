@@ -23,18 +23,19 @@
 // TODO: Make enum for all stats related to the specified types
 // instead of no encapsulation.
 
-typedef struct {
+typedef struct CTransform {
   Vector2 position;
   float rotation;
   Vector2 scale;
-} Transform;
+} CTransform;
 
 typedef struct {
   Vector2 velocity;
   Vector2 acceleration;
   float drag;
-  bool isKinematic;       // Kinematic object is typically not affected by physics 
-                          // forces but can still interact with other objects in certain ways.
+  bool isKinematic; // Kinematic object is typically not affected by physics
+                    // forces but can still interact with other objects in
+                    // certain ways.
 } RigidBody2D;
 
 typedef struct {
@@ -50,14 +51,14 @@ typedef struct {
 } SpriteRenderer;
 
 typedef struct {
-  char** frameNames;     // Idk what is the type of the animation sprites.
+  char **frameNames; // Idk what is the type of the animation sprites.
   int currentFrame;
   int numOfFrames;
   int framesPerSecond;
   float frameTime;
-  float elapsedTime;      // Time elapsed since the last frame change.
-  bool loop;          // NOTE: still not used
-  bool finished;      // NOTE: still not used
+  float elapsedTime; // Time elapsed since the last frame change.
+  bool loop;         // NOTE: still not used
+  bool finished;     // NOTE: still not used
 } Animator;
 
 typedef struct {
@@ -74,7 +75,7 @@ typedef struct {
 
 typedef struct {
   int value;
-  int nearHitValue;       // Blocked on the last second.
+  int nearHitValue; // Blocked on the last second.
   // TODO: Add defense for different type of attacks?
 } Defense;
 
@@ -98,8 +99,7 @@ typedef struct {
   int action;
 } Input;
 
-typedef struct
-{
+typedef struct {
   float bulletSpeed;
   float bulletDamage;
   float bulletRange;
@@ -109,12 +109,11 @@ typedef struct
   Collider2D collider;
 } BulletInfo;
 
-typedef struct
-{
+typedef struct {
   int playerID;
   BulletInfo bulletInfo;
-  Vector2 startPosition;      // To know if the bullet exceeded the range.
-  Transform transform;
+  Vector2 startPosition; // To know if the bullet exceeded the range.
+  CTransform transform;
 } Bullet;
 
 typedef struct {
@@ -128,7 +127,7 @@ typedef struct {
 typedef struct {
   int playerID;
   SlashInfo slashInfo;
-  Transform transform;
+  CTransform transform;
 } Slash;
 
 typedef union {
@@ -136,11 +135,7 @@ typedef union {
   Slash slash;
 } CombatActionUnion;
 
-typedef enum {
-  ACTION_NONE,
-  ACTION_BULLET,
-  ACTION_SLASH
-} CombatActionType;
+typedef enum { ACTION_NONE, ACTION_BULLET, ACTION_SLASH } CombatActionType;
 
 typedef struct {
   float angle;
@@ -167,11 +162,7 @@ typedef struct {
   SlashInfo slashInfo;
 } MeleeWeapon;
 
-typedef enum {
-  RANGED_WEAPON,
-  MELEE_WEAPON,
-  NUM_OF_WEAPON_TYPES
-} WeaponType;
+typedef enum { RANGED_WEAPON, MELEE_WEAPON, NUM_OF_WEAPON_TYPES } WeaponType;
 
 typedef union {
   RangedWeapon ranged;
@@ -187,7 +178,7 @@ typedef struct {
 typedef struct {
   int MAX_NUM_OF_WEAPONS;
   int currentNumOfWeapons;
-  Weapon* weapons;
+  Weapon *weapons;
 } Inventory;
 
 typedef struct {
@@ -200,13 +191,7 @@ typedef struct {
   Weapon weapon;
 } GameObject;
 
-typedef enum {
-  PATROL,
-  IDLE,
-  CHASE,
-  ATTACK,
-  FLEE
-} State;
+typedef enum { PATROL, IDLE, CHASE, ATTACK, FLEE } State;
 
 typedef struct {
   Vector2 patrolStart;
@@ -214,7 +199,8 @@ typedef struct {
   float detectionRange;
   float attackCooldown;
   float lastAttackTime;
-  float dodgePercentage;        // Dodge or Parry or Block. Or do these three separately??
+  float dodgePercentage; // Dodge or Parry or Block. Or do these three
+                         // separately??
   float speed;
   State state;
 } EnemyAI;
@@ -225,36 +211,22 @@ typedef struct {
   EnemyAI ai;
 } Enemy;
 
-typedef enum
-{
-  CAT,
-  WEREWOLF,
-  PYROMANIAC,
-  KNIGHT,
-  NUM_OF_P_TYPE
-} P_TYPE;
+typedef enum { CAT, WEREWOLF, PYROMANIAC, KNIGHT, NUM_OF_P_TYPE } P_TYPE;
 
-typedef enum
-{
-  P_GUN,
-  P_LONG_SWORD,
-  NUM_OF_P_WEAPON
-} P_WEAPON;
+typedef enum { P_GUN, P_LONG_SWORD, NUM_OF_P_WEAPON } P_WEAPON;
 
-typedef enum
-{
+typedef enum {
   UP,
   DOWN,
   LEFT,
   RIGHT,
 } DIRECTIONS;
 
-typedef struct
-{
+typedef struct {
   // Player Info
   char *name;
   int ID;
-  
+
   // Player Selection
   P_TYPE type;
 
@@ -264,28 +236,16 @@ typedef struct
   Experience experience;
   int score;
   int fire;
-  int drawDirection;    // 1 for right, -1 for left
+  int drawDirection; // 1 for right, -1 for left
   bool isMoving;
   DIRECTIONS direction; // to get info on the direction the player is facing.
 } Player;
 
+typedef enum { E_CIVILIAN, E_FARMER, E_KNIGHT, NUM_OF_E_TYPE } E_TYPE;
 
-typedef enum
-{
-  E_CIVILIAN,
-  E_FARMER,
-  E_KNIGHT,
-  NUM_OF_E_TYPE
-} E_TYPE;
+typedef enum { E_SWORD, NUM_OF_E_WEAPON } E_WEAPON;
 
-typedef enum
-{
-  E_SWORD,
-  NUM_OF_E_WEAPON
-} E_WEAPON;
-
-typedef struct
-{
+typedef struct {
   int screenWidth;
   int screenHeight;
   bool fullscreen;
@@ -295,19 +255,28 @@ typedef struct
   bool sfx_on;
 } Settings;
 
-typedef struct AtlasImage
-{
+typedef struct AtlasImage {
   char *filename;
   Rectangle source;
   Vector2 origin;
   struct AtlasImage *next;
 } AtlasImage;
 
-typedef struct
-{
+typedef union {
+  Weapon weapon;
+  Enemy enemy;
+  GameObject character;
+} DictionaryEntry;
+
+typedef struct {
+  int opcode;
+  DictionaryEntry entry;
+} Dictionary;
+
+typedef struct {
   int numOfPlayers;
   Player *players;
-  
+
   int numOfEnemies;
   Enemy *enemies;
 
@@ -327,17 +296,5 @@ typedef struct
 
   Settings settings;
 } GameState;
-
-typedef union {
-  Weapon weapon;
-  Enemy enemy;
-  GameObject character;
-} DictionaryEntry;
-
-typedef struct
-{
-  int opcode;
-  DictionaryEntry entry;
-} Dictionary;
 
 #endif // STRUCTS_H

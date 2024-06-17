@@ -31,7 +31,7 @@
 // NOTE: this must be defined as externs in the .h file
 //========================================================
 Music music = {0};
-GameState* gameState = NULL;
+GameState *gameState = NULL;
 
 //========================================================
 // LOCAL VARIABLE DEFINITIONS (local to this file)
@@ -51,8 +51,7 @@ int main(void) {
   gameState = initGameState();
   Settings *settings = &(gameState->settings);
 
-  InitWindow(settings->screenWidth, settings->screenHeight,
-             "C rougelite game");
+  InitWindow(settings->screenWidth, settings->screenHeight, "C rougelite game");
   // printf("TEST\n");
   initAtlas();
 
@@ -62,8 +61,7 @@ int main(void) {
 
   // Main Game Loop
   bool *quit = &(gameState->isFinished);
-  while (!WindowShouldClose() && !(*quit))
-  {
+  while (!WindowShouldClose() && !(*quit)) {
     handleInput();
     update();
 
@@ -75,8 +73,7 @@ int main(void) {
   return 0;
 }
 
-static void loadResources(Settings *settings)
-{
+static void loadResources(Settings *settings) {
   // load global assets
   InitAudioDevice();
   music = LoadMusicStream("./src/"
@@ -86,18 +83,20 @@ static void loadResources(Settings *settings)
   SetMusicVolume(music, settings->musicVolume / 100.0);
   PlayMusicStream(music);
 
-  Player *player = initPlayer("Marcus", CAT, P_GUN, (Vector2){settings->screenWidth / 2.0, settings->screenHeight / 2.0}, 0);
+  Player *player = initPlayer(
+      "Marcus", CAT, P_GUN,
+      (Vector2){settings->screenWidth / 2.0, settings->screenHeight / 2.0}, 0);
 
   initEnemy(E_CIVILIAN, E_SWORD, (Vector2){128, 128});
 
-  initEnemy(E_FARMER, E_SWORD, (Vector2){settings->screenWidth - 128 - 64, 128});
+  initEnemy(E_FARMER, E_SWORD,
+            (Vector2){settings->screenWidth - 128 - 64, 128});
 }
 
 static void update() { UpdateMusicStream(music); }
 
-static void clearResources()
-{
-  clearGameSystem();
+static void clearResources() {
+  clearGameState();
 
   // Unload assets and cleaning
   UnloadMusicStream(music);
