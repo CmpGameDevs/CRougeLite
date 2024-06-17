@@ -96,7 +96,7 @@ static void mouseEventHandler(Game_System *game)
   float deltaTime = GetFrameTime(); // Get time in seconds for one frame
   if (player->fire == 1 && player->reloadTime <= 0.0f)
   {
-    initBullet(player->weapon, selected_player, (RigidBody2d){32, 32}, srcPos, mousePos);
+    initBullet(player->weapon, selected_player, (RigidBody2d){16, 16}, srcPos, mousePos);
     player->reloadTime = player->fireRate;
   }
   if (player->reloadTime > 0.0f)

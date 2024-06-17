@@ -18,7 +18,7 @@ void DrawAtlasSpritePro(char *filename, Rectangle dest, Vector2 origin,
 
     DrawTexturePro(game->atlasTexture, image.source, dest, origin, rotation,
                    tint);
-    DrawRectangleLines(dest.x, dest.y, dest.width, dest.height, RED);               
+    DrawRectangleLines(dest.x, dest.y, dest.width, dest.height, RED);
   }
 }
 
@@ -112,7 +112,7 @@ static void drawEnemies(Game_System *game)
     }
     else
     {
-      // printf("pos.x: %f, pos.y: %f\n", pos.x, pos.y); 
+      // printf("pos.x: %f, pos.y: %f\n", pos.x, pos.y);
       drawSpriteAnimationPro(&idle, (Rectangle){pos.x, pos.y, 64, 64},
                              (Vector2){0, 0}, 0, WHITE, flip);
     }
@@ -176,8 +176,17 @@ static void bulletCollision(Game_System *game)
       {
         game->bullets[i] = game->bullets[game->num_of_bullets - 1];
         game->num_of_bullets--;
-        game->enemies[j] = game->enemies[game->num_of_enemies - 1];
-        game->num_of_enemies--;
+        
+        if (game->enemies[j].health > 0)
+          game->enemies[j].health -= game->bullets[i].bulletDamage;
+        else
+          game->enemies[j].health = 0;
+
+        if (game->enemies[j].health == 0)
+        {
+          game->enemies[j] = game->enemies[game->num_of_enemies - 1];
+          game->num_of_enemies--;
+        }
       }
     }
   }
@@ -202,7 +211,6 @@ void drawScene()
   drawEnemies(gameSystemInstance);
 
   drawBullets(gameSystemInstance);
-
 
   EndDrawing();
 }
