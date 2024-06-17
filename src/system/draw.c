@@ -5,7 +5,7 @@
 
 void DrawAtlasSpritePro(char *filename, Rectangle dest, Vector2 origin,
                         float rotation, Color tint, bool flipX) {
-  Game_System *game = getGameSystemInstance();
+  GameState *game = getGameSystemInstance();
   AtlasImage image = getAtlasImage(filename);
 
   if (image.filename != NULL) {
@@ -18,9 +18,9 @@ void DrawAtlasSpritePro(char *filename, Rectangle dest, Vector2 origin,
   }
 }
 
-static void drawPlayers(Game_System *game) {
+static void drawPlayers(GameState *game) {
   Player *players = game->players;
-  int player_num = game->num_of_players;
+  int player_num = game->numOfPlayers;
 
   SpriteAnimation idle = createSpriteAnimation(6,
                                                (char *[]){
@@ -64,7 +64,7 @@ static void drawPlayers(Game_System *game) {
   disposeSpriteAnimation(&walk);
 }
 
-static void drawBullets(Game_System *game) {
+static void drawBullets(GameState *game) {
   int x = 320, y = 96;
   int bulletNum = game->num_of_bullets;
   Bullet *bullets = game->bullets;
@@ -93,7 +93,7 @@ static void drawBullets(Game_System *game) {
 }
 
 void drawScene() {
-  Game_System *gameSystemInstance = getGameSystemInstance();
+  GameState *gameSystemInstance = getGameSystemInstance();
   BeginDrawing();
   ClearBackground(GetColor(0x052c46ff));
 

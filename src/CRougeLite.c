@@ -31,17 +31,10 @@
 // NOTE: this must be defined as externs in the .h file
 //========================================================
 Music music = {0};
-
-Game_System *getGameSystemInstance() {
-  static Game_System *game = NULL;
-  if (game == NULL) {
-    game = initGameSystem();
-  }
-  return game;
-}
+GameState* gameState = NULL;
 
 //========================================================
-// LOCAL VARIABLE DIFINATIONS (local to this file)
+// LOCAL VARIABLE DEFINITIONS (local to this file)
 //========================================================
 
 //========================================================
@@ -55,10 +48,10 @@ static void clearResources();
 // MAIN ENTRY POINT
 //========================================================
 int main(void) {
-  Game_System *game = getGameSystemInstance();
-  Settings *settings = &(game->settings);
+  gameState = initGameState();
+  Settings *settings = &(gameState->settings);
 
-  InitWindow(settings->screen_width, settings->screen_height,
+  InitWindow(settings->screenWidth, settings->screenHeight,
              "C rougelite game");
   // printf("TEST\n");
   loadResources(settings);
@@ -67,7 +60,7 @@ int main(void) {
   SetTargetFPS(60);
 
   // Main Game Loop
-  bool *quit = &(game->finished);
+  bool *quit = &(gameState->isFinished);
   while (!WindowShouldClose() && !(*quit)) {
     handleInput();
     update();
@@ -87,17 +80,16 @@ static void loadResources(Settings *settings) {
                           "./resources/ambient.ogg");
   // NOTE: All paths must start from the src dir
 
-  SetMusicVolume(music, settings->volume / 100.0);
+  SetMusicVolume(music, settings->musicVolume / 100.0);
   PlayMusicStream(music);
 
-  Player *player = initPlayer("Marcus", KNIGHT, LONG_SWORD, 0);
-  player->position =
-      (Vector2){settings->screen_width / 2.0, settings->screen_height / 2.0};
-  Game_System *game = getGameSystemInstance();
-  game->players->texture = LoadTexture("./src/"
+  Player *player = initPlayer("Marcus", KNIGHT, P_GUN, 0);
+  player->object.transform.position =
+      (Vector2){settings->screenWidth / 2.0, settings->screenHeight / 2.0};
+  GameState *game = getGameSystemInstance();
+  game->players->object.spriteRenderer.texture = LoadTexture("./src/"
                                        "./resources/Meow-Knight_Idle.png");
-  game->bulletTexture = LoadTexture("./src/"
-                                    "./resources/bullet.png");
+  //game->bulletTexture = LoadTexture("./src/""./resources/bullet.png");
 }
 
 static void update() { UpdateMusicStream(music); }

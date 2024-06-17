@@ -23,10 +23,10 @@
 // Init Functions
 //========================================================
 
-void clearGameSystem() {
-  Game_System *game = getGameSystemInstance();
-  int player_num = game->num_of_players;
-  int enemy_num = game->num_of_enemies;
+void clearGameState() {
+  GameState *game = getGameSystemInstance();
+  int player_num = game->numOfPlayers;
+  int enemy_num = game->numOfEnemies;
   Player *players = game->players;
   Enemy *enemies = game->enemies;
   while (player_num--) {

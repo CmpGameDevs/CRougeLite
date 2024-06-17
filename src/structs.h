@@ -96,11 +96,86 @@ typedef struct {
   int action;
 } Input;
 
+typedef struct
+{
+  float bulletSpeed;
+  float bulletDamage;
+  float bulletRange;
+  float bulletHealth;
+  SpriteRenderer bulletSprite;
+} BulletInfo;
+
+typedef struct
+{
+  int playerID;
+  BulletInfo bulletInfo;
+  Vector2 startPosition;      // To know if the bullet exceeded the range.
+  Transform transform;
+} Bullet;
+
+typedef struct {
+  float slashRange;
+  float slashDamage;
+  int isActive;
+} SlashInfo;
+
+typedef struct {
+  int playerID;
+  SlashInfo slashInfo;
+  Transform transform;
+  SpriteRenderer slashSprite;
+} Slash;
+
+
+typedef union {
+  Bullet bullet;
+  Slash slash;
+} CombatActionUnion;
+
+typedef enum {
+  ACTION_NONE,
+  ACTION_BULLET,
+  ACTION_SLASH
+} CombatActionType;
+
+typedef struct {
+  CombatActionUnion action;
+  CombatActionType type;
+} CombatAction;
+
 typedef struct {
   int damage;
-  float fireRate;
-  float lastShotTime;
+  float cooldown;
+  float lastUseTime;
   SpriteRenderer weaponSprite;
+} WeaponStats;
+
+typedef struct {
+  WeaponStats stats;
+  BulletInfo bulletInfo;
+  int maxAmmo;
+  int ammo;
+} RangedWeapon;
+
+typedef struct {
+  WeaponStats stats;
+  SlashInfo slashInfo;
+} MeleeWeapon;
+
+typedef enum {
+  RANGED_WEAPON,
+  MELEE_WEAPON,
+  NUM_OF_WEAPON_TYPES
+} WeaponType;
+
+typedef union {
+  RangedWeapon ranged;
+  MeleeWeapon melee;
+} WeaponUnion;
+
+typedef struct {
+  WeaponType type;
+  WeaponUnion weapon;
 } Weapon;
 
 typedef struct {
@@ -153,7 +228,8 @@ typedef enum
 
 typedef enum
 {
-  LONG_SWORD,
+  P_GUN,
+  P_LONG_SWORD,
   NUM_OF_P_WEAPON
 } P_WEAPON;
 
@@ -167,51 +243,13 @@ typedef enum
 
 typedef struct
 {
-  int playerID;
-  float bulletSpeed;
-  float bulletDamage;
-  float bulletRange;
-  float bulletHealth;
-  Vector2 startPosition;      // To know if the bullet exceeded the range.
-  Transform transform;
-  SpriteRenderer bulletSprite;
-} Bullet;
-
-typedef struct {
-  int playerID;
-  float slashRange;
-  float slashDamage;
-  int isActive;
-  Transform transform;
-  SpriteRenderer slashSprite;
-} Slash;
-
-
-typedef union {
-  Bullet bullet;
-  Slash slash;
-} CombatActionUnion;
-
-typedef enum {
-  ACTION_NONE,
-  ACTION_BULLET,
-  ACTION_SLASH
-} CombatActionType;
-
-typedef struct {
-  CombatActionUnion action;
-  CombatActionType type;
-} CombatAction;
-
-typedef struct
-{
   // Player Info
   char *name;
   int ID;
+  
   // Player Selection
   P_TYPE type;
   P_WEAPON weapon;
-  Texture2D texture;
 
   // Player Stats
   GameObject object;
@@ -272,6 +310,25 @@ typedef struct
   Texture2D atlasTexture;
   AtlasImage *atlasImages;
 
+  Dictionary *weaponDictionary;
+  Dictionary *characterDictionary;
+
   Settings settings;
 } GameState;
+
+typedef union {
+  Weapon weapon;
+} DictionaryEntry;
+
+/**
+ * struct Dictionary
+ *
+ * Description: opcode and its related struct info
+ */
+typedef struct
+{
+  int opcode;
+  DictionaryEntry entry;
+} Dictionary;
+
 #endif // STRUCTS_H

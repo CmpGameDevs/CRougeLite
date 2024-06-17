@@ -1,17 +1,17 @@
 #include "input.h"
 #include "../CRougeLite.h"
 
-static void keyboardEventHandler(Game_System *game);
-static void mouseEventHandler(Game_System *game);
+static void keyboardEventHandler(GameState *game);
+static void mouseEventHandler(GameState *game);
 
 void handleInput() {
-  Game_System *gameSystemInstance = getGameSystemInstance();
+  GameState *gameSystemInstance = getGameSystemInstance();
   keyboardEventHandler(gameSystemInstance);
 
   mouseEventHandler(gameSystemInstance);
 }
 
-static void keyboardEventHandler(Game_System *game) {
+static void keyboardEventHandler(GameState *game) {
   int selected_player = 0;
   Player *player = ((game->players) + selected_player);
   Vector2 *pos = &(player->position);
@@ -47,7 +47,7 @@ static void keyboardEventHandler(Game_System *game) {
   }
 }
 
-static void mouseEventHandler(Game_System *game) {
+static void mouseEventHandler(GameState *game) {
   static float elapsedTime = 0.0f;
   int selected_player = 0;
   Player *player = ((game->players) + selected_player);
