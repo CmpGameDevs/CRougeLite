@@ -23,6 +23,102 @@
 // TODO: Make enum for all stats related to the specified types
 // instead of no encapsulation.
 
+typedef struct {
+  Vector2 position;
+  float rotation;
+  Vector2 scale;
+} Transform;
+
+typedef struct {
+  Vector2 velocity;
+  Vector2 acceleration;
+  float drag;
+  bool isKinematic;       // Kinematic object is typically not affected by physics 
+                          // forces but can still interact with other objects in certain ways.
+} RigidBody2D;
+
+typedef struct {
+  Vector2 offset;
+  float width;
+  float height;
+} Collider2D;
+
+typedef struct {
+  Texture2D texture;
+  int width;
+  int height;
+} SpriteRenderer;
+
+typedef struct {
+  Texture2D* animations;     // Idk what is the type of the animation sprites.
+  int currentFrame;
+  int totalFrame;
+  float frameTime;
+  float elapsedTime;      // Time elapsed since the last frame change.
+} Animator;
+
+typedef struct {
+  int currentHealth;
+  int maxHealth;
+} Health;
+
+typedef struct {
+  int up;
+  int down;
+  int left;
+  int right;
+  int shoot;
+  int action;
+} Input;
+
+typedef struct {
+  int damage;
+  float fireRate;
+  float lastShotTime;
+  SpriteRenderer weaponSprite;
+} Weapon;
+
+typedef struct {
+  Transform transform;
+  RigidBody2D rigidBody;
+  Collider2D collider;
+  SpriteRenderer spriteRenderer;
+  Animator animator;
+  Health health;
+  Weapon weapon;
+  Input input;
+} GameObject;
+
+typedef enum {
+  PATROL,
+  IDLE,
+  CHASE,
+  ATTACK,
+  FLEE
+} State;
+
+typedef struct {
+  Vector2 patrolStart;
+  Vector2 patrolEnd;
+  float detectionRange;
+  float attackCooldown;
+  float lastAttackTime;
+  float dodgePercentage;        // Dodge or Parry or Block. Or do these three separately??
+  float speed;
+  State state;
+} EnemyAI;
+
+typedef struct {
+  Transform transform;
+  RigidBody2D rigidBody;
+  Collider2D collider;
+  SpriteRenderer spriteRenderer;
+  Animator animator;
+  Health health;
+  Weapon weapon;
+  EnemyAI ai;
+} Enemy;
+
 typedef enum
 {
   WEREWOLF,
@@ -48,14 +144,23 @@ typedef enum
 typedef struct
 {
   int playerID;
-  double bulletSpeed;
-  double bulletDamage;
-  double bulletRange;
-  double bulletHealth;
-  double angle;
-  Vector2 position;
-  Texture2D texture;
+  float bulletSpeed;
+  float bulletDamage;
+  float bulletRange;
+  float bulletHealth;
+  Vector2 startPosition;      // To know if the bullet exceeded the range.
+  Transform transform;
+  SpriteRenderer bulletSprite;
 } Bullet;
+
+typedef struct {
+  int playerID;
+  float slashRange;
+  float slashDamage;
+  int isActive;
+  Transform transform;
+  SpriteRenderer slashSprite;
+} Slash;
 
 typedef struct
 {
