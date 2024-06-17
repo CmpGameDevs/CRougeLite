@@ -24,11 +24,10 @@
 //========================================================
 
 void clearGameState() {
-  GameState *game = getGameSystemInstance();
-  int player_num = game->numOfPlayers;
-  int enemy_num = game->numOfEnemies;
-  Player *players = game->players;
-  Enemy *enemies = game->enemies;
+  int player_num = gameState->numOfPlayers;
+  int enemy_num = gameState->numOfEnemies;
+  Player *players = gameState->players;
+  Enemy *enemies = gameState->enemies;
   while (player_num--) {
     printf("Deleting Player: %s\n", players->name);
     clearPlayer(&players);
@@ -36,7 +35,7 @@ void clearGameState() {
   }
 
   while (enemy_num--) {
-    printf("Deleting Enemy of Type: %d\n", enemies->type);
+    // printf("Deleting Enemy of Type: %d\n", enemies->name);
     clearEnemy(&enemies);
     enemies++;
   }

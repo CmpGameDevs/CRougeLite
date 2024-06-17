@@ -81,7 +81,7 @@ static void initPlayerWeaponDictionary() {
   // Because we fetch the info using binary search.
   dict[0].opcode = P_GUN;
   dict[0].entry.weapon = (Weapon){
-      RANGED_WEAPON,
+      .type = RANGED_WEAPON,
       .weapon.ranged = {
           .stats = {10, 0.5, 0, .weaponSprite = {LoadTexture("./src/"), 5, 5}},
           .bulletInfo = {3, 10, 100, 10,
@@ -102,14 +102,15 @@ static void initEnemyWeaponDictionary() {
 
   // Add in asc order
   // Because we fetch the info using binary search.
-  dict[0].opcode = E_SWORD;
-  dict[0].entry.weapon = (Weapon){
-      MELEE_WEAPON,
-      .weapon.melee = {
-          .stats = {10, 0.5, 0, .weaponSprite = {LoadTexture("./src/"), 5, 5}},
-          .slashInfo = {3, 10, true,
-                        .slashSprite = {LoadTexture("./src/"), 5, 5}}}};
-
+  // dict[0].opcode = E_SWORD;
+  // dict[0].entry.weapon = (Weapon){
+  //     .type = MELEE_WEAPON,
+  //
+  //     .weapon.melee = {
+  //         .stats = {10, 0.5, 0, .weaponSprite = {LoadTexture("./src/"), 5,
+  //         5}}, .slashInfo = {3, 10, true,
+  //                       .slashSprite = {LoadTexture("./src/"), 5, 5}}}};
+  //
   gameState->enemyWeaponDictionary = dict;
 }
 
@@ -160,14 +161,14 @@ GameState *initGameState() {
     gameSystemInstance->isGameOver = false;
     gameSystemInstance->isFinished = false;
     gameSystemInstance->atlasImages = NULL;
-    initSettings(gameSystemInstance);
-    initPlayerWeaponDictionary();
+    // initSettings(gameSystemInstance);
+    // initPlayerWeaponDictionary();
   }
 
   return gameSystemInstance;
 }
 
-void initSettings() {
+void initSettings(GameState *gameState) {
   gameState->settings.screenWidth = SCREEN_WIDTH;
   gameState->settings.screenHeight = SCREEN_HEIGHT;
   gameState->settings.musicVolume = 50;

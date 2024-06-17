@@ -30,6 +30,7 @@ typedef struct CTransform {
 } CTransform;
 
 typedef struct {
+  Vector2 position;
   Vector2 velocity;
   Vector2 acceleration;
   float drag;
@@ -182,7 +183,7 @@ typedef struct {
 } Inventory;
 
 typedef struct {
-  Transform transform;
+  CTransform transform;
   RigidBody2D rigidBody;
   Collider2D collider;
   SpriteRenderer spriteRenderer;
@@ -204,13 +205,6 @@ typedef struct {
   float speed;
   State state;
 } EnemyAI;
-
-typedef struct {
-  char *name;
-  GameObject object;
-  EnemyAI ai;
-} Enemy;
-
 typedef enum { CAT, WEREWOLF, PYROMANIAC, KNIGHT, NUM_OF_P_TYPE } P_TYPE;
 
 typedef enum { P_GUN, P_LONG_SWORD, NUM_OF_P_WEAPON } P_WEAPON;
@@ -221,6 +215,17 @@ typedef enum {
   LEFT,
   RIGHT,
 } DIRECTIONS;
+
+typedef enum { E_CIVILIAN, E_FARMER, E_KNIGHT, NUM_OF_E_TYPE } E_TYPE;
+
+typedef struct {
+  char *name;
+  GameObject object;
+  E_TYPE type;
+  EnemyAI ai;
+  int drawDirection; // 1 for right, -1 for left
+} Enemy;
+
 
 typedef struct {
   // Player Info
@@ -241,7 +246,6 @@ typedef struct {
   DIRECTIONS direction; // to get info on the direction the player is facing.
 } Player;
 
-typedef enum { E_CIVILIAN, E_FARMER, E_KNIGHT, NUM_OF_E_TYPE } E_TYPE;
 
 typedef enum { E_SWORD, NUM_OF_E_WEAPON } E_WEAPON;
 
@@ -272,6 +276,15 @@ typedef struct {
   int opcode;
   DictionaryEntry entry;
 } Dictionary;
+
+typedef struct SpriteAnimation {
+  int numOfFrames;
+  char **frameNames;
+  int currentFrame;   // NOTE: still not used
+  int framesPerSecond;
+  bool loop;          // NOTE: still not used
+  bool finished;      // NOTE: still not used
+} SpriteAnimation;
 
 typedef struct {
   int numOfPlayers;

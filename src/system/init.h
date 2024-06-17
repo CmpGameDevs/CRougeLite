@@ -6,5 +6,6 @@
 #include "atlas.h"
 #include <string.h>
 
+void initSettings(GameState *gameState);
 
 #endif // INIT_H
