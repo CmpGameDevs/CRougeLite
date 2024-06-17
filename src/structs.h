@@ -55,12 +55,37 @@ typedef struct {
   int totalFrame;
   float frameTime;
   float elapsedTime;      // Time elapsed since the last frame change.
+  bool loop;          // NOTE: still not used
+  bool finished;      // NOTE: still not used
 } Animator;
 
 typedef struct {
   int currentHealth;
   int maxHealth;
 } Health;
+
+typedef struct {
+  int power;
+  float speed;
+  float cooldown;
+} Attack;
+
+typedef struct {
+  int value;
+  int nearHitValue;       // Blocked on the last second.
+  // TODO: Add defense for different type of attacks?
+} Defense;
+
+typedef struct {
+  int xp;
+  int level;
+} Experience;
+
+typedef struct {
+  Health health;
+  Attack attack;
+  Defense defense;
+} Stats;
 
 typedef struct {
   int up;
@@ -79,14 +104,19 @@ typedef struct {
 } Weapon;
 
 typedef struct {
+  int MAX_NUM_OF_WEAPONS;
+  int currentNumOfWeapons;
+  Weapon* weapons;
+} Inventory;
+
+typedef struct {
   Transform transform;
   RigidBody2D rigidBody;
   Collider2D collider;
   SpriteRenderer spriteRenderer;
   Animator animator;
-  Health health;
+  Stats stats;
   Weapon weapon;
-  Input input;
 } GameObject;
 
 typedef enum {
@@ -109,13 +139,7 @@ typedef struct {
 } EnemyAI;
 
 typedef struct {
-  Transform transform;
-  RigidBody2D rigidBody;
-  Collider2D collider;
-  SpriteRenderer spriteRenderer;
-  Animator animator;
-  Health health;
-  Weapon weapon;
+  GameObject object;
   EnemyAI ai;
 } Enemy;
 
@@ -162,6 +186,23 @@ typedef struct {
   SpriteRenderer slashSprite;
 } Slash;
 
+
+typedef union {
+  Bullet bullet;
+  Slash slash;
+} CombatActionUnion;
+
+typedef enum {
+  ACTION_NONE,
+  ACTION_BULLET,
+  ACTION_SLASH
+} CombatActionType;
+
+typedef struct {
+  CombatActionUnion action;
+  CombatActionType type;
+} CombatAction;
+
 typedef struct
 {
   // Player Info
@@ -173,11 +214,8 @@ typedef struct
   Texture2D texture;
 
   // Player Stats
-  Vector2 position;
-  double health;
-  double speed;
-  double acceleration;
-  double fireRate;
+  GameObject object;
+  Input input;
   int score;
   int fire;
   int drawDirection;    // 1 for right, -1 for left
@@ -200,25 +238,14 @@ typedef enum
 
 typedef struct
 {
-  int health;
-  E_TYPE type;
-  E_WEAPON weapon;
-  Texture2D texture;
-
-  double speed;
-  double acceleration;
-  double fire_rate;
-} Enemy;
-
-typedef struct
-{
-  int screen_width;
-  int screen_height;
-  int volume;
+  int screenWidth;
+  int screenHeight;
+  bool fullscreen;
+  int musicVolume;
+  int soundVolume;
   bool music_on;
   bool sfx_on;
 } Settings;
-
 
 typedef struct AtlasImage
 {
@@ -228,30 +255,23 @@ typedef struct AtlasImage
   struct AtlasImage *next;
 } AtlasImage;
 
-typedef struct SpriteAnimation {
-  int numOfFrames;
-  char **frameNames;
-  int currentFrame;   // NOTE: still not used
-  int framesPerSecond;
-  bool loop;          // NOTE: still not used
-  bool finished;      // NOTE: still not used
-} SpriteAnimation;
-
 typedef struct
 {
-  int num_of_players;
+  int numOfPlayers;
   Player *players;
-  int num_of_enemies;
+  
+  int numOfEnemies;
   Enemy *enemies;
-  int num_of_bullets;
-  Bullet *bullets;
-  Texture2D bulletTexture;
+
+  int numOfCombatActions;
+  CombatAction *combatActions;
+
   int level;
-  bool game_over;
-  bool finished;
+  bool isGameOver;
+  bool isFinished;
   Texture2D atlasTexture;
   AtlasImage *atlasImages;
 
   Settings settings;
-} Game_System;
+} GameState;
 #endif // STRUCTS_H
