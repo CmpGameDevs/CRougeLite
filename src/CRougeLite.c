@@ -86,11 +86,11 @@ static void loadResources(Settings *settings)
   SetMusicVolume(music, settings->musicVolume / 100.0);
   PlayMusicStream(music);
 
-  Player *player = initPlayer("Marcus", KNIGHT, LONG_SWORD, (RigidBody2d){64, 64}, (Vector2){settings->screen_width / 2.0, settings->screen_height / 2.0}, 0);
+  Player *player = initPlayer("Marcus", CAT, P_GUN, (Vector2){settings->screenWidth / 2.0, settings->screenHeight / 2.0}, 0);
 
-  initEnemy(E_CIVILIAN, E_SWORD, (RigidBody2d){64, 64}, (Vector2){128, 128});
+  initEnemy(E_CIVILIAN, E_SWORD, (Vector2){128, 128});
 
-  initEnemy(E_FARMER, E_SWORD, (RigidBody2d){64, 64}, (Vector2){settings->screen_width - 128 - 64, 128});
+  initEnemy(E_FARMER, E_SWORD, (Vector2){settings->screenWidth - 128 - 64, 128});
 }
 
 static void update() { UpdateMusicStream(music); }

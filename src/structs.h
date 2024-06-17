@@ -50,9 +50,10 @@ typedef struct {
 } SpriteRenderer;
 
 typedef struct {
-  Texture2D* animations;     // Idk what is the type of the animation sprites.
+  char** frameNames;     // Idk what is the type of the animation sprites.
   int currentFrame;
-  int totalFrame;
+  int numOfFrames;
+  int framesPerSecond;
   float frameTime;
   float elapsedTime;      // Time elapsed since the last frame change.
   bool loop;          // NOTE: still not used
@@ -64,8 +65,9 @@ typedef struct {
   int maxHealth;
 } Health;
 
+// IDK if those affect the other structs or not (like leveling up)
 typedef struct {
-  int power;
+  float power;
   float speed;
   float cooldown;
 } Attack;
@@ -104,6 +106,7 @@ typedef struct
   float bulletHealth;
   SpriteRenderer bulletSprite;
   RigidBody2D rigidBody;
+  Collider2D collider;
 } BulletInfo;
 
 typedef struct
@@ -119,6 +122,7 @@ typedef struct {
   float slashDamage;
   bool isActive;
   SpriteRenderer slashSprite;
+  Collider2D collider;
 } SlashInfo;
 
 typedef struct {
@@ -126,7 +130,6 @@ typedef struct {
   SlashInfo slashInfo;
   Transform transform;
 } Slash;
-
 
 typedef union {
   Bullet bullet;
@@ -217,12 +220,14 @@ typedef struct {
 } EnemyAI;
 
 typedef struct {
+  char *name;
   GameObject object;
   EnemyAI ai;
 } Enemy;
 
 typedef enum
 {
+  CAT,
   WEREWOLF,
   PYROMANIAC,
   KNIGHT,
@@ -256,6 +261,7 @@ typedef struct
   // Player Stats
   GameObject object;
   Input input;
+  Experience experience;
   int score;
   int fire;
   int drawDirection;    // 1 for right, -1 for left
@@ -317,12 +323,15 @@ typedef struct
   Dictionary *playerWeaponDictionary;
   Dictionary *enemyWeaponDictionary;
   Dictionary *characterDictionary;
+  Dictionary *enemyDictionary;
 
   Settings settings;
 } GameState;
 
 typedef union {
   Weapon weapon;
+  Enemy enemy;
+  GameObject character;
 } DictionaryEntry;
 
 typedef struct
