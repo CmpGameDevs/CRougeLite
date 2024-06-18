@@ -23,6 +23,7 @@
 #include "../system/anime.h"
 // FIXME: delete me later
 #include "../system/init.h"
+#include <raymath.h>
 
 // ***************************
 // Private Function Prototypes
@@ -98,7 +99,6 @@ void drawPlayers() {
   disposeSpriteAnimation(&walk);
 }
 
-// FIXME: This function needs major refactor and optmization
 /* updatePlayers
  *
  * Update the players in the game.
@@ -106,62 +106,42 @@ void drawPlayers() {
  *
  */
 void updatePlayers() {
-  // NOTE:
-  // 1,2,5,9 theses number if you sum any two numbers you will get a unique
-  /// number
-  // not in the list and not equal the sum of any other two numbers same for 3
-  // numbers. I choose these numbers to make it easy to know the angle of
-  // movement without making alot of conditions on key press. 1,2,5,9 w,a,s,d
+  Player *player = gameState->players;
+  double speed = player->stats.speed;
 
-  GameState *game = gameState;
-  int selected_player = 0;
-  Player *player = ((game->players) + selected_player);
-  Vector2 *pos = &(player->object.rigidBody.position);
-  DIRECTIONS *direction = &(player->direction);
-  int speed = Vector2Length(player->object.rigidBody.velocity);
+  Vector2 direction = {0, 0};
+  if (IsKeyDown(KEY_W))
+    direction.y -= 1;
+  if (IsKeyDown(KEY_S))
+    direction.y += 1;
+  if (IsKeyDown(KEY_A))
+    direction.x -= 1;
+  if (IsKeyDown(KEY_D))
+    direction.x += 1;
 
-  static int angles[18]; // the size is the sum of the 4 numbers for fast
-                         // retrieval of the angle.
-  memset(angles, -1, sizeof(angles));
-  angles[W + D + A] = angles[W] = -90;
-  angles[W + S + A] = angles[A] = 180;
-  angles[A + S + D] = angles[S] = 90;
-  angles[W + S + D] = angles[D] = 0;
-  angles[W + A] = -135;
-  angles[W + D] = -45;
-  angles[S + D] = 45;
-  angles[S + A] = 135;
+  player->object.rigidBody.velocity =
+      Vector2Scale(Vector2Normalize(direction), speed);
+  player->object.rigidBody.position = Vector2Add(
+      player->object.rigidBody.position, player->object.rigidBody.velocity);
 
-  player->isMoving = false;
-
-  int sum = 0;
-
-  if (IsKeyDown(KEY_ESCAPE)) {
-    game->isFinished = true;
+  if (Vector2Length(player->object.rigidBody.velocity) > 0) {
+    player->isMoving = true;
+  } else {
+    player->isMoving = false;
   }
-  if (IsKeyDown(KEY_W)) {
-    sum += 1;
-    *direction = UP;
-  }
-  if (IsKeyDown(KEY_S)) {
-    sum += 5;
-    *direction = DOWN;
-  }
-  if (IsKeyDown(KEY_A)) {
-    sum += 2;
-    *direction = LEFT;
+
+  if (player->object.rigidBody.velocity.x < 0) {
     player->drawDirection = -1;
-  }
-  if (IsKeyDown(KEY_D)) {
-    sum += 9;
-    *direction = RIGHT;
+  } else {
     player->drawDirection = 1;
   }
-  if (angles[sum] == -1)
-    return;
-  player->isMoving = true;
-  pos->x += speed * cos(angles[sum] * DEG2RAD);
-  pos->y += speed * sin(angles[sum] * DEG2RAD);
+
+  // NOTE: this makes the player unable to go out of frame
+  player->object.rigidBody.position =
+      Vector2Clamp(player->object.rigidBody.position, (Vector2){0, 0},
+                   (Vector2){gameState->settings.screenWidth - 64,
+                             gameState->settings.screenHeight - 64});
+  // FIXME: replace with sprite size
 }
 
 void clearPlayers() {

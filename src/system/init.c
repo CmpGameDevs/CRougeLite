@@ -27,7 +27,8 @@ static void initCharacterDictionary() {
   dict[0].entry.player.stats =
       (Stats){.health = {.maxHealth = 100, .currentHealth = 100},
               .attack = {.power = 1.0f, .cooldown = 5, .speed = 1.0f},
-              .defense = {.value = 3, .nearHitValue = 6}};
+              .defense = {.value = 3, .nearHitValue = 6},
+              .speed = PLAYER_SPEED};
 
   dict[1].opcode = WEREWOLF;
   dict[2].opcode = PYROMANIAC;

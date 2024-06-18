@@ -242,6 +242,7 @@ typedef struct
   Health health;
   Attack attack;
   Defense defense;
+  double speed;
 } Stats;
 
 typedef struct
