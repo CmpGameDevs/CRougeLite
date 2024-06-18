@@ -35,6 +35,12 @@ void clearGameState() {
     clearEnemy(&enemies);
     enemies++;
   }
+
+  free(gameState->characterDictionary);
+  free(gameState->enemyDictionary);
+  free(gameState->playerWeaponDictionary);
+  free(gameState->enemyWeaponDictionary);
+  free(gameState);
 }
 
 void clearEnemy(Enemy **enemy) {

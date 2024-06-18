@@ -4,7 +4,9 @@
 
 static void mouseEventHandler();
 
-void handleInput() { mouseEventHandler(); }
+void handleInput() { 
+  mouseEventHandler(); 
+}
 
 static void mouseEventHandler() {
   int selected_player = 0;
@@ -27,16 +29,16 @@ static void mouseEventHandler() {
     player->fire = 0;
   }
   float deltaTime = GetFrameTime(); // Get time in seconds for one frame
-  float *reloadTime = &(player->weapon.weapon.ranged.stats.lastUseTime);
+  float *reloadTime = &(player->inventory.weapons->weapon.ranged.stats.lastUseTime);
 
-  float cooldown = player->weapon.weapon.ranged.stats.cooldown;
+  float cooldown = player->inventory.weapons->weapon.ranged.stats.cooldown;
 
-  int *ammo = &(player->weapon.weapon.ranged.ammo);
+  int *ammo = &(player->inventory.weapons->weapon.ranged.ammo);
 
-  if (player->fire == 1 && *ammo > 0 && player->weapon.type == RANGED_WEAPON &&
+  if (player->fire == 1 && *ammo > 0 && player->inventory.weapons->type == RANGED_WEAPON &&
       *reloadTime <= 0.0f) {
 
-    initBullet(player->ID, &(player->weapon.weapon.ranged.bulletInfo), srcPos,
+    initBullet(player->ID, &(player->inventory.weapons->weapon.ranged.bulletInfo), srcPos,
                mousePos);
     *ammo -= 1;
     *reloadTime = cooldown;

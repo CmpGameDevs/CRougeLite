@@ -28,36 +28,6 @@
 // ***************************
 // Private Function Prototypes
 // ***************************
-static void initCharacterDictionary() {
-  Dictionary *dict = malloc(sizeof(Dictionary) * (NUM_OF_P_TYPE));
-
-  if (dict == NULL) {
-    fprintf(stderr, "Error: malloc failed\n");
-    exit(EXIT_FAILURE);
-  }
-
-  // Add in asc order
-  // Because we fetch the info using binary search.
-  dict[0].opcode = CAT;
-  dict[0].entry.character = (GameObject){
-      .rigidBody = {.velocity = (Vector2){5, 5},
-                    .acceleration = (Vector2){0, 0},
-                    1.0,
-                    false},
-      .collider = {.offset = (Vector2){0, 0}, 32, 32},
-      .spriteRenderer = {.texture = LoadTexture("./src/"), 32, 32},
-      .animator = {},
-      .stats = {.health = {.maxHealth = 100, .currentHealth = 100},
-                .attack = {.power = 1.0f, .cooldown = 5, .speed = 1.0f},
-                .defense = {.value = 3, .nearHitValue = 6}}};
-
-  dict[1].opcode = WEREWOLF;
-  dict[2].opcode = PYROMANIAC;
-  dict[3].opcode = KNIGHT;
-
-  gameState->characterDictionary = dict;
-}
-
 static Player *initPlayer(const char *name, P_TYPE type, P_WEAPON weapon,
                           Vector2 position, int ID);
 static void clearPlayer(Player **player);
@@ -111,8 +81,9 @@ void drawPlayers() {
                                                },
                                                12, true);
 
+
   while (player_num--) {
-    Vector2 pos = players->object.rigidBody.position;
+    Vector2 pos = players->object.transform.position;
     bool flip = (players->drawDirection == -1) ? true : false;
     if (players->isMoving) {
       drawSpriteAnimationPro(&walk, (Rectangle){pos.x, pos.y, 64, 64},
@@ -137,38 +108,41 @@ void drawPlayers() {
  */
 void updatePlayers() {
   Player *player = gameState->players;
+  Input input = player->input;
   double speed = player->stats.speed;
 
   Vector2 direction = {0, 0};
-  if (IsKeyDown(KEY_W))
+  if (IsKeyDown(input.up))
     direction.y -= 1;
-  if (IsKeyDown(KEY_S))
+  if (IsKeyDown(input.down))
     direction.y += 1;
-  if (IsKeyDown(KEY_A))
+  if (IsKeyDown(input.left))
     direction.x -= 1;
-  if (IsKeyDown(KEY_D))
+  if (IsKeyDown(input.right))
     direction.x += 1;
 
-  player->object.rigidBody.velocity =
+  Vector2 velocity =
       Vector2Scale(Vector2Normalize(direction), speed);
-  player->object.rigidBody.position = Vector2Add(
-      player->object.rigidBody.position, player->object.rigidBody.velocity);
+  
+  Vector2 position = Vector2Add(
+      player->object.transform.position, velocity);
 
-  if (Vector2Length(player->object.rigidBody.velocity) > 0) {
+  if (Vector2Length(velocity) > 0) {
     player->isMoving = true;
   } else {
     player->isMoving = false;
   }
 
-  if (player->object.rigidBody.velocity.x < 0) {
+  if (velocity.x < 0) {
     player->drawDirection = -1;
   } else {
     player->drawDirection = 1;
   }
 
   // NOTE: this makes the player unable to go out of frame
-  player->object.rigidBody.position =
-      Vector2Clamp(player->object.rigidBody.position, (Vector2){0, 0},
+  player->object.rigidBody.velocity = velocity;
+  player->object.transform.position =
+      Vector2Clamp(position, (Vector2){0, 0},
                    (Vector2){gameState->settings.screenWidth - 64,
                              gameState->settings.screenHeight - 64});
   // FIXME: replace with sprite size
@@ -194,7 +168,7 @@ static void addPlayer(Player *player) {
   players[gameState->numOfPlayers++] = *player;
 }
 
-static PPlayer *initPlayer(const char *name, P_TYPE type, P_WEAPON weapon,
+static Player *initPlayer(const char *name, P_TYPE type, P_WEAPON weapon,
                    Vector2 position, int ID) {
   Settings settings = gameState->settings;
   Dictionary *dict = gameState->characterDictionary;
@@ -205,7 +179,7 @@ static PPlayer *initPlayer(const char *name, P_TYPE type, P_WEAPON weapon,
     int mid = l + (r - l) / 2;
     int cmp = dict[mid].opcode - type;
     if (!cmp) {
-      player->object = dict[mid].entry.character;
+      *player = dict[mid].entry.player;
       break;
     }
     if (cmp < 0)
@@ -213,10 +187,13 @@ static PPlayer *initPlayer(const char *name, P_TYPE type, P_WEAPON weapon,
     else
       r = mid - 1;
   }
+  printf("Adding Player #%d\n", ID);
   player->name = strdup(name);
   player->ID = ID;
   player->type = type;
-  player->object.weapon = initWeapon(weapon, true);
+  Weapon selectedWeapon = initWeapon(weapon, true);
+  player->inventory = initInventory();
+  player->inventory.weapons[player->inventory.currentNumOfWeapons++] = selectedWeapon;
   player->object.transform.position = position;
   player->score = 0;
   player->drawDirection = 1;
@@ -225,8 +202,11 @@ static PPlayer *initPlayer(const char *name, P_TYPE type, P_WEAPON weapon,
   player->ID = ID;
   player->experience = (Experience){.xp = 0, .level = 0};
   // TODO: Make dictionary for infos related to each type of character.
+  // Input
+  player->input = (Input){.up = KEY_W, .down = KEY_S, .left = KEY_A, .right = KEY_D, .action = KEY_E };
+
   return player;
-                   }
+}
 
 static void clearPlayer(Player **player) {
   if (player == NULL || *player == NULL)

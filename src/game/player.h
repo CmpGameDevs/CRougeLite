@@ -22,7 +22,7 @@
 #define PLAYER_H
 
 #include "../CRougeLite.h"
-
+#include "weapon.h"
 
 void setupPlayers();
 void drawPlayers();

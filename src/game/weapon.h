@@ -2,10 +2,9 @@
 #define WEAPON_H
 
 #include "../CRougeLite.h" // NOTE: declare global extern vars
-#include "atlas.h"
-#include <string.h>
 
 Weapon initWeapon(int opcode, bool isPlayer);
+Inventory initInventory();
 void useRangedWeapon();
 void useMeleeWeapon();
 void drawWeapon();

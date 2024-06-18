@@ -3,6 +3,40 @@
 //========================================================
 // LOCAL VARIABLE DEFINITIONS (local to this file)
 //========================================================
+static void initCharacterDictionary() {
+  Dictionary *dict = malloc(sizeof(Dictionary) * (NUM_OF_P_TYPE));
+
+  if (dict == NULL) {
+    fprintf(stderr, "Error: malloc failed\n");
+    exit(EXIT_FAILURE);
+  }
+
+  // Add in asc order
+  // Because we fetch the info using binary search.
+  dict[0].opcode = CAT;
+  dict[0].entry.player = (Player){
+    .type = CAT,
+    .stats = {.health = {.maxHealth = 100, .currentHealth = 100},
+              .attack = {.power = 1.0f, .cooldown = 5, .speed = 1.0f},
+              .defense = {.value = 3, .nearHitValue = 6},
+              .speed = 5},
+    .object = {
+      .rigidBody = {.velocity = (Vector2){0, 0},
+                    .acceleration = (Vector2){0, 0},
+                    1.0,
+                    false},
+      .collider = {.offset = (Vector2){0, 0}, 32, 32},
+      .spriteRenderer = {},
+      .animator = {},
+      }};
+
+  dict[1].opcode = WEREWOLF;
+  dict[2].opcode = PYROMANIAC;
+  dict[3].opcode = KNIGHT;
+
+  gameState->characterDictionary = dict;
+}
+
 static void initEnemyDictionary() {
   Dictionary *dict = malloc(sizeof(Dictionary) * (NUM_OF_E_TYPE));
 
@@ -23,7 +57,7 @@ static void initEnemyDictionary() {
                             1.0,
                             false},
               .collider = {.offset = (Vector2){0, 0}, 32, 32},
-              .spriteRenderer = {.texture = LoadTexture("./src/"), 32, 32},
+              .spriteRenderer = {},
               .animator = {0},
           },
       .ai = {.detectionRange = 100,
@@ -46,7 +80,7 @@ static void initEnemyDictionary() {
                             1.0,
                             false},
               .collider = {.offset = (Vector2){0, 0}, 32, 32},
-              .spriteRenderer = {.texture = LoadTexture("./src/"), 32, 32},
+              .spriteRenderer = {},
               .animator = {},
           },
       .ai = {.detectionRange = 100,
@@ -61,6 +95,51 @@ static void initEnemyDictionary() {
   dict[2].opcode = E_KNIGHT;
 
   gameState->enemyDictionary = dict;
+}
+
+static void initPlayerWeaponDictionary() {
+  Dictionary *dict = malloc(sizeof(Dictionary) * (NUM_OF_P_WEAPON));
+
+  if (dict == NULL) {
+    fprintf(stderr, "Error: malloc failed\n");
+    exit(EXIT_FAILURE);
+  }
+
+  // Add in asc order
+  // Because we fetch the info using binary search.
+  dict[0].opcode = P_GUN;
+  dict[0].entry.weapon = (Weapon){
+      .type = RANGED_WEAPON,
+      .weapon.ranged = {
+          .stats = {10, 0.5, 0, .weaponSprite = {}},
+          .bulletInfo = {3, 10, 100, 10,
+                         .bulletSprite = {}},
+          30,
+          30}};
+
+  gameState->playerWeaponDictionary = dict;
+}
+
+static void initEnemyWeaponDictionary() {
+  Dictionary *dict = malloc(sizeof(Dictionary) * (NUM_OF_E_WEAPON));
+
+  if (dict == NULL) {
+    fprintf(stderr, "Error: malloc failed\n");
+    exit(EXIT_FAILURE);
+  }
+
+  // Add in asc order
+  // Because we fetch the info using binary search.
+  dict[0].opcode = E_SWORD;
+  dict[0].entry.weapon = (Weapon){
+      .type = MELEE_WEAPON,
+  
+      .weapon.melee = {
+          .stats = {10, 0.5, 0, .weaponSprite = {}}, 
+          .slashInfo = {3, 10, true,
+                        .slashSprite = {}}}};
+  
+  gameState->enemyWeaponDictionary = dict;
 }
 
 //========================================================
@@ -89,17 +168,16 @@ GameState *initGameState() {
     gameSystemInstance->isGameOver = false;
     gameSystemInstance->isFinished = false;
     gameSystemInstance->atlasImages = NULL;
-    // initSettings(gameSystemInstance);
 
-    gameState->characterDictionary = NULL;
-    gameState->enemyDictionary = NULL;
-    gameState->playerWeaponDictionary = NULL;
-    gameState->enemyWeaponDictionary = NULL;
-    // initPlayerWeaponDictionary();
+    gameSystemInstance->characterDictionary = NULL;
+    gameSystemInstance->enemyDictionary = NULL;
+    gameSystemInstance->playerWeaponDictionary = NULL;
+    gameSystemInstance->enemyWeaponDictionary = NULL;
   }
 
   return gameSystemInstance;
 }
+
 void initDictionary() {
   initCharacterDictionary();
   initEnemyDictionary();

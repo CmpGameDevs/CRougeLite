@@ -29,7 +29,7 @@ extern GameState *gameState;
 // Init Functions
 GameState *initGameState();
 void initDictionary();
-void initSettings(GameState *gameState);
+void initSettings();
 Enemy *initEnemy(E_TYPE type, E_WEAPON weapon, Vector2 position);
 Bullet *initBullet(int ID, BulletInfo *bulletInfo, Vector2 src, Vector2 dest);
 

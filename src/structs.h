@@ -332,6 +332,7 @@ typedef struct
 {
   int MAX_NUM_OF_WEAPONS;
   int currentNumOfWeapons;
+  int currentWeapon;
   Weapon *weapons;
 } Inventory;
 
@@ -372,7 +373,7 @@ typedef struct
 
   // Player Stats
   Stats stats;
-  Weapon weapon;
+  Inventory inventory;
   GameObject object;
   Input input;
   Experience experience;

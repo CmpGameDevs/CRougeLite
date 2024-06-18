@@ -41,7 +41,7 @@ GameState *gameState = NULL;
 //========================================================
 // Local Functions Headers
 //========================================================
-static void loadResources(Settings *settings);
+static void loadResources();
 static void update();
 static void clearResources();
 
@@ -50,11 +50,11 @@ static void clearResources();
 //========================================================
 int main(void) {
   gameState = initGameState();
+  initSettings();
   initDictionary();
   Settings *settings = &(gameState->settings);
 
   InitWindow(settings->screenWidth, settings->screenHeight, "C rougelite game");
-  printf("TEST\n");
 
   initAtlas();
 
@@ -76,14 +76,15 @@ int main(void) {
   return 0;
 }
 
-static void loadResources(Settings *settings) {
+static void loadResources() {
   // load global assets
+  Settings settings = gameState->settings;
   InitAudioDevice();
   music = LoadMusicStream("./src/"
                           "./resources/ambient.ogg");
   // NOTE: All paths must start from the src dir
 
-  SetMusicVolume(music, settings->musicVolume / 100.0);
+  SetMusicVolume(music, settings.musicVolume / 100.0);
   PlayMusicStream(music);
 
   setupPlayers();
@@ -91,7 +92,7 @@ static void loadResources(Settings *settings) {
   initEnemy(E_CIVILIAN, E_SWORD, (Vector2){128, 128});
 
   initEnemy(E_FARMER, E_SWORD,
-            (Vector2){settings->screenWidth - 128 - 64, 128});
+            (Vector2){settings.screenWidth - 128 - 64, 128});
 }
 
 static void update() {
