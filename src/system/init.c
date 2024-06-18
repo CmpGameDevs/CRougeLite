@@ -3,36 +3,6 @@
 //========================================================
 // LOCAL VARIABLE DEFINITIONS (local to this file)
 //========================================================
-static void initCharacterDictionary() {
-  Dictionary *dict = malloc(sizeof(Dictionary) * (NUM_OF_P_TYPE));
-
-  if (dict == NULL) {
-    fprintf(stderr, "Error: malloc failed\n");
-    exit(EXIT_FAILURE);
-  }
-
-  // Add in asc order
-  // Because we fetch the info using binary search.
-  dict[0].opcode = CAT;
-  dict[0].entry.character = (GameObject){
-      .rigidBody = {.velocity = (Vector2){5, 5},
-                    .acceleration = (Vector2){0, 0},
-                    1.0,
-                    false},
-      .collider = {.offset = (Vector2){0, 0}, 32, 32},
-      .spriteRenderer = {.texture = LoadTexture("./src/"), 32, 32},
-      .animator = {},
-      .stats = {.health = {.maxHealth = 100, .currentHealth = 100},
-                .attack = {.power = 1.0f, .cooldown = 5, .speed = 1.0f},
-                .defense = {.value = 3, .nearHitValue = 6}}};
-
-  dict[1].opcode = WEREWOLF;
-  dict[2].opcode = PYROMANIAC;
-  dict[3].opcode = KNIGHT;
-
-  gameState->characterDictionary = dict;
-}
-
 static void initEnemyDictionary() {
   Dictionary *dict = malloc(sizeof(Dictionary) * (NUM_OF_E_TYPE));
 
@@ -69,72 +39,6 @@ static void initEnemyDictionary() {
   gameState->enemyDictionary = dict;
 }
 
-static void initPlayerWeaponDictionary() {
-  Dictionary *dict = malloc(sizeof(Dictionary) * (NUM_OF_P_WEAPON));
-
-  if (dict == NULL) {
-    fprintf(stderr, "Error: malloc failed\n");
-    exit(EXIT_FAILURE);
-  }
-
-  // Add in asc order
-  // Because we fetch the info using binary search.
-  dict[0].opcode = P_GUN;
-  dict[0].entry.weapon = (Weapon){
-      .type = RANGED_WEAPON,
-      .weapon.ranged = {
-          .stats = {10, 0.5, 0, .weaponSprite = {LoadTexture("./src/"), 5, 5}},
-          .bulletInfo = {3, 10, 100, 10,
-                         .bulletSprite = {LoadTexture("./src/"), 5, 5}},
-          30,
-          30}};
-
-  gameState->playerWeaponDictionary = dict;
-}
-
-static void initEnemyWeaponDictionary() {
-  Dictionary *dict = malloc(sizeof(Dictionary) * (NUM_OF_E_WEAPON));
-
-  if (dict == NULL) {
-    fprintf(stderr, "Error: malloc failed\n");
-    exit(EXIT_FAILURE);
-  }
-
-  // Add in asc order
-  // Because we fetch the info using binary search.
-  // dict[0].opcode = E_SWORD;
-  // dict[0].entry.weapon = (Weapon){
-  //     .type = MELEE_WEAPON,
-  //
-  //     .weapon.melee = {
-  //         .stats = {10, 0.5, 0, .weaponSprite = {LoadTexture("./src/"), 5,
-  //         5}}, .slashInfo = {3, 10, true,
-  //                       .slashSprite = {LoadTexture("./src/"), 5, 5}}}};
-  //
-  gameState->enemyWeaponDictionary = dict;
-}
-
-static Weapon initWeapon(int opcode, bool isPlayer) {
-  Dictionary *dict = (isPlayer ? gameState->playerWeaponDictionary
-                               : gameState->enemyWeaponDictionary);
-  int l = 0, r = (isPlayer ? NUM_OF_P_WEAPON : NUM_OF_E_WEAPON) - 1;
-
-  while (l <= r) {
-    int mid = l + (r - l) / 2;
-    int cmp = dict[mid].opcode - opcode;
-    if (!cmp) {
-      return dict[mid].entry.weapon;
-    }
-    if (cmp < 0)
-      l = mid + 1;
-    else
-      r = mid - 1;
-  }
-
-  fprintf(stderr, "Error: Player Weapon Dictionary Failed");
-  exit(EXIT_FAILURE);
-}
-
 //========================================================
 // Init Functions
 //========================================================
@@ -162,23 +66,24 @@ GameState *initGameState() {
     gameSystemInstance->isFinished = false;
     gameSystemInstance->atlasImages = NULL;
     // initSettings(gameSystemInstance);
+
+    gameState->characterDictionary = NULL;
+    gameState->enemyDictionary = NULL;
+    gameState->playerWeaponDictionary = NULL;
+    gameState->enemyWeaponDictionary = NULL;
     // initPlayerWeaponDictionary();
   }
 
   return gameSystemInstance;
 }
 
-void initSettings(GameState *gameState) {
+void initSettings() {
   gameState->settings.screenWidth = SCREEN_WIDTH;
   gameState->settings.screenHeight = SCREEN_HEIGHT;
   gameState->settings.musicVolume = 50;
+  gameState->settings.soundVolume = 50;
   gameState->settings.music_on = true;
   gameState->settings.sfx_on = true;
-}
-
-static void addPlayer(Player *player) {
-  Player *players = gameState->players;
-  players[gameState->numOfPlayers++] = *player;
 }
 
 static void addEnemy(Enemy *enemy) {
