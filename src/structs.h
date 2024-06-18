@@ -20,9 +20,18 @@
 #include "defs.h"
 #include <raylib.h>
 
+/*============================================================================
+ *                                  ENUMS
+ *
+ *    Put here all sort of types you want make sure that anychange here
+ *    will be reflected in the whole code. (e.g. Switch cases, etc.)
+ *===========================================================================*/
+
+
 // TODO: Make enum for all stats related to the specified types
 // instead of no encapsulation.
 
+// FIXME: this probably should be refactored and removed.
 typedef enum
 {
   W = 1,
@@ -30,6 +39,82 @@ typedef enum
   S = 5,
   D = 9,
 } KEYS;
+
+typedef enum
+{
+  ACTION_NONE,
+  ACTION_BULLET,
+  ACTION_SLASH
+} CombatActionType;
+
+typedef enum
+{
+  RANGED_WEAPON,
+  MELEE_WEAPON,
+  NUM_OF_WEAPON_TYPES
+} WeaponType;
+
+typedef enum
+{
+  E_SWORD,
+  NUM_OF_E_WEAPON
+} E_WEAPON;
+
+typedef enum
+{
+  CAT,
+  WEREWOLF,
+  PYROMANIAC,
+  KNIGHT,
+  NUM_OF_P_TYPE
+} P_TYPE;
+
+typedef enum
+{
+  P_GUN,
+  P_LONG_SWORD,
+  NUM_OF_P_WEAPON
+} P_WEAPON;
+
+typedef enum
+{
+  UP,
+  DOWN,
+  LEFT,
+  RIGHT,
+} DIRECTIONS;
+
+typedef enum
+{
+  E_CIVILIAN,
+  E_FARMER,
+  E_KNIGHT,
+  NUM_OF_E_TYPE
+} E_TYPE;
+
+typedef enum
+{
+  PATROL,
+  IDLE,
+  CHASE,
+  ATTACK,
+  FLEE
+} State;
+
+
+/*============================================================================
+ *                                  STRUCTS
+ *
+ *    Here are all the structs (Think of them as object data that you use)
+ *    Change here are expensive as these Almost types and used or all over
+ *    the place so make sure every thing is OK after changes.
+ *    
+ *===========================================================================*/
+
+
+// **********************
+// GENERAL ENGINE STRUCTS
+// **********************
 
 typedef struct CTransform
 {
@@ -56,6 +141,17 @@ typedef struct
   float height;
 } Collider2D;
 
+
+typedef struct AtlasImage
+{
+  char *filename;
+  Rectangle source;
+  Vector2 origin;
+  struct AtlasImage *next;
+} AtlasImage;
+
+// FIXME: Rework SpriteRenderer or remove it if not used.
+// Atlas Image could do the same work if it has the dest rect.
 typedef struct
 {
   Texture2D texture;
@@ -63,6 +159,10 @@ typedef struct
   int height;
 } SpriteRenderer;
 
+
+// FIXME: Rework SpriteAnimation and animator
+// Animator should handle the state and what animation to show.
+// Animation is the animation itself.
 typedef struct
 {
   char **frameNames; // Idk what is the type of the animation sprites.
@@ -74,6 +174,32 @@ typedef struct
   bool loop;         // NOTE: still not used
   bool finished;     // NOTE: still not used
 } Animator;
+
+typedef struct SpriteAnimation
+{
+  int numOfFrames;
+  char **frameNames;
+  int currentFrame; // NOTE: still not used
+  int framesPerSecond;
+  bool loop;     // NOTE: still not used
+  bool finished; // NOTE: still not used
+} SpriteAnimation;
+
+
+typedef struct
+{
+  int up;
+  int down;
+  int left;
+  int right;
+  int shoot;
+  int action;
+} Input;
+
+
+// *********************
+// GAME SPECIFIC STRUCTS
+// *********************
 
 typedef struct
 {
@@ -108,16 +234,6 @@ typedef struct
   Attack attack;
   Defense defense;
 } Stats;
-
-typedef struct
-{
-  int up;
-  int down;
-  int left;
-  int right;
-  int shoot;
-  int action;
-} Input;
 
 typedef struct
 {
@@ -160,13 +276,6 @@ typedef union
   Slash slash;
 } CombatActionUnion;
 
-typedef enum
-{
-  ACTION_NONE,
-  ACTION_BULLET,
-  ACTION_SLASH
-} CombatActionType;
-
 typedef struct
 {
   float angle;
@@ -196,13 +305,6 @@ typedef struct
   SlashInfo slashInfo;
 } MeleeWeapon;
 
-typedef enum
-{
-  RANGED_WEAPON,
-  MELEE_WEAPON,
-  NUM_OF_WEAPON_TYPES
-} WeaponType;
-
 typedef union
 {
   RangedWeapon ranged;
@@ -223,25 +325,6 @@ typedef struct
   Weapon *weapons;
 } Inventory;
 
-typedef struct
-{
-  CTransform transform;
-  RigidBody2D rigidBody;
-  Collider2D collider;
-  SpriteRenderer spriteRenderer;
-  Animator animator;
-  Stats stats;
-  Weapon weapon;
-} GameObject;
-
-typedef enum
-{
-  PATROL,
-  IDLE,
-  CHASE,
-  ATTACK,
-  FLEE
-} State;
 
 typedef struct
 {
@@ -255,37 +338,18 @@ typedef struct
   float speed;
   State state;
 } EnemyAI;
-typedef enum
-{
-  CAT,
-  WEREWOLF,
-  PYROMANIAC,
-  KNIGHT,
-  NUM_OF_P_TYPE
-} P_TYPE;
 
-typedef enum
+// TODO: if state and weapon migrated to another struct move up to general game structs
+typedef struct
 {
-  P_GUN,
-  P_LONG_SWORD,
-  NUM_OF_P_WEAPON
-} P_WEAPON;
-
-typedef enum
-{
-  UP,
-  DOWN,
-  LEFT,
-  RIGHT,
-} DIRECTIONS;
-
-typedef enum
-{
-  E_CIVILIAN,
-  E_FARMER,
-  E_KNIGHT,
-  NUM_OF_E_TYPE
-} E_TYPE;
+  CTransform transform;
+  RigidBody2D rigidBody;
+  Collider2D collider;
+  SpriteRenderer spriteRenderer;
+  Animator animator;
+  Stats stats;   // FIXME: Think about this (states) shouldn't be on a General Game Object (maybe player)
+  Weapon weapon; // FIXME: Think about this (Weapon) shouldn't be on a General Game Object (maybe player)
+} GameObject;
 
 typedef struct
 {
@@ -316,11 +380,9 @@ typedef struct
   DIRECTIONS direction; // to get info on the direction the player is facing.
 } Player;
 
-typedef enum
-{
-  E_SWORD,
-  NUM_OF_E_WEAPON
-} E_WEAPON;
+// ******************
+// GAME STATE STRUCTS
+// ******************
 
 typedef struct
 {
@@ -332,14 +394,6 @@ typedef struct
   bool music_on;
   bool sfx_on;
 } Settings;
-
-typedef struct AtlasImage
-{
-  char *filename;
-  Rectangle source;
-  Vector2 origin;
-  struct AtlasImage *next;
-} AtlasImage;
 
 typedef union
 {
@@ -353,16 +407,6 @@ typedef struct
   int opcode;
   DictionaryEntry entry;
 } Dictionary;
-
-typedef struct SpriteAnimation
-{
-  int numOfFrames;
-  char **frameNames;
-  int currentFrame; // NOTE: still not used
-  int framesPerSecond;
-  bool loop;     // NOTE: still not used
-  bool finished; // NOTE: still not used
-} SpriteAnimation;
 
 typedef struct
 {
@@ -378,8 +422,8 @@ typedef struct
   int level;
   bool isGameOver;
   bool isFinished;
-  Texture2D atlasTexture;
-  AtlasImage *atlasImages;
+  Texture2D atlasTexture;     // The image atals containaing all the sprites and animations
+  AtlasImage *atlasImages;    // Linked List of individual sprites and animations data
 
   Dictionary *playerWeaponDictionary;
   Dictionary *enemyWeaponDictionary;
