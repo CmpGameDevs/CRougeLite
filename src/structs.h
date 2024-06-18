@@ -196,6 +196,15 @@ typedef struct
   int action;
 } Input;
 
+typedef struct
+{
+  CTransform transform;
+  RigidBody2D rigidBody;
+  Collider2D collider;
+  SpriteRenderer spriteRenderer;
+  Animator animator;
+} GameObject;
+
 
 // *********************
 // GAME SPECIFIC STRUCTS
@@ -339,22 +348,13 @@ typedef struct
   State state;
 } EnemyAI;
 
-// TODO: if state and weapon migrated to another struct move up to general game structs
-typedef struct
-{
-  CTransform transform;
-  RigidBody2D rigidBody;
-  Collider2D collider;
-  SpriteRenderer spriteRenderer;
-  Animator animator;
-  Stats stats;   // FIXME: Think about this (states) shouldn't be on a General Game Object (maybe player)
-  Weapon weapon; // FIXME: Think about this (Weapon) shouldn't be on a General Game Object (maybe player)
-} GameObject;
 
 typedef struct
 {
   char *name;
   GameObject object;
+  Stats stats;
+  Weapon weapon;
   E_TYPE type;
   EnemyAI ai;
   int drawDirection; // 1 for right, -1 for left
@@ -370,6 +370,8 @@ typedef struct
   P_TYPE type;
 
   // Player Stats
+  Stats stats;
+  Weapon weapon;
   GameObject object;
   Input input;
   Experience experience;
@@ -399,7 +401,7 @@ typedef union
 {
   Weapon weapon;
   Enemy enemy;
-  GameObject character;
+  Player player;
 } DictionaryEntry;
 
 typedef struct
@@ -407,6 +409,7 @@ typedef struct
   int opcode;
   DictionaryEntry entry;
 } Dictionary;
+
 
 typedef struct
 {

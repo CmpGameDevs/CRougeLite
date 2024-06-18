@@ -14,17 +14,20 @@ static void initCharacterDictionary() {
   // Add in asc order
   // Because we fetch the info using binary search.
   dict[0].opcode = CAT;
-  dict[0].entry.character = (GameObject){
+  dict[0].entry.player.object = (GameObject){
       .rigidBody = {.velocity = (Vector2){5, 5},
                     .acceleration = (Vector2){0, 0},
                     1.0,
                     false},
       .collider = {.offset = (Vector2){0, 0}, 32, 32},
       .spriteRenderer = {.texture = LoadTexture("./src/"), 32, 32},
-      .animator = {},
-      .stats = {.health = {.maxHealth = 100, .currentHealth = 100},
-                .attack = {.power = 1.0f, .cooldown = 5, .speed = 1.0f},
-                .defense = {.value = 3, .nearHitValue = 6}}};
+      .animator = {0},
+  };
+
+  dict[0].entry.player.stats =
+      (Stats){.health = {.maxHealth = 100, .currentHealth = 100},
+              .attack = {.power = 1.0f, .cooldown = 5, .speed = 1.0f},
+              .defense = {.value = 3, .nearHitValue = 6}};
 
   dict[1].opcode = WEREWOLF;
   dict[2].opcode = PYROMANIAC;
@@ -47,41 +50,46 @@ static void initEnemyDictionary() {
   dict[0].entry.enemy = (Enemy){
       .name = "Civilian",
       .object =
-          {.rigidBody = {.velocity = (Vector2){5, 5},
-                         .acceleration = (Vector2){0, 0},
-                         1.0,
-                         false},
-           .collider = {.offset = (Vector2){0, 0}, 32, 32},
-           .spriteRenderer = {.texture = LoadTexture("./src/"), 32, 32},
-           .animator = {},
-           .stats = {.health = {.maxHealth = 100, .currentHealth = 100},
-                     .attack = {.power = 1.0f, .cooldown = 5, .speed = 1.0f},
-                     .defense = {.value = 3, .nearHitValue = 6}}},
+          {
+              .rigidBody = {.velocity = (Vector2){5, 5},
+                            .acceleration = (Vector2){0, 0},
+                            1.0,
+                            false},
+              .collider = {.offset = (Vector2){0, 0}, 32, 32},
+              .spriteRenderer = {.texture = LoadTexture("./src/"), 32, 32},
+              .animator = {0},
+          },
       .ai = {.detectionRange = 100,
              .attackCooldown = 3,
              .dodgePercentage = 0,
              .speed = 2,
-             .state = FLEE}};
+             .state = FLEE},
+      .stats = {.health = {.maxHealth = 100, .currentHealth = 100},
+                .attack = {.power = 1.0f, .cooldown = 5, .speed = 1.0f},
+                .defense = {.value = 3, .nearHitValue = 6}},
+  };
 
   dict[1].opcode = E_FARMER;
   dict[1].entry.enemy = (Enemy){
       .name = "Farmer",
       .object =
-          {.rigidBody = {.velocity = (Vector2){5, 5},
-                         .acceleration = (Vector2){0, 0},
-                         1.0,
-                         false},
-           .collider = {.offset = (Vector2){0, 0}, 32, 32},
-           .spriteRenderer = {.texture = LoadTexture("./src/"), 32, 32},
-           .animator = {},
-           .stats = {.health = {.maxHealth = 100, .currentHealth = 100},
-                     .attack = {.power = 1.0f, .cooldown = 5, .speed = 1.0f},
-                     .defense = {.value = 3, .nearHitValue = 6}}},
+          {
+              .rigidBody = {.velocity = (Vector2){5, 5},
+                            .acceleration = (Vector2){0, 0},
+                            1.0,
+                            false},
+              .collider = {.offset = (Vector2){0, 0}, 32, 32},
+              .spriteRenderer = {.texture = LoadTexture("./src/"), 32, 32},
+              .animator = {},
+          },
       .ai = {.detectionRange = 100,
              .attackCooldown = 3,
              .dodgePercentage = 0,
              .speed = 2,
-             .state = FLEE}};
+             .state = FLEE},
+      .stats = {.health = {.maxHealth = 100, .currentHealth = 100},
+                .attack = {.power = 1.0f, .cooldown = 5, .speed = 1.0f},
+                .defense = {.value = 3, .nearHitValue = 6}}};
 
   dict[2].opcode = E_KNIGHT;
 
@@ -254,7 +262,7 @@ Enemy *initEnemy(E_TYPE type, E_WEAPON weapon, Vector2 position) {
   }
   enemy->type = type;
   enemy->object.rigidBody.position = position;
-  enemy->object.weapon = initWeapon(weapon, false);
+  enemy->weapon = initWeapon(weapon, false);
   addEnemy(enemy);
   return enemy;
 }

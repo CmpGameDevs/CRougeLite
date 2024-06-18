@@ -82,9 +82,8 @@ static int bulletCollision(CombatAction *combatActions) {
       *combatActions =
           gameState->combatActions[gameState->numOfCombatActions - 1];
       gameState->numOfCombatActions--;
-      enemy->object.stats.health.currentHealth -=
-          bullet->bulletInfo.bulletDamage;
-      if (enemy->object.stats.health.currentHealth <= 0) {
+      enemy->stats.health.currentHealth -= bullet->bulletInfo.bulletDamage;
+      if (enemy->stats.health.currentHealth <= 0) {
         gameState->enemies[j] = gameState->enemies[gameState->numOfEnemies - 1];
         gameState->numOfEnemies--;
       }

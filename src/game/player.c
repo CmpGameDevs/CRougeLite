@@ -195,7 +195,9 @@ static Player *initPlayer(const char *name, P_TYPE type, P_WEAPON weapon,
     int mid = l + (r - l) / 2;
     int cmp = dict[mid].opcode - type;
     if (!cmp) {
-      player->object = dict[mid].entry.character;
+      player->object = dict[mid].entry.player.object;
+      player->weapon = dict[mid].entry.player.weapon;
+      player->stats = dict[mid].entry.player.stats;
       break;
     }
     if (cmp < 0)
@@ -207,7 +209,7 @@ static Player *initPlayer(const char *name, P_TYPE type, P_WEAPON weapon,
   player->name = strdup(name);
   player->ID = ID;
   player->type = type;
-  player->object.weapon = initWeapon(weapon, true);
+  player->weapon = initWeapon(weapon, true);
   player->object.rigidBody.position = position;
   player->score = 0;
   player->drawDirection = 1;
