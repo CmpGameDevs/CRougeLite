@@ -47,12 +47,15 @@ static void clearResources();
 //========================================================
 // MAIN ENTRY POINT
 //========================================================
-int main(void) {
+int main(void)
+{
   gameState = initGameState();
+  initDictionary();
   Settings *settings = &(gameState->settings);
 
   InitWindow(settings->screenWidth, settings->screenHeight, "C rougelite game");
-  // printf("TEST\n");
+  printf("TEST\n");
+
   initAtlas();
 
   loadResources(settings);
@@ -61,9 +64,10 @@ int main(void) {
 
   // Main Game Loop
   bool *quit = &(gameState->isFinished);
-  while (!WindowShouldClose() && !(*quit)) {
+  while (!WindowShouldClose() && !(*quit))
+  {
     handleInput();
-    update();
+     update();
 
     drawScene();
   }
@@ -73,7 +77,8 @@ int main(void) {
   return 0;
 }
 
-static void loadResources(Settings *settings) {
+static void loadResources(Settings *settings)
+{
   // load global assets
   InitAudioDevice();
   music = LoadMusicStream("./src/"
@@ -95,7 +100,8 @@ static void loadResources(Settings *settings) {
 
 static void update() { UpdateMusicStream(music); }
 
-static void clearResources() {
+static void clearResources()
+{
   clearGameState();
 
   // Unload assets and cleaning

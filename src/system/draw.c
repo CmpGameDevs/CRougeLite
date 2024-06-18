@@ -4,11 +4,14 @@
 #include <raylib.h>
 
 void DrawAtlasSpritePro(char *filename, Rectangle dest, Vector2 origin,
-                        float rotation, Color tint, bool flipX) {
+                        float rotation, Color tint, bool flipX)
+{
   AtlasImage image = getAtlasImage(filename);
 
-  if (image.filename != NULL) {
-    if (flipX) {
+  if (image.filename != NULL)
+  {
+    if (flipX)
+    {
       image.source.width *= -1;
     }
 
@@ -18,7 +21,8 @@ void DrawAtlasSpritePro(char *filename, Rectangle dest, Vector2 origin,
   }
 }
 
-static void drawPlayers() {
+static void drawPlayers()
+{
   Player *players = gameState->players;
   int player_num = gameState->numOfPlayers;
 
@@ -46,13 +50,17 @@ static void drawPlayers() {
                                                },
                                                8, true);
 
-  while (player_num--) {
+  while (player_num--)
+  {
     Vector2 pos = players->object.rigidBody.position;
     bool flip = (players->drawDirection == -1) ? true : false;
-    if (players->isMoving) {
+    if (players->isMoving)
+    {
       drawSpriteAnimationPro(&walk, (Rectangle){pos.x, pos.y, 64, 64},
                              (Vector2){0, 0}, 0, WHITE, flip);
-    } else {
+    }
+    else
+    {
       drawSpriteAnimationPro(&idle, (Rectangle){pos.x, pos.y, 64, 64},
                              (Vector2){0, 0}, 0, WHITE, flip);
     }
@@ -64,22 +72,27 @@ static void drawPlayers() {
   disposeSpriteAnimation(&walk);
 }
 
-static void drawEnemies() {
+static void drawEnemies()
+{
   Enemy *enemies = gameState->enemies;
   int enemy_num = gameState->numOfEnemies;
 
   if (enemies == NULL)
     return;
 
-  while (enemy_num--) {
+  while (enemy_num--)
+  {
 
     char *frames[4];
-    if (enemies->type == E_CIVILIAN) {
+    if (enemies->type == E_CIVILIAN)
+    {
       frames[0] = "vampire_1";
       frames[1] = "vampire_2";
       frames[2] = "vampire_3";
       frames[3] = "vampire_4";
-    } else if (enemies->type == E_FARMER) {
+    }
+    else if (enemies->type == E_FARMER)
+    {
       frames[0] = "slime_1_0";
       frames[1] = "slime_1_1";
       frames[2] = "slime_1_2";
@@ -100,10 +113,11 @@ static void drawEnemies() {
   // disposeSpriteAnimation(&walk);
 }
 
-static void drawBullets() {
+static void drawBullets()
+{
   int x = 320, y = 96;
-  int bulletNum = gameState->numOfCombatActions;
-  // Bullet *bullets = gameState->bullets;
+  int actions = gameState->numOfCombatActions;
+  CombatAction *combatActions = gameState->combatActions;
 
   SpriteAnimation fireAnime = createSpriteAnimation(6,
                                                     (char *[]){
@@ -116,20 +130,24 @@ static void drawBullets() {
                                                     },
                                                     12, true);
 
-  // while (bulletNum--) {
-  //   Vector2 pos = bullets->startPosition;
-  //   Rectangle dest = {pos.x, pos.y, 32, 32};
-  //   drawSpriteAnimationPro(&fireAnime, dest, (Vector2){0, 0}, 0, WHITE,
-  //   false);
-  //   // bullets->position.x += bullets->bulletSpeed * cos(bullets->angle *
-  //   // DEG2RAD); bullets->position.y += bullets->bulletSpeed *
-  //   // sin(bullets->angle * DEG2RAD);
-  //   bullets++;
-  // }
-
+  while (actions--)
+  {
+    if (combatActions->type == ACTION_BULLET)
+    {
+      Bullet *bullets = &combatActions->action.bullet;
+      Vector2 *pos = &bullets->bulletInfo.rigidBody.position;
+      Rectangle dest = {pos->x, pos->y, bullets->bulletInfo.collider.width, bullets->bulletInfo.collider.height};
+      drawSpriteAnimationPro(&fireAnime, dest, (Vector2){0, 0}, 0, WHITE,
+                             false);
+      pos->x += bullets->bulletInfo.bulletSpeed * cos(combatActions->angle * DEG2RAD);
+      pos->y += bullets->bulletInfo.bulletSpeed * sin(combatActions->angle * DEG2RAD);
+    }
+    combatActions++;
+  }
   disposeSpriteAnimation(&fireAnime);
 }
-static bool checkCollision(Rectangle rect1, Rectangle rect2) {
+static bool checkCollision(Rectangle rect1, Rectangle rect2)
+{
   // collision x-axis?
   bool collisionX =
       rect1.x + rect1.width >= rect2.x && rect2.x + rect2.width >= rect1.x;
@@ -140,37 +158,39 @@ static bool checkCollision(Rectangle rect1, Rectangle rect2) {
   return collisionX && collisionY;
 }
 
-// static void bulletCollision() {
-//   for (int i = 0; i < gameState->numOfCombatActions; i++) {
-//     for (int j = 0; j < gameState->num_of_enemies; j++) {
-//       if (checkCollision((Rectangle){gameState->bullets[i].position.x,
-//                                      gameState->bullets[i].position.y,
-//                                      gameState->bullets[i].body.width,
-//                                      gameState->bullets[i].body.height},
-//                          (Rectangle){gameState->enemies[j].position.x,
-//                                      gameState->enemies[j].position.y,
-//                                      gameState->enemies[j].body.width,
-//                                      gameState->enemies[j].body.height})) {
-//         gameState->bullets[i] =
-//             gameState->bullets[gameState->num_of_bullets - 1];
-//         gameStateState->num_of_bullets--;
-//
-//         if (gameState->enemies[j].health > 0)
-//           gameState->enemies[j].health -= gameState->bullets[i].bulletDamage;
-//         else
-//           gameState->enemies[j].health = 0;
-//
-//         // WTF???? Who wrote this shit??
-//         if (gameState->enemies[j].health == 0) {
-//           gameState->enemies[j] = gameState->enemies[game->num_of_enemies -
-//           1]; gameState->num_of_enemies--;
-//         }
-//       }
-//     }
-//   }
-// }
+static void bulletCollision()
+{
+  for (int i = 0; i < gameState->numOfCombatActions; i++)
+  {
+    if (gameState->combatActions[i].type == ACTION_BULLET)
+    {
+      Bullet *bullet = &gameState->combatActions[i].action.bullet;
+      for (int j = 0; j < gameState->numOfEnemies; j++)
+      {
+        Enemy *enemy = &gameState->enemies[j];
 
-void drawScene() {
+        if (checkCollision((Rectangle){bullet->bulletInfo.rigidBody.position.x, bullet->bulletInfo.rigidBody.position.y, bullet->bulletInfo.collider.width, bullet->bulletInfo.collider.height},
+                           (Rectangle){enemy->object.rigidBody.position.x, enemy->object.rigidBody.position.y, enemy->object.collider.width, enemy->object.collider.height}))
+        {
+          gameState->combatActions[i] = gameState->combatActions[gameState->numOfCombatActions - 1];
+          gameState->numOfCombatActions--;
+          enemy->object.stats.health.currentHealth -= bullet->bulletInfo.bulletDamage;
+          if (enemy->object.stats.health.currentHealth <= 0)
+          {
+            gameState->enemies[j] = gameState->enemies[gameState->numOfEnemies - 1];
+            gameState->numOfEnemies--;
+            j--;
+          }
+          i--;
+          break;
+        }
+      }
+    }
+  }
+}
+
+void drawScene()
+{
   BeginDrawing();
   ClearBackground(GetColor(0x052c46ff));
 
@@ -182,7 +202,7 @@ void drawScene() {
   // 0, WHITE, false);
 
   // TODO: Delete Me later
-  // bulletCollision();
+  bulletCollision();
 
   drawEnemies();
 
