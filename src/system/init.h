@@ -7,5 +7,6 @@
 #include <string.h>
 
 void initSettings(GameState *gameState);
+Weapon initWeapon(int opcode, bool isPlayer);
 
 #endif // INIT_H

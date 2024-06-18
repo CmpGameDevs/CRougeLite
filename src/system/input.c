@@ -2,71 +2,9 @@
 #include "../CRougeLite.h"
 #include <raymath.h>
 
-static void keyboardEventHandler();
 static void mouseEventHandler();
 
-void handleInput() {
-  keyboardEventHandler();
-
-  mouseEventHandler();
-}
-
-// 1,2,5,9 theses number if you sum any two numbers you will get a unique number
-// not in the list and not equal the sum of any other two numbers same for 3
-// numbers. I choose these numbers to make it easy to know the angle of movement
-// without making alot of conditions on key press. 1,2,5,9 w,a,s,d
-
-static void keyboardEventHandler() {
-  GameState *game = gameState;
-  int selected_player = 0;
-  Player *player = ((game->players) + selected_player);
-  Vector2 *pos = &(player->object.rigidBody.position);
-  DIRECTIONS *direction = &(player->direction);
-  int speed = Vector2Length(player->object.rigidBody.velocity);
-
-  static int angles[18]; // the size is the sum of the 4 numbers for fast
-                         // retrieval of the angle.
-  memset(angles, -1, sizeof(angles));
-  // angles[W + D + A] = angles[W] = -90;
-  // angles[W + S + A] = angles[A] = 180;
-  // angles[A + S + D] = angles[S] = 90;
-  // angles[W + S + D] = angles[D] = 0;
-  // angles[W + A] = -135;
-  // angles[W + D] = -45;
-  // angles[S + D] = 45;
-  // angles[S + A] = 135;
-  //
-  player->isMoving = false;
-
-  int sum = 0;
-
-  if (IsKeyDown(KEY_ESCAPE)) {
-    game->isFinished = true;
-  }
-  if (IsKeyDown(KEY_W)) {
-    sum += 1;
-    *direction = UP;
-  }
-  if (IsKeyDown(KEY_S)) {
-    sum += 5;
-    *direction = DOWN;
-  }
-  if (IsKeyDown(KEY_A)) {
-    sum += 2;
-    *direction = LEFT;
-    player->drawDirection = -1;
-  }
-  if (IsKeyDown(KEY_D)) {
-    sum += 9;
-    *direction = RIGHT;
-    player->drawDirection = 1;
-  }
-  if (angles[sum] == -1)
-    return;
-  player->isMoving = true;
-  pos->x += speed * cos(angles[sum] * DEG2RAD);
-  pos->y += speed * sin(angles[sum] * DEG2RAD);
-}
+void handleInput() { mouseEventHandler(); }
 
 static void mouseEventHandler() {
   int selected_player = 0;
@@ -89,12 +27,20 @@ static void mouseEventHandler() {
     player->fire = 0;
   }
   float deltaTime = GetFrameTime(); // Get time in seconds for one frame
-  // if (player->fire == 1 && player->object.weapon.<= 0.0f) {
-  //   initBullet(player->weapon, selected_player, (RigidBody2d){16, 16},
-  //   srcPos,
-  //              mousePos);
-  //   player->reloadTime = player->fireRate;
-  // }
-  //   if (player->reloadTime > 0.0f)
-  //     player->reloadTime -= deltaTime;
+  float *reloadTime = &(player->weapon.weapon.ranged.stats.lastUseTime);
+
+  float cooldown = player->weapon.weapon.ranged.stats.cooldown;
+
+  int *ammo = &(player->weapon.weapon.ranged.ammo);
+
+  if (player->fire == 1 && *ammo > 0 && player->weapon.type == RANGED_WEAPON &&
+      *reloadTime <= 0.0f) {
+
+    initBullet(player->ID, &(player->weapon.weapon.ranged.bulletInfo), srcPos,
+               mousePos);
+    *ammo -= 1;
+    *reloadTime = cooldown;
+  }
+  if (*reloadTime > 0.0f)
+    *reloadTime -= deltaTime;
 }

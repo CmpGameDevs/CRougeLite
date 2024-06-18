@@ -22,6 +22,7 @@
 
 #include "CRougeLite.h" // NOTE: declare global extern vars
 
+#include "game/player.h"
 #include "system/atlas.h"
 #include "system/draw.h"
 #include "system/input.h"
@@ -49,10 +50,12 @@ static void clearResources();
 //========================================================
 int main(void) {
   gameState = initGameState();
+  initDictionary();
   Settings *settings = &(gameState->settings);
 
   InitWindow(settings->screenWidth, settings->screenHeight, "C rougelite game");
-  // printf("TEST\n");
+  printf("TEST\n");
+
   initAtlas();
 
   loadResources(settings);
@@ -83,9 +86,7 @@ static void loadResources(Settings *settings) {
   SetMusicVolume(music, settings->musicVolume / 100.0);
   PlayMusicStream(music);
 
-  Player *player = initPlayer(
-      "Marcus", CAT, P_GUN,
-      (Vector2){settings->screenWidth / 2.0, settings->screenHeight / 2.0}, 0);
+  setupPlayers();
 
   initEnemy(E_CIVILIAN, E_SWORD, (Vector2){128, 128});
 
@@ -93,7 +94,10 @@ static void loadResources(Settings *settings) {
             (Vector2){settings->screenWidth - 128 - 64, 128});
 }
 
-static void update() { UpdateMusicStream(music); }
+static void update() {
+  updatePlayers();
+  UpdateMusicStream(music);
+}
 
 static void clearResources() {
   clearGameState();
