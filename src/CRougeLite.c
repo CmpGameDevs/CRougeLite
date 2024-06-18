@@ -22,6 +22,7 @@
 
 #include "CRougeLite.h" // NOTE: declare global extern vars
 
+#include "game/player.h"
 #include "system/atlas.h"
 #include "system/draw.h"
 #include "system/input.h"
@@ -40,7 +41,7 @@ GameState *gameState = NULL;
 //========================================================
 // Local Functions Headers
 //========================================================
-static void loadResources(Settings *settings);
+static void loadResources();
 static void update();
 static void clearResources();
 
@@ -49,10 +50,12 @@ static void clearResources();
 //========================================================
 int main(void) {
   gameState = initGameState();
+  initSettings();
+  initDictionary();
   Settings *settings = &(gameState->settings);
 
   InitWindow(settings->screenWidth, settings->screenHeight, "C rougelite game");
-  // printf("TEST\n");
+
   initAtlas();
 
   loadResources(settings);
@@ -73,27 +76,29 @@ int main(void) {
   return 0;
 }
 
-static void loadResources(Settings *settings) {
+static void loadResources() {
   // load global assets
+  Settings settings = gameState->settings;
   InitAudioDevice();
   music = LoadMusicStream("./src/"
                           "./resources/ambient.ogg");
   // NOTE: All paths must start from the src dir
 
-  SetMusicVolume(music, settings->musicVolume / 100.0);
+  SetMusicVolume(music, settings.musicVolume / 100.0);
   PlayMusicStream(music);
 
-  Player *player = initPlayer(
-      "Marcus", CAT, P_GUN,
-      (Vector2){settings->screenWidth / 2.0, settings->screenHeight / 2.0}, 0);
+  setupPlayers();
 
   initEnemy(E_CIVILIAN, E_SWORD, (Vector2){128, 128});
 
   initEnemy(E_FARMER, E_SWORD,
-            (Vector2){settings->screenWidth - 128 - 64, 128});
+            (Vector2){settings.screenWidth - 128 - 64, 128});
 }
 
-static void update() { UpdateMusicStream(music); }
+static void update() {
+  updatePlayers();
+  UpdateMusicStream(music);
+}
 
 static void clearResources() {
   clearGameState();
