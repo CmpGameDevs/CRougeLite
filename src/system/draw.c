@@ -113,6 +113,41 @@ static void drawEnemies()
   // disposeSpriteAnimation(&walk);
 }
 
+static bool checkCollision(Rectangle rect1, Rectangle rect2)
+{
+  // collision x-axis?
+  bool collisionX =
+      rect1.x + rect1.width >= rect2.x && rect2.x + rect2.width >= rect1.x;
+  // collision y-axis?
+  bool collisionY =
+      rect1.y + rect1.height >= rect2.y && rect2.y + rect2.height >= rect1.y;
+  // collision only if on both axes
+  return collisionX && collisionY;
+}
+
+static int bulletCollision(CombatAction *combatActions)
+{
+  Bullet *bullet = &combatActions->action.bullet;
+  for (int j = 0; j < gameState->numOfEnemies; j++)
+  {
+    Enemy *enemy = &gameState->enemies[j];
+
+    if (checkCollision((Rectangle){bullet->bulletInfo.rigidBody.position.x, bullet->bulletInfo.rigidBody.position.y, bullet->bulletInfo.collider.width, bullet->bulletInfo.collider.height},
+                       (Rectangle){enemy->object.rigidBody.position.x, enemy->object.rigidBody.position.y, enemy->object.collider.width, enemy->object.collider.height}))
+    {
+      *combatActions = gameState->combatActions[gameState->numOfCombatActions - 1];
+      gameState->numOfCombatActions--;
+      enemy->object.stats.health.currentHealth -= bullet->bulletInfo.bulletDamage;
+      if (enemy->object.stats.health.currentHealth <= 0)
+      {
+        gameState->enemies[j] = gameState->enemies[gameState->numOfEnemies - 1];
+        gameState->numOfEnemies--;
+      }
+      return 1;
+    }
+  }
+  return 0;
+}
 static void drawBullets()
 {
   int x = 320, y = 96;
@@ -141,52 +176,11 @@ static void drawBullets()
                              false);
       pos->x += bullets->bulletInfo.bulletSpeed * cos(combatActions->angle * DEG2RAD);
       pos->y += bullets->bulletInfo.bulletSpeed * sin(combatActions->angle * DEG2RAD);
+      combatActions -= bulletCollision(combatActions) ;
     }
     combatActions++;
   }
   disposeSpriteAnimation(&fireAnime);
-}
-static bool checkCollision(Rectangle rect1, Rectangle rect2)
-{
-  // collision x-axis?
-  bool collisionX =
-      rect1.x + rect1.width >= rect2.x && rect2.x + rect2.width >= rect1.x;
-  // collision y-axis?
-  bool collisionY =
-      rect1.y + rect1.height >= rect2.y && rect2.y + rect2.height >= rect1.y;
-  // collision only if on both axes
-  return collisionX && collisionY;
-}
-
-static void bulletCollision()
-{
-  for (int i = 0; i < gameState->numOfCombatActions; i++)
-  {
-    if (gameState->combatActions[i].type == ACTION_BULLET)
-    {
-      Bullet *bullet = &gameState->combatActions[i].action.bullet;
-      for (int j = 0; j < gameState->numOfEnemies; j++)
-      {
-        Enemy *enemy = &gameState->enemies[j];
-
-        if (checkCollision((Rectangle){bullet->bulletInfo.rigidBody.position.x, bullet->bulletInfo.rigidBody.position.y, bullet->bulletInfo.collider.width, bullet->bulletInfo.collider.height},
-                           (Rectangle){enemy->object.rigidBody.position.x, enemy->object.rigidBody.position.y, enemy->object.collider.width, enemy->object.collider.height}))
-        {
-          gameState->combatActions[i] = gameState->combatActions[gameState->numOfCombatActions - 1];
-          gameState->numOfCombatActions--;
-          enemy->object.stats.health.currentHealth -= bullet->bulletInfo.bulletDamage;
-          if (enemy->object.stats.health.currentHealth <= 0)
-          {
-            gameState->enemies[j] = gameState->enemies[gameState->numOfEnemies - 1];
-            gameState->numOfEnemies--;
-            j--;
-          }
-          i--;
-          break;
-        }
-      }
-    }
-  }
 }
 
 void drawScene()
@@ -202,8 +196,6 @@ void drawScene()
   // 0, WHITE, false);
 
   // TODO: Delete Me later
-  bulletCollision();
-
   drawEnemies();
 
   drawBullets();
