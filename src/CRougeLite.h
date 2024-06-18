@@ -14,14 +14,8 @@
 
 #ifndef CROUGELITE_H
 #define CROUGELITE_H
-#include <raylib.h>
-#include "defs.h"
-#include "structs.h"
-#include <raymath.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
-#include <math.h>
+
+#include "common.h"
 
 //========================================================
 // Global Shared Variables

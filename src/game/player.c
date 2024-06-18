@@ -79,7 +79,7 @@ void drawPlayers() {
                                                    "Meow-Knight_Run_6_0",
                                                    "Meow-Knight_Run_7_0",
                                                },
-                                               8, true);
+                                               12, true);
 
   while (player_num--) {
     Vector2 pos = players->object.rigidBody.position;
