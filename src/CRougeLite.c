@@ -22,6 +22,7 @@
 
 #include "CRougeLite.h" // NOTE: declare global extern vars
 
+#include "game/player.h"
 #include "system/atlas.h"
 #include "system/draw.h"
 #include "system/input.h"
@@ -47,8 +48,7 @@ static void clearResources();
 //========================================================
 // MAIN ENTRY POINT
 //========================================================
-int main(void)
-{
+int main(void) {
   gameState = initGameState();
   initDictionary();
   Settings *settings = &(gameState->settings);
@@ -64,10 +64,9 @@ int main(void)
 
   // Main Game Loop
   bool *quit = &(gameState->isFinished);
-  while (!WindowShouldClose() && !(*quit))
-  {
+  while (!WindowShouldClose() && !(*quit)) {
     handleInput();
-     update();
+    update();
 
     drawScene();
   }
@@ -77,8 +76,7 @@ int main(void)
   return 0;
 }
 
-static void loadResources(Settings *settings)
-{
+static void loadResources(Settings *settings) {
   // load global assets
   InitAudioDevice();
   music = LoadMusicStream("./src/"
@@ -88,9 +86,7 @@ static void loadResources(Settings *settings)
   SetMusicVolume(music, settings->musicVolume / 100.0);
   PlayMusicStream(music);
 
-  Player *player = initPlayer(
-      "Marcus", CAT, P_GUN,
-      (Vector2){settings->screenWidth / 2.0, settings->screenHeight / 2.0}, 0);
+  setupPlayers();
 
   initEnemy(E_CIVILIAN, E_SWORD, (Vector2){128, 128});
 
@@ -98,10 +94,12 @@ static void loadResources(Settings *settings)
             (Vector2){settings->screenWidth - 128 - 64, 128});
 }
 
-static void update() { UpdateMusicStream(music); }
+static void update() {
+  updatePlayers();
+  UpdateMusicStream(music);
+}
 
-static void clearResources()
-{
+static void clearResources() {
   clearGameState();
 
   // Unload assets and cleaning
