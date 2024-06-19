@@ -63,7 +63,8 @@ void clearMap() {
   Game_System *game_system = getGameSystemInstance();
   TilesMapper *tiles_mapper = &(game_system->map.tilesMapper);
 
-  for (int i = 0; i < tiles_mapper->num_of_tiles; i++) {
+  for (int i = 0; i < tiles_mapper->numOfTiles; i++) {
     free(tiles_mapper->mapper[i]);
+    tiles_mapper->mapper[i] = NULL;
   }
 }

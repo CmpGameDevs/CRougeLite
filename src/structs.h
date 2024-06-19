@@ -155,14 +155,19 @@ typedef struct SpriteAnimation {
 } SpriteAnimation;
 
 typedef struct TilesMapper {
-  unsigned int num_of_tiles;
+  unsigned int numOfTiles;
   char *mapper[MAX_TILES_NUM];
   char *path;         // Path of the mapper file
 } TilesMapper;
 
 typedef struct Map {
   unsigned int currentLevel;   // NOTE: maybe convert it to a Level struct
+  char *currentLevelPath;
   TilesMapper tilesMapper;
+  int mapIds[MAX_ROW_NUM][MAX_COL_NUM][MAX_CELL_ID];
+  bool loaded;
+  unsigned int numOfRows;
+  unsigned int numOfCols;
 } Map;
 
 typedef struct

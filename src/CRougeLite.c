@@ -66,7 +66,7 @@ int main(void)
              "C rougelite game");
   // printf("TEST\n");
   initAtlas();
-  initTilesMapper();
+  initMap();
 
   loadResources(settings);
 
