@@ -9,5 +9,6 @@
 #include "../game/weapon.h"
 
 void initSettings();
+float GetAngleBetweenPoints(Vector2 point1, Vector2 point2);
 
 #endif // INIT_H

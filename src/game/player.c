@@ -157,6 +157,7 @@ void clearPlayers() {
     clearPlayer(&players);
     players++;
   }
+  printf("Deleted all Players\n");
 }
 
 // *****************

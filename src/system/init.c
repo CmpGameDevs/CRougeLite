@@ -4,13 +4,13 @@
 // LOCAL VARIABLE DEFINITIONS (local to this file)
 //========================================================
 static void initCharacterDictionary() {
-  Dictionary *dict = malloc(sizeof(Dictionary) * (NUM_OF_P_TYPE));
+  Dictionary *dict = malloc(sizeof(Dictionary) * (NUM_OF_P_TYPE + 1));
 
   if (dict == NULL) {
     fprintf(stderr, "Error: malloc failed\n");
     exit(EXIT_FAILURE);
   }
-
+  dict[NUM_OF_P_TYPE].opcode = -1;
   // Add in asc order
   // Because we fetch the info using binary search.
   dict[0].opcode = CAT;
@@ -44,7 +44,7 @@ static void initEnemyDictionary() {
     fprintf(stderr, "Error: malloc failed\n");
     exit(EXIT_FAILURE);
   }
-
+  dict[NUM_OF_E_TYPE].opcode = -1;
   // Add in asc order
   // Because we fetch the info using binary search.
   dict[0].opcode = E_CIVILIAN;
@@ -104,6 +104,7 @@ static void initPlayerWeaponDictionary() {
     fprintf(stderr, "Error: malloc failed\n");
     exit(EXIT_FAILURE);
   }
+  dict[NUM_OF_P_WEAPON].opcode = -1;
 
   // Add in asc order
   // Because we fetch the info using binary search.
@@ -112,8 +113,7 @@ static void initPlayerWeaponDictionary() {
       .type = RANGED_WEAPON,
       .weapon.ranged = {
           .stats = {10, 0.5, 0, .weaponSprite = {}},
-          .bulletInfo = {3, 10, 100, 10,
-                         .bulletSprite = {}},
+          .bulletInfo = {3, 10, 100, 10, .bulletSprite = {}, .collider = {(Vector2){0, 0}, 32, 32}},
           30,
           30}};
 
@@ -127,6 +127,7 @@ static void initEnemyWeaponDictionary() {
     fprintf(stderr, "Error: malloc failed\n");
     exit(EXIT_FAILURE);
   }
+  dict[NUM_OF_E_WEAPON].opcode = -1;
 
   // Add in asc order
   // Because we fetch the info using binary search.
@@ -199,32 +200,12 @@ static void addEnemy(Enemy *enemy) {
   enemies[gameState->numOfEnemies++] = *enemy;
 }
 
-static void addBullet(Bullet *bullet, float angle) {
-  CombatAction *combatActions = gameState->combatActions;
-  int idx = gameState->numOfCombatActions++;
-  combatActions[idx].type = ACTION_BULLET;
-  combatActions[idx].action.bullet = *bullet;
-  combatActions[idx].angle = angle;
-}
-
 float GetAngleBetweenPoints(Vector2 point1, Vector2 point2) {
   float deltaX = point2.x - point1.x;
   float deltaY = point2.y - point1.y;
   float angle =
       atan2f(deltaY, deltaX) * (180.0f / PI); // Convert radians to degrees
   return angle;
-}
-
-Bullet *initBullet(int ID, BulletInfo *bulletInfo, Vector2 src, Vector2 dest) {
-
-  Bullet *bullet = (Bullet *)malloc(sizeof(Bullet));
-  bullet->playerID = ID;
-  bullet->bulletInfo = *bulletInfo;
-  bullet->startPosition = src;
-  bullet->transform = (CTransform){src, 0, (Vector2){1, 1}};
-  bullet->bulletInfo.rigidBody.position = src;
-  addBullet(bullet, GetAngleBetweenPoints(src, dest));
-  return bullet;
 }
 
 Enemy *initEnemy(E_TYPE type, E_WEAPON weapon, Vector2 position) {
@@ -246,7 +227,7 @@ Enemy *initEnemy(E_TYPE type, E_WEAPON weapon, Vector2 position) {
       r = mid - 1;
   }
   enemy->type = type;
-  enemy->object.rigidBody.position = position;
+  enemy->object.transform.position = position;
   enemy->weapon = initWeapon(weapon, false);
   addEnemy(enemy);
   return enemy;

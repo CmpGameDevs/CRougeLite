@@ -29,3 +29,37 @@ Inventory initInventory() {
   inventory.currentWeapon = 0;
   return inventory;
 }
+
+void updateRangedWeapon(Weapon *weapon, bool isFired, int ID, Vector2 src, Vector2 dest, float deltaTime) {
+  float *reloadTime = &(weapon->weapon.ranged.stats.lastUseTime);
+
+  float cooldown = weapon->weapon.ranged.stats.cooldown;
+
+  int *ammo = &(weapon->weapon.ranged.ammo);
+
+  if (isFired && *ammo > 0 && *reloadTime <= 0.0f) {
+    initBullet(ID, weapon->weapon.ranged.bulletInfo, src, dest);
+
+    *ammo -= 1;
+    *reloadTime = cooldown;
+  }
+
+  if (*reloadTime > 0.0f)
+    *reloadTime -= deltaTime;
+}
+
+void updateMeleeWeapon(Weapon *weapon, bool isFired, int ID, Vector2 src, Vector2 dest, float deltaTime) {
+  float *reloadTime = &(weapon->weapon.melee.stats.lastUseTime);
+
+  float cooldown = weapon->weapon.melee.stats.cooldown;
+
+
+  if (isFired &&  *reloadTime <= 0.0f) {
+    initSlash(ID, weapon->weapon.melee.slashInfo, src, dest);
+
+    *reloadTime = cooldown;
+  }
+
+  if (*reloadTime > 0.0f)
+    *reloadTime -= deltaTime;
+}

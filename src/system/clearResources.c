@@ -15,10 +15,13 @@
 
 #include "../CRougeLite.h" // NOTE: declare global extern vars
 #include "../game/player.h"
+#include "../game/combatAction.h"
 
-//========================================================
-// LOCAL VARIABLE DIFINATIONS (local to this file)
-//========================================================
+// ***************************
+// Private Function Prototypes
+// ***************************
+static void clearDictionary(Dictionary *dict);
+static void clearDictionaryItem(Dictionary **dict);
 
 //========================================================
 // Init Functions
@@ -29,18 +32,21 @@ void clearGameState() {
   Enemy *enemies = gameState->enemies;
 
   clearPlayers();
+  clearCombatActions();
 
   while (enemy_num--) {
     // printf("Deleting Enemy of Type: %d\n", enemies->name);
     clearEnemy(&enemies);
     enemies++;
   }
+  printf("Deleted all enemies\n");
 
-  free(gameState->characterDictionary);
-  free(gameState->enemyDictionary);
-  free(gameState->playerWeaponDictionary);
-  free(gameState->enemyWeaponDictionary);
-  free(gameState);
+  clearDictionary(gameState->characterDictionary);
+  printf("Deleted all directories\n");
+  clearDictionary(gameState->enemyDictionary);
+  clearDictionary(gameState->playerWeaponDictionary);
+  clearDictionary(gameState->enemyWeaponDictionary);
+  freeResource((void *)gameState);
 }
 
 void clearEnemy(Enemy **enemy) {
@@ -49,4 +55,32 @@ void clearEnemy(Enemy **enemy) {
 
   free(*enemy);
   *enemy = NULL;
+}
+
+void freeResource(void *item) {
+  if (item == NULL) return;
+  free(item);
+}
+
+// *****************
+// PRIVATE FUNCTIONS
+// *****************
+// FIXME: BROKEN???
+static void clearDictionary(Dictionary *dict) {
+  if (dict == NULL) return;
+
+  while (dict->opcode != -1) {
+    clearDictionaryItem(&dict);
+    dict++;
+  }
+  clearDictionaryItem(&dict);
+  printf("Deleted Dictionary\n");
+}
+
+static void clearDictionaryItem(Dictionary **dict) {
+  if (dict == NULL || *dict == NULL)
+    return;
+
+  free(*dict);
+  *dict = NULL;
 }
