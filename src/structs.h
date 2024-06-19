@@ -154,6 +154,17 @@ typedef struct SpriteAnimation {
   bool finished;      // NOTE: still not used
 } SpriteAnimation;
 
+typedef struct TilesMapper {
+  unsigned int num_of_tiles;
+  char *mapper[MAX_TILES_NUM];
+  char *path;         // Path of the mapper file
+} TilesMapper;
+
+typedef struct Map {
+  unsigned int currentLevel;   // NOTE: maybe convert it to a Level struct
+  TilesMapper tilesMapper;
+} Map;
+
 typedef struct
 {
   int num_of_players;

@@ -29,5 +29,6 @@
 
 #define MAX_FILENAME_LENGTH 256
 
+#define MAX_TILES_NUM 1024
 
 #endif // DEFS_H
