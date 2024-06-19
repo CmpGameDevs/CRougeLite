@@ -27,18 +27,10 @@
  *    will be reflected in the whole code. (e.g. Switch cases, etc.)
  *===========================================================================*/
 
-
 // TODO: Make enum for all stats related to the specified types
 // instead of no encapsulation.
 
 // FIXME: this probably should be refactored and removed.
-typedef enum
-{
-  W = 1,
-  A = 2,
-  S = 5,
-  D = 9,
-} KEYS;
 
 typedef enum
 {
@@ -73,6 +65,7 @@ typedef enum
 {
   P_GUN,
   P_LONG_SWORD,
+  P_MISSILE_LAUNCHER,
   NUM_OF_P_WEAPON
 } P_WEAPON;
 
@@ -101,16 +94,14 @@ typedef enum
   FLEE
 } State;
 
-
 /*============================================================================
  *                                  STRUCTS
  *
  *    Here are all the structs (Think of them as object data that you use)
  *    Change here are expensive as these Almost types and used or all over
  *    the place so make sure every thing is OK after changes.
- *    
+ *
  *===========================================================================*/
-
 
 // **********************
 // GENERAL ENGINE STRUCTS
@@ -140,7 +131,6 @@ typedef struct
   float height;
 } Collider2D;
 
-
 typedef struct AtlasImage
 {
   char *filename;
@@ -157,7 +147,6 @@ typedef struct
   int width;
   int height;
 } SpriteRenderer;
-
 
 // FIXME: Rework SpriteAnimation and animator
 // Animator should handle the state and what animation to show.
@@ -184,7 +173,6 @@ typedef struct SpriteAnimation
   bool finished; // NOTE: still not used
 } SpriteAnimation;
 
-
 typedef struct
 {
   int up;
@@ -203,7 +191,6 @@ typedef struct
   SpriteRenderer spriteRenderer;
   Animator animator;
 } GameObject;
-
 
 // *********************
 // GAME SPECIFIC STRUCTS
@@ -250,6 +237,7 @@ typedef struct
   float bulletDamage;
   float bulletRange;
   float bulletHealth;
+  int pathCode;
   SpriteRenderer bulletSprite;
   RigidBody2D rigidBody;
   Collider2D collider;
@@ -261,6 +249,7 @@ typedef struct
   BulletInfo bulletInfo;
   Vector2 startPosition; // To know if the bullet exceeded the range.
   CTransform transform;
+
 } Bullet;
 
 typedef struct
@@ -307,6 +296,7 @@ typedef struct
   BulletInfo bulletInfo;
   int maxAmmo;
   int ammo;
+  int numBullets;
 } RangedWeapon;
 
 typedef struct
@@ -336,7 +326,6 @@ typedef struct
   Weapon *weapons;
 } Inventory;
 
-
 typedef struct
 {
   Vector2 patrolStart;
@@ -349,7 +338,6 @@ typedef struct
   float speed;
   State state;
 } EnemyAI;
-
 
 typedef struct
 {
@@ -412,7 +400,6 @@ typedef struct
   DictionaryEntry entry;
 } Dictionary;
 
-
 typedef struct
 {
   int numOfPlayers;
@@ -427,8 +414,8 @@ typedef struct
   int level;
   bool isGameOver;
   bool isFinished;
-  Texture2D atlasTexture;     // The image atals containaing all the sprites and animations
-  AtlasImage *atlasImages;    // Linked List of individual sprites and animations data
+  Texture2D atlasTexture;  // The image atals containaing all the sprites and animations
+  AtlasImage *atlasImages; // Linked List of individual sprites and animations data
 
   Dictionary *playerWeaponDictionary;
   Dictionary *enemyWeaponDictionary;

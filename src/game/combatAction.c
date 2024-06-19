@@ -1,14 +1,14 @@
 /***************************************************************
  *
  *
- * 
+ *
  *     ██████╗ ██████╗ ███╗   ███╗██████╗  █████╗ ████████╗   █████╗  ██████╗████████╗██╗ ██████╗ ███╗   ██╗
  *    ██╔════╝██╔═══██╗████╗ ████║██╔══██╗██╔══██╗╚══██╔══╝  ██╔══██╗██╔════╝╚══██╔══╝██║██╔═══██╗████╗  ██║
  *    ██║     ██║   ██║██╔████╔██║██████╔╝███████║   ██║     ███████║██║        ██║   ██║██║   ██║██╔██╗ ██║
  *    ██║     ██║   ██║██║╚██╔╝██║██╔══██╗██╔══██║   ██║     ██╔══██║██║        ██║   ██║██║   ██║██║╚██╗██║
  *    ╚██████╗╚██████╔╝██║ ╚═╝ ██║██████╔╝██║  ██║   ██║     ██║  ██║╚██████╗   ██║   ██║╚██████╔╝██║ ╚████║
  *     ╚═════╝ ╚═════╝ ╚═╝     ╚═╝╚═════╝ ╚═╝  ╚═╝   ╚═╝     ╚═╝  ╚═╝ ╚═════╝   ╚═╝   ╚═╝ ╚═════╝ ╚═╝  ╚═══╝
- *                                                                                                          
+ *
  *     Combat Action Module Header. (Game Object)
  *     Exposes the logic for the Combat Action object.
  *
@@ -39,18 +39,20 @@ static void clearCombatAction(CombatAction **combatAction);
 
 /**
  *  initBullet - initialize a bullet object
- * 
+ *
  * @param ID Player's ID
  * @param bulletInfo Bullet's information from the used weapon
- * 
+ *
  * @return Pointer to the combat action object
- * 
+ *
  * @details Initialize a bullet object and link it to the player
  * by `ID`, its information is provided by the fired weapon.
  *
  */
-CombatAction *initBullet(int ID, BulletInfo bulletInfo, Vector2 src, Vector2 dest) {
-  if (gameState->numOfCombatActions == DEFAULT_MAX_COMBAT_ACTIONS) return NULL;
+CombatAction *initBullet(int ID, BulletInfo bulletInfo, Vector2 src, Vector2 dest)
+{
+  if (gameState->numOfCombatActions == DEFAULT_MAX_COMBAT_ACTIONS)
+    return NULL;
   // Init bullet
   Bullet bullet;
   bullet.playerID = ID;
@@ -67,19 +69,49 @@ CombatAction *initBullet(int ID, BulletInfo bulletInfo, Vector2 src, Vector2 des
 }
 
 /**
+ *  initRangedWeaponShoot - initialize a ranged weapon shoot object
+ *
+ * @param ID Player's ID
+ * @param weapon Ranged weapon used
+ *
+ * @return Pointer to the combat action object
+ *
+ * @details Initialize a ranged weapon shoot object and link it to the player
+ * by `ID`, its information is provided by the used ranged weapon.
+ *
+ */
+
+void initRangedWeaponShoot(int ID, RangedWeapon weapon, Vector2 src, Vector2 dest)
+{
+  if (gameState->numOfCombatActions == DEFAULT_MAX_COMBAT_ACTIONS)
+    return;
+  int numOfBullets = weapon.numBullets;
+  int pathCode = 0;
+  if (numOfBullets > 1)
+    pathCode = 1;
+  while (numOfBullets--)
+  {
+    weapon.bulletInfo.pathCode = pathCode++;
+    initBullet(ID, weapon.bulletInfo, src, dest);
+  }
+}
+
+/**
  *  initSlash - initialize a slash object
- * 
+ *
  * @param ID Player's ID
  * @param bulletInfo Slash's information from the used melee weapon
- * 
+ *
  * @return Pointer to the combat action object
- * 
+ *
  * @details Initialize a slash object and link it to the player
  * by `ID`, its information is provided by the used melee weapon.
  *
  */
-CombatAction *initSlash(int ID, SlashInfo slashInfo, Vector2 src, Vector2 dest) {
-  if (gameState->numOfCombatActions == DEFAULT_MAX_COMBAT_ACTIONS) return NULL;
+CombatAction *initSlash(int ID, SlashInfo slashInfo, Vector2 src, Vector2 dest)
+{
+  if (gameState->numOfCombatActions == DEFAULT_MAX_COMBAT_ACTIONS)
+    return NULL;
   // Init slash
   Slash slash;
   slash.playerID = ID;
@@ -98,7 +130,8 @@ CombatAction *initSlash(int ID, SlashInfo slashInfo, Vector2 src, Vector2 dest) 
 /**
  * drawCombatActions - draw all combat actions and update them
  */
-void drawCombatActions() {
+void drawCombatActions()
+{
   int x = 320, y = 96;
   int actions = gameState->numOfCombatActions;
   CombatAction *combatActions = gameState->combatActions;
@@ -114,8 +147,10 @@ void drawCombatActions() {
                                                     },
                                                     12, true);
 
-  while (actions--) {
-    if (combatActions->type == ACTION_BULLET) {
+  for (int i = 0; i < gameState->numOfCombatActions; i++)
+  {
+    if (combatActions->type == ACTION_BULLET)
+    {
       combatActions->anime = fireAnime;
       drawBullet(&combatActions);
     }
@@ -127,12 +162,14 @@ void drawCombatActions() {
 /**
  * clearCombatActions - free combat actions array from heap
  */
-void clearCombatActions() {
+void clearCombatActions()
+{
   printf("Deleting combat actions\n");
   int combatActionNum = gameState->numOfCombatActions;
   CombatAction *combatActions = gameState->combatActions;
 
-  while (combatActionNum--) {
+  while (combatActionNum--)
+  {
     clearCombatAction(&combatActions);
     combatActions++;
   }
@@ -145,14 +182,15 @@ void clearCombatActions() {
 
 /**
  * checkCollision - check for collision
- * 
+ *
  * @param rect1 combat action boundary box
  * @param rect2 enemy boundary box
- * 
+ *
  * @return true if the combat action collides, false otherwise.
- * 
+ *
  */
-static bool checkCollision(Rectangle rect1, Rectangle rect2) {
+static bool checkCollision(Rectangle rect1, Rectangle rect2)
+{
   // collision x-axis?
   bool collisionX =
       rect1.x + rect1.width >= rect2.x && rect2.x + rect2.width >= rect1.x;
@@ -165,19 +203,21 @@ static bool checkCollision(Rectangle rect1, Rectangle rect2) {
 
 /**
  * bulletCollision - check for bullet collision with the borders and enemies
- * 
+ *
  * @param combatAction pointer to the combat action object holding the bullet
- * 
+ *
  * @return true if the bullet collides, false otherwise.
- * 
+ *
  */
-static bool bulletCollision(CombatAction *combatAction) {
+static bool bulletCollision(CombatAction *combatAction)
+{
   Bullet *bullet = &combatAction->action.bullet;
-  for (int j = 0; j < gameState->numOfEnemies; j++) {
+  Collider2D bulletCollider = bullet->bulletInfo.collider;
+  Vector2 bulletPosition = RotatePoint(bullet->transform.position, bullet->startPosition, combatAction->angle * DEG2RAD);
+  for (int j = 0; j < gameState->numOfEnemies; j++)
+  {
     Enemy *enemy = &gameState->enemies[j];
-    Vector2 bulletPosition = bullet->transform.position;
     Vector2 enemyPosition = enemy->object.transform.position;
-    Collider2D bulletCollider = bullet->bulletInfo.collider;
     Collider2D enemyCollider = enemy->object.collider;
 
     if (checkCollision((Rectangle){bulletPosition.x,
@@ -187,7 +227,8 @@ static bool bulletCollision(CombatAction *combatAction) {
                        (Rectangle){enemyPosition.x,
                                    enemyPosition.y,
                                    enemyCollider.width,
-                                   enemyCollider.height})) {
+                                   enemyCollider.height}))
+    {
       // Clear combatAction
       // TODO: decrease the bullet's health and indicate that it is currently
       // on a certain enemy (store the enemy id?) so that it affect different enemies.
@@ -195,7 +236,8 @@ static bool bulletCollision(CombatAction *combatAction) {
           gameState->combatActions[--(gameState->numOfCombatActions)];
       // Damage Enemy
       enemy->stats.health.currentHealth -= bullet->bulletInfo.bulletDamage;
-      if (enemy->stats.health.currentHealth <= 0) {
+      if (enemy->stats.health.currentHealth <= 0)
+      {
         gameState->enemies[j] = gameState->enemies[gameState->numOfEnemies - 1];
         gameState->numOfEnemies--;
         // TODO: add score to the player (maybe each enemy has its own score).
@@ -208,15 +250,17 @@ static bool bulletCollision(CombatAction *combatAction) {
 
 /**
  * slashCollision - check for slash collision with the borders and enemies
- * 
+ *
  * @param combatAction pointer to the combat action object holding the slash
- * 
+ *
  * @return true if the slash collides, false otherwise.
- * 
+ *
  */
-static bool slashCollision(CombatAction *combatAction) {
+static bool slashCollision(CombatAction *combatAction)
+{
   Slash *slash = &combatAction->action.slash;
-  for (int j = 0; j < gameState->numOfEnemies; j++) {
+  for (int j = 0; j < gameState->numOfEnemies; j++)
+  {
     Enemy *enemy = &gameState->enemies[j];
     Vector2 slashPosition = slash->transform.position;
     Vector2 enemyPosition = enemy->object.transform.position;
@@ -230,7 +274,8 @@ static bool slashCollision(CombatAction *combatAction) {
                        (Rectangle){enemyPosition.x,
                                    enemyPosition.y,
                                    enemyCollider.width,
-                                   enemyCollider.height})) {
+                                   enemyCollider.height}))
+    {
       // Clear combatAction
       // TODO: decrease the bullet's health and indicate that it is currently
       // on a certain enemy (store the enemy id?) so that it affect different enemies.
@@ -238,7 +283,8 @@ static bool slashCollision(CombatAction *combatAction) {
           gameState->combatActions[--(gameState->numOfCombatActions)];
       // Damage Enemy
       enemy->stats.health.currentHealth -= slash->slashInfo.slashDamage;
-      if (enemy->stats.health.currentHealth <= 0) {
+      if (enemy->stats.health.currentHealth <= 0)
+      {
         gameState->enemies[j] = gameState->enemies[gameState->numOfEnemies - 1];
         gameState->numOfEnemies--;
         // TODO: add score to the player (maybe each enemy has its own score).
@@ -249,23 +295,37 @@ static bool slashCollision(CombatAction *combatAction) {
   return false;
 }
 
-static void drawBullet(CombatAction **combatActions) {
+static void drawBullet(CombatAction **combatActions)
+{
   CombatAction *combatAction = *combatActions;
   Bullet *bullet = &(combatAction->action.bullet);
   Vector2 *pos = &(bullet->transform.position);
-  Rectangle dest = (Rectangle){pos->x, pos->y, bullet->bulletInfo.collider.width,
-                    bullet->bulletInfo.collider.height};
+  Vector2 rotated = RotatePoint(*pos, bullet->startPosition, combatAction->angle * DEG2RAD);
+  Rectangle dest = (Rectangle){rotated.x, rotated.y, bullet->bulletInfo.collider.width,
+                               bullet->bulletInfo.collider.height};
   drawSpriteAnimationPro(&(combatAction->anime), dest, (Vector2){0, 0}, 0, WHITE,
                          false);
+
+  // pos->x +=
+  //     bullet->bulletInfo.bulletSpeed * cos(combatAction->angle * DEG2RAD);
+  // pos->y +=
+  //     bullet->bulletInfo.bulletSpeed * sin(combatAction->angle * DEG2RAD);
+
   pos->x +=
-      bullet->bulletInfo.bulletSpeed * cos(combatAction->angle * DEG2RAD);
-  pos->y +=
-      bullet->bulletInfo.bulletSpeed * sin(combatAction->angle * DEG2RAD);
+      bullet->bulletInfo.bulletSpeed;
+
+  pos->y = functionValue(bullet->bulletInfo.pathCode, pos->x);
+  if (pos->y > 100)
+    pos->y = 100;
+  pos->y += bullet->startPosition.y;
+
+  // *pos = RotatePoint(*pos,bullet->startPosition, combatAction->angle*DEG2RAD);
 
   (*combatActions) -= bulletCollision(combatAction);
 }
 
-static void drawSlash(CombatAction **combatActions) {
+static void drawSlash(CombatAction **combatActions)
+{
   CombatAction *combatAction = *combatActions;
   Slash *slash = &combatAction->action.slash;
   Vector2 *pos = &slash->transform.position;
@@ -277,7 +337,8 @@ static void drawSlash(CombatAction **combatActions) {
   (*combatActions) -= slashCollision(combatAction);
 }
 
-static void clearCombatAction(CombatAction **combatAction) {
+static void clearCombatAction(CombatAction **combatAction)
+{
   if (combatAction == NULL || *combatAction == NULL)
     return;
 

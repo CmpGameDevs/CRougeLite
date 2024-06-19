@@ -14,9 +14,9 @@ static void mouseEventHandler() {
   Player *player = ((gameState->players) + selected_player);
 
   Vector2 srcPos = {(double)player->object.transform.position.x +
-                        player->object.collider.width / 2 - 16,
+                        player->object.collider.width / 2 ,
                     (double)player->object.transform.position.y +
-                        player->object.collider.height / 2 - 16};
+                        player->object.collider.height / 2 };
 
   Vector2 mousePos = GetMousePosition();
 

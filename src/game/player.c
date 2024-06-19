@@ -39,7 +39,7 @@ static void clearPlayer(Player **player);
  *
  */
 void setupPlayers() {
-  Player *player = initPlayer("Marcus", CAT, P_GUN,
+  Player *player = initPlayer("Marcus", CAT, P_MISSILE_LAUNCHER,
                               (Vector2){gameState->settings.screenWidth / 2.0,
                                         gameState->settings.screenHeight / 2.0},
                               0);

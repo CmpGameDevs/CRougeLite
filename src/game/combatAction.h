@@ -24,6 +24,7 @@
 #define COMBAT_ACTION_H
 
 #include "../CRougeLite.h"
+#include "path.h"
 
 /**
  *  initBullet - initialize a bullet object
@@ -38,6 +39,21 @@
  *
  */
 CombatAction *initBullet(int ID, BulletInfo bulletInfo, Vector2 src, Vector2 dest);
+
+/**
+ *  initRangedWeaponShoot - initialize a ranged weapon shoot object
+ *
+ * @param ID Player's ID
+ * @param weapon Ranged weapon used
+ *
+ * @return Pointer to the combat action object
+ *
+ * @details Initialize a ranged weapon shoot object and link it to the player
+ * by `ID`, its information is provided by the used ranged weapon.
+ *
+ */
+void initRangedWeaponShoot(int ID, RangedWeapon weapon, Vector2 src, Vector2 dest);
+
 
 /**
  *  initSlash - initialize a slash object

@@ -17,6 +17,7 @@
     "system_error": "c",
     "type_traits": "c",
     "typeinfo": "c",
-    "utility": "c"
+    "utility": "c",
+    "cmath": "c"
   }
 }
