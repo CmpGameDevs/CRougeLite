@@ -1,5 +1,6 @@
 #include "input.h"
 #include "../CRougeLite.h"
+#include "../game/weapon.h"
 #include <raymath.h>
 
 static void mouseEventHandler();
@@ -12,9 +13,9 @@ static void mouseEventHandler() {
   int selected_player = 0;
   Player *player = ((gameState->players) + selected_player);
 
-  Vector2 srcPos = {(double)player->object.rigidBody.position.x +
+  Vector2 srcPos = {(double)player->object.transform.position.x +
                         player->object.collider.width / 2 - 16,
-                    (double)player->object.rigidBody.position.y +
+                    (double)player->object.transform.position.y +
                         player->object.collider.height / 2 - 16};
 
   Vector2 mousePos = GetMousePosition();
@@ -29,20 +30,11 @@ static void mouseEventHandler() {
     player->fire = 0;
   }
   float deltaTime = GetFrameTime(); // Get time in seconds for one frame
-  float *reloadTime = &(player->inventory.weapons->weapon.ranged.stats.lastUseTime);
 
-  float cooldown = player->inventory.weapons->weapon.ranged.stats.cooldown;
-
-  int *ammo = &(player->inventory.weapons->weapon.ranged.ammo);
-
-  if (player->fire == 1 && *ammo > 0 && player->inventory.weapons->type == RANGED_WEAPON &&
-      *reloadTime <= 0.0f) {
-
-    initBullet(player->ID, &(player->inventory.weapons->weapon.ranged.bulletInfo), srcPos,
-               mousePos);
-    *ammo -= 1;
-    *reloadTime = cooldown;
+  Weapon *weapon = (player->inventory.weapons + player->inventory.currentWeapon);
+  if (weapon->type == RANGED_WEAPON) {
+    updateRangedWeapon(weapon, player->fire, player->ID, srcPos, mousePos, deltaTime);
+  } else if (weapon->type == MELEE_WEAPON) {
+    updateMeleeWeapon(weapon, player->fire, player->ID, srcPos, mousePos, deltaTime);
   }
-  if (*reloadTime > 0.0f)
-    *reloadTime -= deltaTime;
 }

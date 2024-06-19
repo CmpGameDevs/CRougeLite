@@ -125,7 +125,6 @@ typedef struct CTransform
 
 typedef struct
 {
-  Vector2 position;
   Vector2 velocity;
   Vector2 acceleration;
   float drag;
@@ -289,6 +288,7 @@ typedef union
 typedef struct
 {
   float angle;
+  SpriteAnimation anime;
   CombatActionUnion action;
   CombatActionType type;
 } CombatAction;
