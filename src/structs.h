@@ -178,6 +178,7 @@ typedef struct
   bool finished;
   Texture2D atlasTexture;
   AtlasImage *atlasImages;
+  Map map;
 
   Settings settings;
 } Game_System;

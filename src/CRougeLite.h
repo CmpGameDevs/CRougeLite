@@ -43,6 +43,7 @@ Bullet *initBullet(P_WEAPON weapon, int playerID, RigidBody2d body, Vector2 src,
 void clearGameSystem();
 void clearPlayer(Player **player);
 void clearEnemy(Enemy **enemy);
+void clearMap();
 
 #endif // CROUGELITE_H
 

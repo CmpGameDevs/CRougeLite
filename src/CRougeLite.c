@@ -25,6 +25,7 @@
 #include "system/atlas.h"
 #include "system/draw.h"
 #include "system/input.h"
+#include "system/map.h"
 
 //========================================================
 // Global Shared Variables
@@ -65,6 +66,7 @@ int main(void)
              "C rougelite game");
   // printf("TEST\n");
   initAtlas();
+  initTilesMapper();
 
   loadResources(settings);
 
@@ -96,6 +98,8 @@ static void loadResources(Settings *settings)
   SetMusicVolume(music, settings->volume / 100.0);
   PlayMusicStream(music);
 
+  loadTilesMapper();
+
   Player *player = initPlayer("Marcus", KNIGHT, LONG_SWORD, (RigidBody2d){64, 64}, (Vector2){settings->screen_width / 2.0, settings->screen_height / 2.0}, 0);
 
   initEnemy(E_CIVILIAN, E_SWORD, (RigidBody2d){64, 64}, (Vector2){128, 128});
@@ -108,6 +112,7 @@ static void update() { UpdateMusicStream(music); }
 static void clearResources()
 {
   clearGameSystem();
+  clearMap();
 
   // Unload assets and cleaning
   UnloadMusicStream(music);
