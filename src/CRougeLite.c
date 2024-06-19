@@ -97,6 +97,7 @@ static void loadResources() {
 
 static void update() {
   updatePlayers();
+  updateEnemies();
   UpdateMusicStream(music);
 }
 

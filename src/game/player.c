@@ -38,7 +38,8 @@ static void clearPlayer(Player **player);
  * the state of the game to draw and update.
  *
  */
-void setupPlayers() {
+void setupPlayers()
+{
   Player *player = initPlayer("Marcus", CAT, P_MISSILE_LAUNCHER,
                               (Vector2){gameState->settings.screenWidth / 2.0,
                                         gameState->settings.screenHeight / 2.0},
@@ -50,7 +51,8 @@ void setupPlayers() {
  * Draw the players in the game.
  *
  */
-void drawPlayers() {
+void drawPlayers()
+{
   Player *players = gameState->players;
   int player_num = gameState->numOfPlayers;
 
@@ -81,14 +83,17 @@ void drawPlayers() {
                                                },
                                                12, true);
 
-
-  while (player_num--) {
+  while (player_num--)
+  {
     Vector2 pos = players->object.transform.position;
     bool flip = (players->drawDirection == -1) ? true : false;
-    if (players->isMoving) {
+    if (players->isMoving)
+    {
       drawSpriteAnimationPro(&walk, (Rectangle){pos.x, pos.y, 64, 64},
                              (Vector2){0, 0}, 0, WHITE, flip);
-    } else {
+    }
+    else
+    {
       drawSpriteAnimationPro(&idle, (Rectangle){pos.x, pos.y, 64, 64},
                              (Vector2){0, 0}, 0, WHITE, flip);
     }
@@ -106,7 +111,8 @@ void drawPlayers() {
  * it handles it's input and state too.
  *
  */
-void updatePlayers() {
+void updatePlayers()
+{
   Player *player = gameState->players;
   Input input = player->input;
   double speed = player->stats.speed;
@@ -123,19 +129,24 @@ void updatePlayers() {
 
   Vector2 velocity =
       Vector2Scale(Vector2Normalize(direction), speed);
-  
   Vector2 position = Vector2Add(
       player->object.transform.position, velocity);
 
-  if (Vector2Length(velocity) > 0) {
+  if (Vector2Length(velocity) > 0)
+  {
     player->isMoving = true;
-  } else {
+  }
+  else
+  {
     player->isMoving = false;
   }
 
-  if (velocity.x < 0) {
+  if (velocity.x < 0)
+  {
     player->drawDirection = -1;
-  } else {
+  }
+  else
+  {
     player->drawDirection = 1;
   }
 
@@ -148,11 +159,62 @@ void updatePlayers() {
   // FIXME: replace with sprite size
 }
 
-void clearPlayers() {
+void updateEnemies()
+{
+  Enemy *enemy = gameState->enemies;
+  double speed = enemy->stats.speed;
+
+  Vector2 direction = {0, 0};
+  if (IsKeyDown(KEY_UP))
+    direction.y -= 1;
+  if (IsKeyDown(KEY_DOWN))
+    direction.y += 1;
+  if (IsKeyDown(KEY_LEFT))
+    direction.x -= 1;
+  if (IsKeyDown(KEY_RIGHT))
+    direction.x += 1;
+
+  Vector2 velocity =
+      Vector2Scale(Vector2Normalize(direction), speed);
+
+  Vector2 position = Vector2Add(
+      enemy->object.transform.position, velocity);
+
+  if (Vector2Length(velocity) > 0)
+  {
+    enemy->isMoving = true;
+  }
+  else
+  {
+    enemy->isMoving = false;
+  }
+
+  if (velocity.x < 0)
+  {
+    enemy->drawDirection = -1;
+  }
+  else
+  {
+    enemy->drawDirection = 1;
+  }
+
+  // NOTE: this makes the player unable to go out of frame
+  enemy->object.rigidBody.velocity = velocity;
+  enemy->object.transform.position =
+      Vector2Clamp(position, (Vector2){0, 0},
+                   (Vector2){gameState->settings.screenWidth - 64,
+                             gameState->settings.screenHeight - 64});
+
+  // FIXME: replace with sprite size
+}
+
+void clearPlayers()
+{
   int player_num = gameState->numOfPlayers;
   Player *players = gameState->players;
 
-  while (player_num--) {
+  while (player_num--)
+  {
     printf("Deleting Player: %s\n", players->name);
     clearPlayer(&players);
     players++;
@@ -164,22 +226,26 @@ void clearPlayers() {
 // PRIVATE FUNCTIONS
 // *****************
 
-static void addPlayer(Player *player) {
+static void addPlayer(Player *player)
+{
   Player *players = gameState->players;
   players[gameState->numOfPlayers++] = *player;
 }
 
 static Player *initPlayer(const char *name, P_TYPE type, P_WEAPON weapon,
-                   Vector2 position, int ID) {
+                          Vector2 position, int ID)
+{
   Settings settings = gameState->settings;
   Dictionary *dict = gameState->characterDictionary;
   Player *player = &(gameState->players[gameState->numOfPlayers++]);
   int l = 0, r = NUM_OF_E_TYPE - 1;
 
-  while (l <= r) {
+  while (l <= r)
+  {
     int mid = l + (r - l) / 2;
     int cmp = dict[mid].opcode - type;
-    if (!cmp) {
+    if (!cmp)
+    {
       *player = dict[mid].entry.player;
       break;
     }
@@ -204,12 +270,13 @@ static Player *initPlayer(const char *name, P_TYPE type, P_WEAPON weapon,
   player->experience = (Experience){.xp = 0, .level = 0};
   // TODO: Make dictionary for infos related to each type of character.
   // Input
-  player->input = (Input){.up = KEY_W, .down = KEY_S, .left = KEY_A, .right = KEY_D, .action = KEY_E };
+  player->input = (Input){.up = KEY_W, .down = KEY_S, .left = KEY_A, .right = KEY_D, .action = KEY_E};
 
   return player;
 }
 
-static void clearPlayer(Player **player) {
+static void clearPlayer(Player **player)
+{
   if (player == NULL || *player == NULL)
     return;
 

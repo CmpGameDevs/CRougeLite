@@ -1,32 +1,9 @@
 #include "path.h"
 
-float scaleParameter = 25;
-float frequency = 150;
-float a = -.2;
-float b = .5;
-float functionValue(int pathCode, float x)
+float path(float x, float freq, float amp, Vector2 dest)
 {
-    float calc = scaleParameter * sinf(x / frequency);
-    if (pathCode == 0)
-    {
-        return 0;
-    }
-    if (pathCode == 1)
-    {
-        return calc;
-    }
-    if (pathCode == 2)
-    {
-        return -(scaleParameter / 2) * sinf(x / frequency);
-    }
-    if (pathCode == 3)
-    {
-        return calc + scaleParameter * sinf((x / frequency) + a * scaleParameter);
-    }
-    if (pathCode >= 4)
-    {
-        return calc + scaleParameter * sinf((x / frequency) + a * frequency) + scaleParameter * b * sinf(2 * x / frequency);
-    }
+    float phase =  - dest.x * freq;
+    return amp * sinf(x * freq + phase);
 }
 
 Vector2 RotatePoint(Vector2 point, Vector2 center, float theta)

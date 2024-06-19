@@ -38,7 +38,7 @@
  * by `ID`, its information is provided by the fired weapon.
  *
  */
-CombatAction *initBullet(int ID, BulletInfo bulletInfo, Vector2 src, Vector2 dest);
+CombatAction *initBullet(int ID, BulletInfo bulletInfo, Vector2 pathInfo, Vector2 src, Vector2 dest);
 
 /**
  *  initRangedWeaponShoot - initialize a ranged weapon shoot object
@@ -68,7 +68,6 @@ void initRangedWeaponShoot(int ID, RangedWeapon weapon, Vector2 src, Vector2 des
  *
  */
 CombatAction *initSlash(int ID, SlashInfo slashInfo, Vector2 src, Vector2 dest);
-
 /**
  * drawCombatActions - draw all combat actions and update them
  */

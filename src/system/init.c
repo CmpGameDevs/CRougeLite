@@ -73,7 +73,8 @@ static void initEnemyDictionary()
              .state = FLEE},
       .stats = {.health = {.maxHealth = 100, .currentHealth = 100},
                 .attack = {.power = 1.0f, .cooldown = 5, .speed = 1.0f},
-                .defense = {.value = 3, .nearHitValue = 6}},
+                .defense = {.value = 3, .nearHitValue = 6},
+                .speed = 5},
   };
 
   dict[1].opcode = E_FARMER;
@@ -96,7 +97,9 @@ static void initEnemyDictionary()
              .state = FLEE},
       .stats = {.health = {.maxHealth = 100, .currentHealth = 100},
                 .attack = {.power = 1.0f, .cooldown = 5, .speed = 1.0f},
-                .defense = {.value = 3, .nearHitValue = 6}}};
+                .defense = {.value = 3, .nearHitValue = 6},
+                .speed = 5},
+  };
 
   dict[2].opcode = E_KNIGHT;
 
@@ -123,7 +126,7 @@ static void initPlayerWeaponDictionary()
       .type = RANGED_WEAPON,
       .weapon.ranged = {
           .stats = {10, 0.5, 0, .weaponSprite = {}},
-          .bulletInfo = {3, 10, 100, 10, .bulletSprite = {}, .collider = {(Vector2){0, 0}, 32, 32}},
+          .bulletInfo = {3, 10, 100, 10, .bulletSprite = {}, .collider = {(Vector2){0, 0}, 32, 32}, .isTracking = false},
           30,
           30,
           1}};
@@ -133,7 +136,7 @@ static void initPlayerWeaponDictionary()
       .type = RANGED_WEAPON,
       .weapon.ranged = {
           .stats = {10, 1, 0, .weaponSprite = {}},
-          .bulletInfo = {5, 10, 100, 10, .bulletSprite = {}, .collider = {(Vector2){0, 0}, 16, 16}},
+          .bulletInfo = {2, 10, 100, 10, .bulletSprite = {}, .collider = {(Vector2){0, 0}, 16, 16}, .isTracking = true},
           30,
           30,
           4}};

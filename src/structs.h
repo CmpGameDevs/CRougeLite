@@ -111,6 +111,8 @@ typedef struct CTransform
 {
   Vector2 position;
   float rotation;
+  float frequency;
+  float amplitude;
   Vector2 scale;
 } CTransform;
 
@@ -237,7 +239,8 @@ typedef struct
   float bulletDamage;
   float bulletRange;
   float bulletHealth;
-  int pathCode;
+  bool isTracking;
+  int enemyID;
   SpriteRenderer bulletSprite;
   RigidBody2D rigidBody;
   Collider2D collider;
@@ -248,8 +251,8 @@ typedef struct
   int playerID;
   BulletInfo bulletInfo;
   Vector2 startPosition; // To know if the bullet exceeded the range.
+  Vector2 dest;
   CTransform transform;
-
 } Bullet;
 
 typedef struct
@@ -347,6 +350,7 @@ typedef struct
   Weapon weapon;
   E_TYPE type;
   EnemyAI ai;
+  bool isMoving;
   int drawDirection; // 1 for right, -1 for left
 } Enemy;
 

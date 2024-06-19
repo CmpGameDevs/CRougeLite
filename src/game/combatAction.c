@@ -49,7 +49,7 @@ static void clearCombatAction(CombatAction **combatAction);
  * by `ID`, its information is provided by the fired weapon.
  *
  */
-CombatAction *initBullet(int ID, BulletInfo bulletInfo, Vector2 src, Vector2 dest)
+CombatAction *initBullet(int ID, BulletInfo bulletInfo, Vector2 pathInfo, Vector2 src, Vector2 dest)
 {
   if (gameState->numOfCombatActions == DEFAULT_MAX_COMBAT_ACTIONS)
     return NULL;
@@ -58,11 +58,15 @@ CombatAction *initBullet(int ID, BulletInfo bulletInfo, Vector2 src, Vector2 des
   bullet.playerID = ID;
   bullet.bulletInfo = bulletInfo;
   bullet.startPosition = src;
-  bullet.transform = (CTransform){src, 0, (Vector2){1, 1}};
+  bullet.transform = (CTransform){src, 0, pathInfo.x, pathInfo.y, (Vector2){1, 1}};
+  if (bullet.bulletInfo.isTracking && bullet.bulletInfo.enemyID >= 0)
+    bullet.dest = gameState->enemies[bullet.bulletInfo.enemyID].object.transform.position;
+  else
+    bullet.dest = dest;
 
   // Init combatAction
   CombatAction *combatAction = (gameState->combatActions + gameState->numOfCombatActions++);
-  combatAction->angle = GetAngleBetweenPoints(src, dest);
+  combatAction->angle = GetAngleBetweenPoints(src, bullet.dest);
   combatAction->type = ACTION_BULLET;
   combatAction->action.bullet = bullet;
   return combatAction;
@@ -86,13 +90,13 @@ void initRangedWeaponShoot(int ID, RangedWeapon weapon, Vector2 src, Vector2 des
   if (gameState->numOfCombatActions == DEFAULT_MAX_COMBAT_ACTIONS)
     return;
   int numOfBullets = weapon.numBullets;
-  int pathCode = 0;
-  if (numOfBullets > 1)
-    pathCode = 1;
+  // TODO: Refactor this part of code
+  //  Vector2 freq_amp[] = {{0, 0}, {.006, 50}, {-.004, 100}, {.01, 80}, {-.01, 60}};
+  //    Vector2 freq_amp[] = {{0, 0}, {.006, 50}, {-.004, 40}, {.003, 30}, {-.0051, 20}};
+  Vector2 freq_amp[] = {{0, 0}, {.053, 50}, {.061, 40}, {-.031, 30}, {-.03, 20}};
   while (numOfBullets--)
   {
-    weapon.bulletInfo.pathCode = pathCode++;
-    initBullet(ID, weapon.bulletInfo, src, dest);
+    initBullet(ID, weapon.bulletInfo, freq_amp[numOfBullets], src, dest);
   }
 }
 
@@ -116,7 +120,7 @@ CombatAction *initSlash(int ID, SlashInfo slashInfo, Vector2 src, Vector2 dest)
   Slash slash;
   slash.playerID = ID;
   slash.slashInfo = slashInfo;
-  slash.transform = (CTransform){src, 0, (Vector2){1, 1}};
+  slash.transform = (CTransform){src, 0, 0, 0, (Vector2){1, 1}};
 
   // Init combatAction
   CombatAction *combatAction = &(gameState->combatActions[gameState->numOfCombatActions++]);
@@ -300,6 +304,23 @@ static void drawBullet(CombatAction **combatActions)
   CombatAction *combatAction = *combatActions;
   Bullet *bullet = &(combatAction->action.bullet);
   Vector2 *pos = &(bullet->transform.position);
+  Vector2 enemyPos = gameState->enemies[bullet->bulletInfo.enemyID].object.transform.position;
+  if (bullet->bulletInfo.isTracking && bullet->bulletInfo.enemyID >= 0 && !Vector2Equals(bullet->dest, enemyPos))
+  {
+
+    Vector2 currentPos = RotatePoint(enemyPos, bullet->startPosition, -combatAction->angle * DEG2RAD);
+
+    // printf("Current Pos: %f, %f\n", currentPos.x, currentPos.y);
+
+    float newAngle = GetAngleBetweenPoints(currentPos, bullet->startPosition);
+
+    bullet->dest = gameState->enemies[bullet->bulletInfo.enemyID].object.transform.position;
+    combatAction->angle += newAngle;
+    combatAction->angle = -180 + combatAction->angle;
+    combatAction->angle = fmod(combatAction->angle, 360);
+    // printf("Angle: %f\n", combatAction->angle);
+  }
+
   Vector2 rotated = RotatePoint(*pos, bullet->startPosition, combatAction->angle * DEG2RAD);
   Rectangle dest = (Rectangle){rotated.x, rotated.y, bullet->bulletInfo.collider.width,
                                bullet->bulletInfo.collider.height};
@@ -314,10 +335,9 @@ static void drawBullet(CombatAction **combatActions)
   pos->x +=
       bullet->bulletInfo.bulletSpeed;
 
-  pos->y = functionValue(bullet->bulletInfo.pathCode, pos->x);
-  if (pos->y > 100)
-    pos->y = 100;
-  pos->y += bullet->startPosition.y;
+  Vector2 transformedDest = RotatePoint(bullet->dest, bullet->startPosition, -combatAction->angle * DEG2RAD);
+
+  pos->y = path(pos->x, bullet->transform.frequency, bullet->transform.amplitude, transformedDest) + bullet->startPosition.y;
 
   // *pos = RotatePoint(*pos,bullet->startPosition, combatAction->angle*DEG2RAD);
 
