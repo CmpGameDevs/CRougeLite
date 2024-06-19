@@ -21,15 +21,15 @@ float functionValue(int pathCode, float x)
     }
     if (pathCode == 3)
     {
-        return calc + scaleParameter * sinf((x / frequency) + a * scaleParameter) ;
+        return calc + scaleParameter * sinf((x / frequency) + a * scaleParameter);
     }
-    if (pathCode == 4)
+    if (pathCode >= 4)
     {
         return calc + scaleParameter * sinf((x / frequency) + a * frequency) + scaleParameter * b * sinf(2 * x / frequency);
     }
 }
 
-Vector2 RotatePoint(Vector2 point,Vector2 center, float theta)
+Vector2 RotatePoint(Vector2 point, Vector2 center, float theta)
 {
     // Translate point to origin
     float translatedX = point.x - center.x;
@@ -42,8 +42,7 @@ Vector2 RotatePoint(Vector2 point,Vector2 center, float theta)
     // Translate point back
     Vector2 newPoint = {
         rotatedX + center.x,
-        rotatedY + center.y
-    };
+        rotatedY + center.y};
 
     return newPoint;
 }
