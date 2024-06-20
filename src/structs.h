@@ -183,6 +183,7 @@ typedef struct
   int right;
   int shoot;
   int action;
+  int *weapons;
 } Input;
 
 typedef struct

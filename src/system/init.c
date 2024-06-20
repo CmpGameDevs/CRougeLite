@@ -126,7 +126,7 @@ static void initPlayerWeaponDictionary()
       .type = RANGED_WEAPON,
       .weapon.ranged = {
           .stats = {10, 0.5, 0, .weaponSprite = {}},
-          .bulletInfo = {3, 10, 100, 10, .bulletSprite = {}, .collider = {(Vector2){0, 0}, 32, 32}, .isTracking = false},
+          .bulletInfo = {3, 10, 600, 10, .bulletSprite = {}, .collider = {(Vector2){0, 0}, 32, 32}, .isTracking = false},
           30,
           30,
           1}};
@@ -136,7 +136,7 @@ static void initPlayerWeaponDictionary()
       .type = RANGED_WEAPON,
       .weapon.ranged = {
           .stats = {10, 1, 0, .weaponSprite = {}},
-          .bulletInfo = {2, 10, 100, 10, .bulletSprite = {}, .collider = {(Vector2){0, 0}, 16, 16}, .isTracking = true},
+          .bulletInfo = {2, 10, 1000, 10, .bulletSprite = {}, .collider = {(Vector2){0, 0}, 16, 16}, .isTracking = true},
           30,
           30,
           4}};

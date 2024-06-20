@@ -310,15 +310,12 @@ static void drawBullet(CombatAction **combatActions)
 
     Vector2 currentPos = RotatePoint(enemyPos, bullet->startPosition, -combatAction->angle * DEG2RAD);
 
-    // printf("Current Pos: %f, %f\n", currentPos.x, currentPos.y);
-
     float newAngle = GetAngleBetweenPoints(currentPos, bullet->startPosition);
 
     bullet->dest = gameState->enemies[bullet->bulletInfo.enemyID].object.transform.position;
     combatAction->angle += newAngle;
     combatAction->angle = -180 + combatAction->angle;
     combatAction->angle = fmod(combatAction->angle, 360);
-    // printf("Angle: %f\n", combatAction->angle);
   }
 
   Vector2 rotated = RotatePoint(*pos, bullet->startPosition, combatAction->angle * DEG2RAD);
@@ -327,11 +324,6 @@ static void drawBullet(CombatAction **combatActions)
   drawSpriteAnimationPro(&(combatAction->anime), dest, (Vector2){0, 0}, 0, WHITE,
                          false);
 
-  // pos->x +=
-  //     bullet->bulletInfo.bulletSpeed * cos(combatAction->angle * DEG2RAD);
-  // pos->y +=
-  //     bullet->bulletInfo.bulletSpeed * sin(combatAction->angle * DEG2RAD);
-
   pos->x +=
       bullet->bulletInfo.bulletSpeed;
 
@@ -339,9 +331,13 @@ static void drawBullet(CombatAction **combatActions)
 
   pos->y = path(pos->x, bullet->transform.frequency, bullet->transform.amplitude, transformedDest) + bullet->startPosition.y;
 
-  // *pos = RotatePoint(*pos,bullet->startPosition, combatAction->angle*DEG2RAD);
-
-  (*combatActions) -= bulletCollision(combatAction);
+  if (abs(pos->x - bullet->startPosition.x > bullet->bulletInfo.bulletRange))
+  {
+    *combatAction = gameState->combatActions[--(gameState->numOfCombatActions)];
+    (*combatActions)--;
+  }
+  else
+    (*combatActions) -= bulletCollision(combatAction);
 }
 
 static void drawSlash(CombatAction **combatActions)

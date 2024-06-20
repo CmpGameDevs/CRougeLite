@@ -31,6 +31,7 @@
 static Player *initPlayer(const char *name, P_TYPE type, P_WEAPON weapon,
                           Vector2 position, int ID);
 static void clearPlayer(Player **player);
+static void AddPlayerWeapon(Player *player, P_WEAPON weapon);
 
 /* setupPlayers
  *
@@ -40,10 +41,11 @@ static void clearPlayer(Player **player);
  */
 void setupPlayers()
 {
-  Player *player = initPlayer("Marcus", CAT, P_MISSILE_LAUNCHER,
+  Player *player = initPlayer("Marcus", CAT, P_GUN,
                               (Vector2){gameState->settings.screenWidth / 2.0,
                                         gameState->settings.screenHeight / 2.0},
                               0);
+  AddPlayerWeapon(player, P_MISSILE_LAUNCHER);
 }
 
 /* drawPlayers
@@ -157,6 +159,31 @@ void updatePlayers()
                    (Vector2){gameState->settings.screenWidth - 64,
                              gameState->settings.screenHeight - 64});
   // FIXME: replace with sprite size
+
+  // Swapping between weapons
+  for (int i = 0; i < player->inventory.currentNumOfWeapons; i++)
+  {
+    if (IsKeyPressed(player->input.weapons[i]))
+    {
+      player->inventory.currentWeapon = i;
+      break;
+    }
+  }
+
+  float mouseWheelMove = GetMouseWheelMove();
+
+  if (mouseWheelMove != 0)
+  {
+    player->inventory.currentWeapon += (int)mouseWheelMove;
+    if (player->inventory.currentWeapon < 0)
+    {
+      player->inventory.currentWeapon = player->inventory.currentNumOfWeapons - 1;
+    }
+    else if (player->inventory.currentWeapon >= player->inventory.currentNumOfWeapons)
+    {
+      player->inventory.currentWeapon = 0;
+    }
+  }
 }
 
 void updateEnemies()
@@ -270,9 +297,21 @@ static Player *initPlayer(const char *name, P_TYPE type, P_WEAPON weapon,
   player->experience = (Experience){.xp = 0, .level = 0};
   // TODO: Make dictionary for infos related to each type of character.
   // Input
-  player->input = (Input){.up = KEY_W, .down = KEY_S, .left = KEY_A, .right = KEY_D, .action = KEY_E};
+  int *weapons = (int *)malloc(sizeof(int) * player->inventory.MAX_NUM_OF_WEAPONS);
+  for (int i = 0; i < player->inventory.MAX_NUM_OF_WEAPONS; i++)
+  {
+    weapons[i] = KEY_ONE + i;
+  }
+
+  player->input = (Input){.up = KEY_W, .down = KEY_S, .left = KEY_A, .right = KEY_D, .action = KEY_E, .weapons = weapons};
 
   return player;
+}
+
+static void AddPlayerWeapon(Player *player, P_WEAPON weapon)
+{
+  Weapon newWeapon = initWeapon(weapon, true);
+  player->inventory.weapons[player->inventory.currentNumOfWeapons++] = newWeapon;
 }
 
 static void clearPlayer(Player **player)
