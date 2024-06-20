@@ -61,10 +61,18 @@ void clearEnemy(Enemy **enemy) {
 
 void clearMap() {
   Game_System *game_system = getGameSystemInstance();
+  Map *map = &(game_system->map);
   TilesMapper *tiles_mapper = &(game_system->map.tilesMapper);
 
   for (int i = 0; i < tiles_mapper->numOfTiles; i++) {
     free(tiles_mapper->mapper[i]);
     tiles_mapper->mapper[i] = NULL;
   }
+
+  for (int i = 0; i < tiles_mapper->numOfTiles; i++) {
+    if (map->textures[i] != NULL)
+      UnloadTexture(*(map->textures[i]));
+  }
+
+  free(map->textures);
 }

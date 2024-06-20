@@ -1,6 +1,7 @@
 #include "draw.h"
 #include "anime.h"
 #include "atlas.h"
+#include "map.h"
 #include <raylib.h>
 
 void DrawAtlasSpritePro(char *filename, Rectangle dest, Vector2 origin,
@@ -197,6 +198,7 @@ void drawScene()
   Game_System *gameSystemInstance = getGameSystemInstance();
   BeginDrawing();
   ClearBackground(GetColor(0x052c46ff));
+  drawMap();
 
   drawPlayers(gameSystemInstance);
 

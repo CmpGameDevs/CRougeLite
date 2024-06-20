@@ -168,6 +168,9 @@ typedef struct Map {
   bool loaded;
   unsigned int numOfRows;
   unsigned int numOfCols;
+  Texture2D **textures;
+  int tileWidth;
+  int tileHeight;
 } Map;
 
 typedef struct
@@ -183,8 +186,8 @@ typedef struct
   bool finished;
   Texture2D atlasTexture;
   AtlasImage *atlasImages;
-  Map map;
 
   Settings settings;
+  Map map;
 } Game_System;
 #endif // STRUCTS_H
