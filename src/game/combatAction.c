@@ -303,35 +303,42 @@ static void drawBullet(CombatAction **combatActions)
 {
   CombatAction *combatAction = *combatActions;
   Bullet *bullet = &(combatAction->action.bullet);
-  Vector2 *pos = &(bullet->transform.position);
-  Vector2 enemyPos = gameState->enemies[bullet->bulletInfo.enemyID].object.transform.position;
-  if (bullet->bulletInfo.isTracking && bullet->bulletInfo.enemyID >= 0 && !Vector2Equals(bullet->dest, enemyPos))
+  Vector2 *pos = &(bullet->transform.position); // position of the bullet in the direction of +ve x-axis
+  Vector2 rotated;
+  if (bullet->bulletInfo.isTracking && bullet->bulletInfo.enemyID >= 0)
   {
-
-    Vector2 currentPos = RotatePoint(enemyPos, bullet->startPosition, -combatAction->angle * DEG2RAD);
-
-    float newAngle = GetAngleBetweenPoints(currentPos, bullet->startPosition);
-
-    bullet->dest = gameState->enemies[bullet->bulletInfo.enemyID].object.transform.position;
-    combatAction->angle += newAngle;
-    combatAction->angle = -180 + combatAction->angle;
-    combatAction->angle = fmod(combatAction->angle, 360);
+    Vector2 enemyPos = gameState->enemies[bullet->bulletInfo.enemyID].object.transform.position;
+    if (!Vector2Equals(bullet->dest, enemyPos))
+    {
+      // first we get the true position of the bullet on the line between the start and the destination of the bullet.
+      // we can do this by rotate the point on the x-axis by the angle between the start and the destination of the bullet.
+      // we don't care about the y-axis because it is function of x so we want to modify the x only
+      // be careful that we are not on the origin so we have to translate it to the new origin with is the start position of the bullet
+      // x coordinate is already translated to the new origin but the y we have to put it with the bullet->startPosition.y instead of 0
+      // then we change the destination to the new destination
+      // the new x will be the current position of the bullet (after apply the rotation to the x-axis) same for the new start position
+      // after that we calculate the new angle between the new start and the new destination
+      rotated = RotatePoint((Vector2){pos->x, bullet->startPosition.y}, bullet->startPosition, combatAction->angle * DEG2RAD);
+      bullet->dest = enemyPos;
+      pos->x = rotated.x;
+      bullet->startPosition = rotated;
+      combatAction->angle = GetAngleBetweenPoints(bullet->startPosition, bullet->dest);
+    }
   }
 
-  Vector2 rotated = RotatePoint(*pos, bullet->startPosition, combatAction->angle * DEG2RAD);
-  Rectangle dest = (Rectangle){rotated.x, rotated.y, bullet->bulletInfo.collider.width,
-                               bullet->bulletInfo.collider.height};
-  drawSpriteAnimationPro(&(combatAction->anime), dest, (Vector2){0, 0}, 0, WHITE,
-                         false);
+  rotated = RotatePoint(*pos, bullet->startPosition, combatAction->angle * DEG2RAD); // the true position of the bullet that it should be drawn at.
+  Rectangle dest = (Rectangle){rotated.x, rotated.y, bullet->bulletInfo.collider.width, bullet->bulletInfo.collider.height};
+  drawSpriteAnimationPro(&(combatAction->anime), dest, (Vector2){0, 0}, 0, WHITE, false);
 
-  pos->x +=
-      bullet->bulletInfo.bulletSpeed;
+  pos->x += bullet->bulletInfo.bulletSpeed;
+
+  bullet->bulletInfo.bulletRange -= bullet->bulletInfo.bulletSpeed;
 
   Vector2 transformedDest = RotatePoint(bullet->dest, bullet->startPosition, -combatAction->angle * DEG2RAD);
 
   pos->y = path(pos->x, bullet->transform.frequency, bullet->transform.amplitude, transformedDest) + bullet->startPosition.y;
 
-  if (abs(pos->x - bullet->startPosition.x > bullet->bulletInfo.bulletRange))
+  if (bullet->bulletInfo.bulletRange <= 0)
   {
     *combatAction = gameState->combatActions[--(gameState->numOfCombatActions)];
     (*combatActions)--;
