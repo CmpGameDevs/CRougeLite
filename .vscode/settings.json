@@ -1,0 +1,24 @@
+{
+  "files.associations": {
+    "*.scss": "postcss",
+    "*.sass": "bat",
+    "*.dot": "dot",
+    "*.m": "c",
+    "atomic": "c",
+    "*.tcc": "c",
+    "compare": "c",
+    "concepts": "c",
+    "functional": "c",
+    "memory": "c",
+    "numeric": "c",
+    "ostream": "c",
+    "stdexcept": "c",
+    "streambuf": "c",
+    "system_error": "c",
+    "type_traits": "c",
+    "typeinfo": "c",
+    "utility": "c",
+    "cmath": "c",
+    "random": "c"
+  }
+}

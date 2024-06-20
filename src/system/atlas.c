@@ -19,17 +19,15 @@
 #include <raylib.h>
 
 void initAtlas() {
-  Game_System *game = getGameSystemInstance();
-  game->atlasTexture = LoadTexture("./src/resources/gfx/atlas.png");
+  gameState->atlasTexture = LoadTexture("./src/resources/gfx/atlas.png");
   loadAtlasData();
 }
 
 void loadAtlasData() {
-  Game_System *game = getGameSystemInstance();
   char *atlasData = LoadFileText("./src/resources/gfx/atlas.rtpa");
 
   char *line = strtok(atlasData, "\n");
-  AtlasImage *images = game->atlasImages;
+  AtlasImage *images = gameState->atlasImages;
   while (line != NULL) {
 
     if (line[0] == '#' || line[0] == 'a') {
@@ -51,7 +49,7 @@ void loadAtlasData() {
       sprite->source = (Rectangle){width, height, x, y};
       sprite->next = NULL;
       if (images == NULL) {
-        game->atlasImages = sprite;
+        gameState->atlasImages = sprite;
         images = sprite;
       } else {
         images->next = sprite;
@@ -66,8 +64,7 @@ void loadAtlasData() {
 }
 
 AtlasImage getAtlasImage(char *filename) {
-  Game_System *game = getGameSystemInstance();
-  AtlasImage *images = game->atlasImages;
+  AtlasImage *images = gameState->atlasImages;
   while (images != NULL) {
     if (strcmp(images->filename, filename) == 0) {
       return *images;

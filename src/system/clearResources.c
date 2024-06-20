@@ -14,49 +14,63 @@
  *********************************************************/
 
 #include "../CRougeLite.h" // NOTE: declare global extern vars
+#include "../game/player.h"
+#include "../game/enemy.h"
+#include "../game/combatAction.h"
 
-//========================================================
-// LOCAL VARIABLE DIFINATIONS (local to this file)
-//========================================================
+// ***************************
+// Private Function Prototypes
+// ***************************
+static void clearDictionary(Dictionary *dict);
+static void clearDictionaryItem(Dictionary **dict);
 
 //========================================================
 // Init Functions
 //========================================================
 
-void clearGameSystem() {
-  Game_System *game = getGameSystemInstance();
-  int player_num = game->num_of_players;
-  int enemy_num = game->num_of_enemies;
-  Player *players = game->players;
-  Enemy *enemies = game->enemies;
-  while (player_num--) {
-    printf("Deleting Player: %s\n", players->name);
-    clearPlayer(&players);
-    players++;
-  }
+void clearGameState() {
+  int enemy_num = gameState->numOfEnemies;
+  Enemy *enemies = gameState->enemies;
 
-  while (enemy_num--) {
-    printf("Deleting Enemy of Type: %d\n", enemies->type);
-    clearEnemy(&enemies);
-    enemies++;
-  }
+  clearPlayers();
+  clearEnemies();
+  clearCombatActions();
+
+  clearDictionary(gameState->characterDictionary);
+  printf("Deleted all directories\n");
+  clearDictionary(gameState->enemyDictionary);
+  clearDictionary(gameState->playerWeaponDictionary);
+  clearDictionary(gameState->enemyWeaponDictionary);
+  freeResource((void *)gameState);
 }
 
-void clearPlayer(Player **player) {
-  if (player == NULL || *player == NULL)
-    return;
-
-  free((*player)->name);
-  free(*player);
-  *player = NULL;
+void freeResource(void *item) {
+  if (item == NULL) return;
+  free(item);
 }
 
-void clearEnemy(Enemy **enemy) {
-  if (enemy == NULL || *enemy == NULL)
+// *****************
+// PRIVATE FUNCTIONS
+// *****************
+// FIXME: BROKEN???
+static void clearDictionary(Dictionary *dict) {
+  if (dict == NULL) return;
+
+  while (dict->opcode != -1) {
+    clearDictionaryItem(&dict);
+    dict++;
+  }
+  clearDictionaryItem(&dict);
+  printf("Deleted Dictionary\n");
+}
+
+static void clearDictionaryItem(Dictionary **dict) {
+  if (dict == NULL || *dict == NULL)
     return;
 
-  free(*enemy);
-  *enemy = NULL;
+
+  free(*dict);
+  *dict = NULL;
 }
 
 void clearMap() {

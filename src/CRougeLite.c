@@ -22,6 +22,8 @@
 
 #include "CRougeLite.h" // NOTE: declare global extern vars
 
+#include "game/player.h"
+#include "game/enemy.h"
 #include "system/atlas.h"
 #include "system/draw.h"
 #include "system/input.h"
@@ -32,39 +34,30 @@
 // NOTE: this must be defined as externs in the .h file
 //========================================================
 Music music = {0};
-
-Game_System *getGameSystemInstance()
-{
-  static Game_System *game = NULL;
-  if (game == NULL)
-  {
-    game = initGameSystem();
-  }
-  return game;
-}
+GameState *gameState = NULL;
 
 //========================================================
-// LOCAL VARIABLE DIFINATIONS (local to this file)
+// LOCAL VARIABLE DEFINITIONS (local to this file)
 //========================================================
 
 //========================================================
 // Local Functions Headers
 //========================================================
-static void loadResources(Settings *settings);
+static void loadResources();
 static void update();
 static void clearResources();
 
 //========================================================
 // MAIN ENTRY POINT
 //========================================================
-int main(void)
-{
-  Game_System *game = getGameSystemInstance();
-  Settings *settings = &(game->settings);
+int main(void) {
+  gameState = initGameState();
+  initSettings();
+  initDictionary();
+  Settings *settings = &(gameState->settings);
 
-  InitWindow(settings->screen_width, settings->screen_height,
-             "C rougelite game");
-  // printf("TEST\n");
+  InitWindow(settings->screenWidth, settings->screenHeight, "C rougelite game");
+
   initAtlas();
   initMap();
 
@@ -73,9 +66,8 @@ int main(void)
   SetTargetFPS(60);
 
   // Main Game Loop
-  bool *quit = &(game->finished);
-  while (!WindowShouldClose() && !(*quit))
-  {
+  bool *quit = &(gameState->isFinished);
+  while (!WindowShouldClose() && !(*quit)) {
     handleInput();
     update();
 
@@ -87,30 +79,35 @@ int main(void)
   return 0;
 }
 
-static void loadResources(Settings *settings)
-{
+static void loadResources() {
   // load global assets
+  Settings settings = gameState->settings;
   InitAudioDevice();
   music = LoadMusicStream("./src/"
                           "./resources/ambient.ogg");
   // NOTE: All paths must start from the src dir
 
-  SetMusicVolume(music, settings->volume / 100.0);
+  SetMusicVolume(music, settings.musicVolume / 100.0);
   PlayMusicStream(music);
 
-  Player *player = initPlayer("Marcus", KNIGHT, LONG_SWORD, (RigidBody2d){64, 64}, (Vector2){settings->screen_width / 2.0, settings->screen_height / 2.0}, 0);
+  setupPlayers();
+  setupEnemies();
 
-  initEnemy(E_CIVILIAN, E_SWORD, (RigidBody2d){64, 64}, (Vector2){128, 128});
-
-  initEnemy(E_FARMER, E_SWORD, (RigidBody2d){64, 64}, (Vector2){settings->screen_width - 128 - 64, 128});
 }
 
-static void update() { UpdateMusicStream(music); }
+static void update() {
+  updatePlayers();
+  updateEnemies();
+  UpdateMusicStream(music);
+}
+
 
 static void clearResources()
 {
-  clearGameSystem();
+  clearGameState();
+  // clear map
   clearMap();
+
 
   // Unload assets and cleaning
   UnloadMusicStream(music);

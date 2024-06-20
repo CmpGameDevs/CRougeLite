@@ -1,71 +1,235 @@
 #include "init.h"
 
 //========================================================
-// LOCAL VARIABLE DIFINATIONS (local to this file)
+// LOCAL VARIABLE DEFINITIONS (local to this file)
 //========================================================
+static void initCharacterDictionary()
+{
+  Dictionary *dict = malloc(sizeof(Dictionary) * (NUM_OF_P_TYPE + 1));
+
+  if (dict == NULL)
+  {
+    fprintf(stderr, "Error: malloc failed\n");
+    exit(EXIT_FAILURE);
+  }
+  printf("Allocated memory for character dictionary\n");
+  dict[NUM_OF_P_TYPE].opcode = -1;
+  // Add in asc order
+  // Because we fetch the info using binary search.
+  dict[0].opcode = CAT;
+  dict[0].entry.player = (Player){
+      .type = CAT,
+      .stats = {.health = {.maxHealth = 100, .currentHealth = 100},
+                .attack = {.power = 1.0f, .cooldown = 5, .speed = 1.0f},
+                .defense = {.value = 3, .nearHitValue = 6},
+                .speed = 5},
+      .object = {
+          .rigidBody = {.velocity = (Vector2){0, 0},
+                        .acceleration = (Vector2){0, 0},
+                        1.0,
+                        false},
+          .collider = {.offset = (Vector2){0, 0}, 32, 32},
+          .spriteRenderer = {},
+          .animator = {},
+      }};
+
+  dict[1].opcode = WEREWOLF;
+  dict[2].opcode = PYROMANIAC;
+  dict[3].opcode = KNIGHT;
+
+  gameState->characterDictionary = dict;
+}
+
+static void initEnemyDictionary()
+{
+  Dictionary *dict = malloc(sizeof(Dictionary) * (NUM_OF_E_TYPE + 1));
+
+  if (dict == NULL)
+  {
+    fprintf(stderr, "Error: malloc failed\n");
+    exit(EXIT_FAILURE);
+  }
+  printf("Allocated memory for enemy dictionary\n");
+  dict[NUM_OF_E_TYPE].opcode = -1;
+  // Add in asc order
+  // Because we fetch the info using binary search.
+  dict[0].opcode = E_CIVILIAN;
+  dict[0].entry.enemy = (Enemy){
+      .name = "Civilian",
+      .object =
+          {
+              .rigidBody = {.velocity = (Vector2){5, 5},
+                            .acceleration = (Vector2){0, 0},
+                            1.0,
+                            false},
+              .collider = {.offset = (Vector2){0, 0}, 64, 64},
+              .spriteRenderer = {},
+              .animator = {0},
+          },
+      .ai = {.detectionRange = 100,
+             .attackCooldown = 3,
+             .dodgePercentage = 0,
+             .speed = 2,
+             .state = FLEE},
+      .stats = {.health = {.maxHealth = 100, .currentHealth = 100},
+                .attack = {.power = 1.0f, .cooldown = 5, .speed = 1.0f},
+                .defense = {.value = 3, .nearHitValue = 6},
+                .speed = 5},
+  };
+
+  dict[1].opcode = E_FARMER;
+  dict[1].entry.enemy = (Enemy){
+      .name = "Farmer",
+      .object =
+          {
+              .rigidBody = {.velocity = (Vector2){5, 5},
+                            .acceleration = (Vector2){0, 0},
+                            1.0,
+                            false},
+              .collider = {.offset = (Vector2){0, 0}, 64, 64},
+              .spriteRenderer = {},
+              .animator = {},
+          },
+      .ai = {.detectionRange = 100,
+             .attackCooldown = 3,
+             .dodgePercentage = 0,
+             .speed = 2,
+             .state = FLEE},
+      .stats = {.health = {.maxHealth = 100, .currentHealth = 100},
+                .attack = {.power = 1.0f, .cooldown = 5, .speed = 1.0f},
+                .defense = {.value = 3, .nearHitValue = 6},
+                .speed = 5},
+  };
+
+  dict[2].opcode = E_KNIGHT;
+
+  gameState->enemyDictionary = dict;
+}
+
+static void initPlayerWeaponDictionary()
+{
+  Dictionary *dict = malloc(sizeof(Dictionary) * (NUM_OF_P_WEAPON + 1));
+
+  if (dict == NULL)
+  {
+    fprintf(stderr, "Error: malloc failed\n");
+    exit(EXIT_FAILURE);
+  }
+  printf("Allocated memory for player weapon dictionary\n");
+
+  dict[NUM_OF_P_WEAPON].opcode = -1;
+
+  // Add in asc order
+  // Because we fetch the info using binary search.
+  dict[0].opcode = P_GUN;
+  dict[0].entry.weapon = (Weapon){
+      .type = RANGED_WEAPON,
+      .weapon.ranged = {
+          .stats = {10, 0.5, 0, .weaponSprite = {}},
+          .bulletInfo = {3, 10, 600, 10, .bulletSprite = {}, .collider = {(Vector2){0, 0}, 32, 32}, .isTracking = false},
+          30,
+          30,
+          1}};
+
+  dict[1].opcode = P_MISSILE_LAUNCHER;
+  dict[1].entry.weapon = (Weapon){
+      .type = RANGED_WEAPON,
+      .weapon.ranged = {
+          .stats = {10, 1, 0, .weaponSprite = {}},
+          .bulletInfo = {2, 10, 1000, 10, .bulletSprite = {}, .collider = {(Vector2){0, 0}, 16, 16}, .isTracking = true},
+          30,
+          30,
+          4}};
+
+  gameState->playerWeaponDictionary = dict;
+}
+
+static void initEnemyWeaponDictionary()
+{
+  Dictionary *dict = malloc(sizeof(Dictionary) * (NUM_OF_E_WEAPON + 1));
+
+  if (dict == NULL)
+  {
+    fprintf(stderr, "Error: malloc failed\n");
+    exit(EXIT_FAILURE);
+  }
+  printf("Allocated memory for enemy weapon dictionary\n");
+  dict[NUM_OF_E_WEAPON].opcode = -1;
+
+  // Add in asc order
+  // Because we fetch the info using binary search.
+  dict[0].opcode = E_SWORD;
+  dict[0].entry.weapon = (Weapon){
+      .type = MELEE_WEAPON,
+
+      .weapon.melee = {
+          .stats = {10, 0.5, 0, .weaponSprite = {}},
+          .slashInfo = {3, 10, true,
+                        .slashSprite = {}}}};
+
+  gameState->enemyWeaponDictionary = dict;
+}
 
 //========================================================
 // Init Functions
 //========================================================
 
-Game_System *initGameSystem()
+GameState *initGameState()
 {
-  Game_System *gameSystemInstance = (Game_System *)malloc(sizeof(Game_System));
+  GameState *gameSystemInstance = (GameState *)malloc(sizeof(GameState));
   if (gameSystemInstance != NULL)
   {
     // Initialize Players Related Variables
     gameSystemInstance->players =
         (Player *)malloc(sizeof(Player) * DEFAULT_MAX_PLAYERS);
-    gameSystemInstance->num_of_players = 0;
+    gameSystemInstance->numOfPlayers = 0;
 
     // Initialize Enemies Related Variables
     gameSystemInstance->enemies =
         (Enemy *)malloc(sizeof(Enemy) * DEFAULT_MAX_ENEMIES);
-    gameSystemInstance->num_of_enemies = 0;
+    gameSystemInstance->numOfEnemies = 0;
     // Initialize Bullets Related Variables
-    gameSystemInstance->bullets =
-        (Bullet *)malloc(sizeof(Bullet) * DEFAULT_MAX_BULLETS);
-    gameSystemInstance->num_of_bullets = 0;
+    gameSystemInstance->combatActions = (CombatAction *)malloc(
+        sizeof(CombatAction) * DEFAULT_MAX_COMBAT_ACTIONS);
+    gameSystemInstance->numOfCombatActions = 0;
 
     // Initialize Other General Variables
     gameSystemInstance->level = 1;
-    gameSystemInstance->game_over = false;
-    gameSystemInstance->finished = false;
+    gameSystemInstance->isGameOver = false;
+    gameSystemInstance->isFinished = false;
     gameSystemInstance->atlasImages = NULL;
-    initSettings(gameSystemInstance);
+
+    gameSystemInstance->characterDictionary = NULL;
+    gameSystemInstance->enemyDictionary = NULL;
+    gameSystemInstance->playerWeaponDictionary = NULL;
+    gameSystemInstance->enemyWeaponDictionary = NULL;
   }
 
   return gameSystemInstance;
 }
 
-void initSettings(Game_System *gameSystemInstance)
+void initDictionary()
 {
-  gameSystemInstance->settings.screen_width = SCREEN_WIDTH;
-  gameSystemInstance->settings.screen_height = SCREEN_HEIGHT;
-  gameSystemInstance->settings.volume = 50;
-  gameSystemInstance->settings.music_on = true;
-  gameSystemInstance->settings.sfx_on = true;
+  initCharacterDictionary();
+  initEnemyDictionary();
+  initPlayerWeaponDictionary();
+  initEnemyWeaponDictionary();
 }
 
-static void addPlayer(Player *player)
+void initSettings()
 {
-  Game_System *game = getGameSystemInstance();
-  Player *players = game->players;
-  players[game->num_of_players++] = *player;
+  gameState->settings.screenWidth = SCREEN_WIDTH;
+  gameState->settings.screenHeight = SCREEN_HEIGHT;
+  gameState->settings.musicVolume = 50;
+  gameState->settings.soundVolume = 50;
+  gameState->settings.music_on = true;
+  gameState->settings.sfx_on = true;
 }
 
 static void addEnemy(Enemy *enemy)
 {
-  Game_System *game = getGameSystemInstance();
-  Enemy *enemies = game->enemies;
-  enemies[game->num_of_enemies++] = *enemy;
-}
-
-static void addBullet(Bullet *bullet)
-{
-  Game_System *game = getGameSystemInstance();
-  Bullet *bullets = game->bullets;
-  bullets[game->num_of_bullets++] = *bullet;
+  Enemy *enemies = gameState->enemies;
+  enemies[gameState->numOfEnemies++] = *enemy;
 }
 
 float GetAngleBetweenPoints(Vector2 point1, Vector2 point2)
@@ -77,59 +241,30 @@ float GetAngleBetweenPoints(Vector2 point1, Vector2 point2)
   return angle;
 }
 
-Bullet *initBullet(P_WEAPON weapon, int playerID, RigidBody2d body, Vector2 src, Vector2 dest)
+Enemy *initEnemy(E_TYPE type, E_WEAPON weapon, Vector2 position)
 {
-
-  Bullet *bullet = (Bullet *)malloc(sizeof(Bullet));
-  bullet->bulletDamage = 10.0;
-  bullet->bulletHealth = 10.0;
-  bullet->bulletRange = 10.0;
-  bullet->bulletSpeed = 8.0;
-  bullet->playerID = playerID;
-  bullet->position = src;
-  bullet->body = body;
-  bullet->angle = GetAngleBetweenPoints(src, dest);
-  addBullet(bullet);
-  return bullet;
-}
-
-Player *initPlayer(const char *name, P_TYPE type, P_WEAPON weapon, RigidBody2d body,Vector2 position, int ID)
-{
-  Player *player = (Player *)malloc(sizeof(Player));
-  player->name = strdup(name);
-  player->type = type;
-  player->weapon = weapon;
-  player->health = 100.0;
-  player->speed = 5.0;
-  player->acceleration = 0.1;
-  player->score = 0;
-  player->fireRate = 0.5;
-  player->drawDirection = 1;
-  player->direction = RIGHT;
-  player->fire = 0;
-  player->ID = ID;
-  player->body = body;
-  player->position = position;
-  player->reloadTime = 0.0;
-  // TODO: Make dictionary for infos related to each type of character.
-  addPlayer(player);
-  return player;
-}
-
-Enemy *initEnemy(E_TYPE type, E_WEAPON weapon, RigidBody2d body,Vector2 position)
-{
+  Dictionary *dict = gameState->enemyDictionary;
   Enemy *enemy = (Enemy *)malloc(sizeof(Enemy));
+  int l = 0, r = NUM_OF_E_TYPE - 1;
+
+  while (l <= r)
+  {
+    int mid = l + (r - l) / 2;
+    int cmp = dict[mid].opcode - type;
+    if (!cmp)
+    {
+      *enemy = dict[mid].entry.enemy;
+      printf("Added enemy of type: %s\n", enemy->name);
+      break;
+    }
+    if (cmp < 0)
+      l = mid + 1;
+    else
+      r = mid - 1;
+  }
   enemy->type = type;
-  enemy->weapon = weapon;
-  enemy->health = 50;
-  enemy->speed = 0.8;
-  enemy->acceleration = 0.05;
-  enemy->fire_rate = 1.0;
-  enemy->body = body;
-  enemy->drawDirection = 1;
-  enemy->isMoving = false;
-  enemy->position = position;
+  enemy->object.transform.position = position;
+  enemy->weapon = initWeapon(weapon, false);
   addEnemy(enemy);
-  // TODO: Make dictionary for infos related to each type of enemy.
   return enemy;
 }
