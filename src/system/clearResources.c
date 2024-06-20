@@ -15,6 +15,7 @@
 
 #include "../CRougeLite.h" // NOTE: declare global extern vars
 #include "../game/player.h"
+#include "../game/enemy.h"
 #include "../game/combatAction.h"
 
 // ***************************
@@ -32,14 +33,8 @@ void clearGameState() {
   Enemy *enemies = gameState->enemies;
 
   clearPlayers();
+  clearEnemies();
   clearCombatActions();
-
-  while (enemy_num--) {
-    // printf("Deleting Enemy of Type: %d\n", enemies->name);
-    clearEnemy(&enemies);
-    enemies++;
-  }
-  printf("Deleted all enemies\n");
 
   clearDictionary(gameState->characterDictionary);
   printf("Deleted all directories\n");
@@ -47,14 +42,6 @@ void clearGameState() {
   clearDictionary(gameState->playerWeaponDictionary);
   clearDictionary(gameState->enemyWeaponDictionary);
   freeResource((void *)gameState);
-}
-
-void clearEnemy(Enemy **enemy) {
-  if (enemy == NULL || *enemy == NULL)
-    return;
-
-  free(*enemy);
-  *enemy = NULL;
 }
 
 void freeResource(void *item) {

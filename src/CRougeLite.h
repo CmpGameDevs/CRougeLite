@@ -30,11 +30,9 @@ extern GameState *gameState;
 GameState *initGameState();
 void initDictionary();
 void initSettings();
-Enemy *initEnemy(E_TYPE type, E_WEAPON weapon, Vector2 position);
 
 // Clear Resources Functions
 void clearGameState();
-void clearEnemy(Enemy **enemy);
 void freeResource(void *item);
 
 #endif // CROUGELITE_H

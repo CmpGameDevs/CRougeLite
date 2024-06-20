@@ -29,5 +29,6 @@ Inventory initInventory();
 void updateRangedWeapon(Weapon *weapon, bool isFired, int ID, Vector2 src, Vector2 dest, float deltaTime);
 void updateMeleeWeapon(Weapon *weapon, bool isFired, int ID, Vector2 src, Vector2 dest, float deltaTime);
 void drawWeapon();
+void clearInventory(Inventory *inventory);
 
 #endif // INPUT_H

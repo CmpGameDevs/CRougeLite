@@ -186,55 +186,6 @@ void updatePlayers()
   }
 }
 
-void updateEnemies()
-{
-  Enemy *enemy = gameState->enemies;
-  double speed = enemy->stats.speed;
-
-  Vector2 direction = {0, 0};
-  if (IsKeyDown(KEY_UP))
-    direction.y -= 1;
-  if (IsKeyDown(KEY_DOWN))
-    direction.y += 1;
-  if (IsKeyDown(KEY_LEFT))
-    direction.x -= 1;
-  if (IsKeyDown(KEY_RIGHT))
-    direction.x += 1;
-
-  Vector2 velocity =
-      Vector2Scale(Vector2Normalize(direction), speed);
-
-  Vector2 position = Vector2Add(
-      enemy->object.transform.position, velocity);
-
-  if (Vector2Length(velocity) > 0)
-  {
-    enemy->isMoving = true;
-  }
-  else
-  {
-    enemy->isMoving = false;
-  }
-
-  if (velocity.x < 0)
-  {
-    enemy->drawDirection = -1;
-  }
-  else
-  {
-    enemy->drawDirection = 1;
-  }
-
-  // NOTE: this makes the player unable to go out of frame
-  enemy->object.rigidBody.velocity = velocity;
-  enemy->object.transform.position =
-      Vector2Clamp(position, (Vector2){0, 0},
-                   (Vector2){gameState->settings.screenWidth - 64,
-                             gameState->settings.screenHeight - 64});
-
-  // FIXME: replace with sprite size
-}
-
 void clearPlayers()
 {
   int player_num = gameState->numOfPlayers;
@@ -285,9 +236,8 @@ static Player *initPlayer(const char *name, P_TYPE type, P_WEAPON weapon,
   player->name = strdup(name);
   player->ID = ID;
   player->type = type;
-  Weapon selectedWeapon = initWeapon(weapon, true);
   player->inventory = initInventory();
-  player->inventory.weapons[player->inventory.currentNumOfWeapons++] = selectedWeapon;
+  AddPlayerWeapon(player, weapon);
   player->object.transform.position = position;
   player->score = 0;
   player->drawDirection = 1;
@@ -319,7 +269,9 @@ static void clearPlayer(Player **player)
   if (player == NULL || *player == NULL)
     return;
 
+  clearInventory(&((*player)->inventory));
   free((*player)->name);
+  free((*player)->input.weapons);
   free(*player);
   *player = NULL;
 }

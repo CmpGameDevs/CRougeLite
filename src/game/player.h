@@ -28,6 +28,5 @@ void setupPlayers();
 void drawPlayers();
 void updatePlayers();
 void clearPlayers();
-void updateEnemies();
 
 #endif // PLAYER_H
