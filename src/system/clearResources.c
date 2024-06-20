@@ -14,9 +14,9 @@
  *********************************************************/
 
 #include "../CRougeLite.h" // NOTE: declare global extern vars
-#include "../game/player.h"
-#include "../game/enemy.h"
 #include "../game/combatAction.h"
+#include "../game/enemy.h"
+#include "../game/player.h"
 
 // ***************************
 // Private Function Prototypes
@@ -45,7 +45,8 @@ void clearGameState() {
 }
 
 void freeResource(void *item) {
-  if (item == NULL) return;
+  if (item == NULL)
+    return;
   free(item);
 }
 
@@ -54,7 +55,8 @@ void freeResource(void *item) {
 // *****************
 // FIXME: BROKEN???
 static void clearDictionary(Dictionary *dict) {
-  if (dict == NULL) return;
+  if (dict == NULL)
+    return;
 
   while (dict->opcode != -1) {
     clearDictionaryItem(&dict);
@@ -68,15 +70,13 @@ static void clearDictionaryItem(Dictionary **dict) {
   if (dict == NULL || *dict == NULL)
     return;
 
-
   free(*dict);
   *dict = NULL;
 }
 
 void clearMap() {
-  Game_System *game_system = getGameSystemInstance();
-  Map *map = &(game_system->map);
-  TilesMapper *tiles_mapper = &(game_system->map.tilesMapper);
+  Map *map = &(gameState->map);
+  TilesMapper *tiles_mapper = &(gameState->map.tilesMapper);
 
   for (int i = 0; i < tiles_mapper->numOfTiles; i++) {
     free(tiles_mapper->mapper[i]);

@@ -450,6 +450,6 @@ typedef struct
   Settings settings;
 
   Map map;
-} Game_System;
+} GameState;
 
 #endif // STRUCTS_H
