@@ -71,3 +71,9 @@ void updateMeleeWeapon(Weapon *weapon, bool isFired, int ID, Vector2 src, Vector
   if (*reloadTime > 0.0f)
     *reloadTime -= deltaTime;
 }
+
+void clearInventory(Inventory *inventory) {
+  if (inventory == NULL || inventory->weapons) return;
+
+  free(inventory->weapons);
+}

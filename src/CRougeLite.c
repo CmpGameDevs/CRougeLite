@@ -23,6 +23,7 @@
 #include "CRougeLite.h" // NOTE: declare global extern vars
 
 #include "game/player.h"
+#include "game/enemy.h"
 #include "system/atlas.h"
 #include "system/draw.h"
 #include "system/input.h"
@@ -88,11 +89,8 @@ static void loadResources() {
   PlayMusicStream(music);
 
   setupPlayers();
+  setupEnemies();
 
-  initEnemy(E_CIVILIAN, E_SWORD, (Vector2){128, 128});
-
-  initEnemy(E_FARMER, E_SWORD,
-            (Vector2){settings.screenWidth - 128 - 64, 128});
 }
 
 static void update() {

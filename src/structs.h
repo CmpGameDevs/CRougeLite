@@ -241,6 +241,7 @@ typedef struct
   float bulletRange;
   float bulletHealth;
   bool isTracking;
+  int pathCode;
   int enemyID;
   SpriteRenderer bulletSprite;
   RigidBody2D rigidBody;
