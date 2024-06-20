@@ -11,7 +11,6 @@
 #include "map.h"
 #include <raylib.h>
 #include <string.h>
-#include <unistd.h>
 
 /**
  * initTilesMapper - initilizes the TilesMapper mapper with NULL,
@@ -85,13 +84,12 @@ void initMap() {
   map->currentLevel = 0;
   map->numOfRows = 0;
   map->numOfCols = 0;
-  map->tileWidth = 16;
-  map->tileHeight = 16;
   map->currentLevelPath = "./src/resources/gfx/map-assets/level_one/level_one_map.csv";
 
-  map->textures = malloc(map->tilesMapper.numOfTiles * sizeof(Texture2D *));
+  map->textures = malloc(map->tilesMapper.numOfTiles * sizeof(Texture2D));
+  map->isTexturesLoaded = malloc(map->tilesMapper.numOfTiles * sizeof(bool));
   for (int i = 0; i < map->tilesMapper.numOfTiles; i++)
-    map->textures[i] = NULL;
+    map->isTexturesLoaded[i] = false;
 
   parseLevelFile();
 }
@@ -159,18 +157,23 @@ void drawMap() {
   Map *map = &(game_system->map);
   TilesMapper *tilesMapper = &(game_system->map.tilesMapper);
 
-  Rectangle src = {0.0f, 0.0f, (float)map->tileWidth, (float)map->tileHeight};
 
   for (int row = 0; row < map->numOfRows; row++) {
     for (int col = 0; col < map->numOfCols; col++) {
-      Rectangle dest = {(float)(col * map->tileWidth) * 2.0f, (float)(row * map->tileHeight) * 2.0f,
-        map->tileWidth * 2.0f, map->tileHeight * 2.0f};  //Scaling the drawn texture by 2
-
       int idIdx = 0;
       int tileId = map->mapIds[row][col][idIdx++];
+      float scale = 2.0f;
+
       while (idIdx < 5 && tileId != -1) {
         loadTileTexture(tileId);
-        DrawTexturePro(*(map->textures[tileId]), src, dest, (Vector2){0, 0}, (float)0, WHITE);
+        
+        int tileWidth = map->textures[tileId].width, tileHeight = map->textures[tileId].height;
+
+        Rectangle src = {0.0f, 0.0f, (float)tileWidth, (float)tileHeight};
+        Rectangle dest = {(float)(col * tileWidth) * scale, (float)(row * tileHeight) * scale,
+          (float)tileWidth * scale, (float)tileHeight * scale};  //Scaling the drawn texture by 2
+
+        DrawTexturePro(map->textures[tileId], src, dest, (Vector2){0, 0}, (float)0, WHITE);
         tileId = map->mapIds[row][col][idIdx++];
       }
     }
@@ -181,12 +184,12 @@ static void loadTileTexture(int tileIdx) {
   Game_System *game_system = getGameSystemInstance();
   Map *map = &(game_system->map);
 
-  if (map->textures[tileIdx] != NULL)
+  if (map->isTexturesLoaded[tileIdx])
     return;
 
   char buffer[256];
   sprintf(buffer, "./src/resources/gfx/assets-prepare/%s", map->tilesMapper.mapper[tileIdx]);
 
-  Texture2D texture = LoadTexture(buffer);
-  map->textures[tileIdx] = &texture;
+  map->textures[tileIdx] = LoadTexture(buffer);
+  map->isTexturesLoaded[tileIdx] = true;
 }

@@ -70,9 +70,10 @@ void clearMap() {
   }
 
   for (int i = 0; i < tiles_mapper->numOfTiles; i++) {
-    if (map->textures[i] != NULL)
-      UnloadTexture(*(map->textures[i]));
+    if (map->isTexturesLoaded[i])
+      UnloadTexture(map->textures[i]);
   }
 
   free(map->textures);
+  free(map->isTexturesLoaded);
 }

@@ -168,9 +168,8 @@ typedef struct Map {
   bool loaded;
   unsigned int numOfRows;
   unsigned int numOfCols;
-  Texture2D **textures;
-  int tileWidth;
-  int tileHeight;
+  Texture2D *textures;
+  bool *isTexturesLoaded;
 } Map;
 
 typedef struct
