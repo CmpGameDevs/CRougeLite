@@ -406,6 +406,25 @@ typedef struct
   DictionaryEntry entry;
 } Dictionary;
 
+typedef struct TilesMapper {
+  unsigned int numOfTiles;
+  char *mapper[MAX_TILES_NUM];
+  char *path;         // Path of the mapper file
+} TilesMapper;
+
+typedef struct Map {
+  unsigned int currentLevel;   // NOTE: maybe convert it to a Level struct
+  char *currentLevelPath;
+  TilesMapper tilesMapper;
+  int mapIds[MAX_ROW_NUM][MAX_COL_NUM][MAX_CELL_ID];
+  bool loaded;
+  unsigned int numOfRows;
+  unsigned int numOfCols;
+  Texture2D *textures;
+  bool *isTexturesLoaded;
+  float scale;
+} Map;
+
 typedef struct
 {
   int numOfPlayers;
@@ -429,6 +448,8 @@ typedef struct
   Dictionary *enemyDictionary;
 
   Settings settings;
-} GameState;
+
+  Map map;
+} Game_System;
 
 #endif // STRUCTS_H

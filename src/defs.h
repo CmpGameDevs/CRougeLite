@@ -29,5 +29,9 @@
 
 #define MAX_FILENAME_LENGTH 256
 
+#define MAX_TILES_NUM 1024
+#define MAX_ROW_NUM 30
+#define MAX_COL_NUM 60
+#define MAX_CELL_ID 5
 
 #endif // DEFS_H

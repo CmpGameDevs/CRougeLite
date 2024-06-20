@@ -27,6 +27,7 @@
 #include "system/atlas.h"
 #include "system/draw.h"
 #include "system/input.h"
+#include "system/map.h"
 
 //========================================================
 // Global Shared Variables
@@ -58,6 +59,7 @@ int main(void) {
   InitWindow(settings->screenWidth, settings->screenHeight, "C rougelite game");
 
   initAtlas();
+  initMap();
 
   loadResources(settings);
 
@@ -99,8 +101,13 @@ static void update() {
   UpdateMusicStream(music);
 }
 
-static void clearResources() {
+
+static void clearResources()
+{
   clearGameState();
+  // clear map
+  clearMap();
+
 
   // Unload assets and cleaning
   UnloadMusicStream(music);

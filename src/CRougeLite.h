@@ -32,8 +32,10 @@ void initDictionary();
 void initSettings();
 
 // Clear Resources Functions
+
 void clearGameState();
 void freeResource(void *item);
+void clearMap();
 
 #endif // CROUGELITE_H
 

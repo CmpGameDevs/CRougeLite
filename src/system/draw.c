@@ -3,6 +3,7 @@
 #include "../game/combatAction.h"
 #include "anime.h"
 #include "atlas.h"
+#include "map.h"
 #include <raylib.h>
 
 void DrawAtlasSpritePro(char *filename, Rectangle dest, Vector2 origin,
@@ -61,6 +62,7 @@ static void drawEnemies() {
 void drawScene() {
   BeginDrawing();
   ClearBackground(GetColor(0x052c46ff));
+  drawMap();
 
   drawPlayers();
 
