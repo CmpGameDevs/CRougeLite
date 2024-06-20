@@ -85,6 +85,7 @@ void initMap() {
   map->numOfRows = 0;
   map->numOfCols = 0;
   map->currentLevelPath = "./src/resources/gfx/map-assets/level_one/level_one_map.csv";
+  map->scale = 2.0f;
 
   map->textures = malloc(map->tilesMapper.numOfTiles * sizeof(Texture2D));
   map->isTexturesLoaded = malloc(map->tilesMapper.numOfTiles * sizeof(bool));
@@ -162,7 +163,6 @@ void drawMap() {
     for (int col = 0; col < map->numOfCols; col++) {
       int idIdx = 0;
       int tileId = map->mapIds[row][col][idIdx++];
-      float scale = 2.0f;
 
       while (idIdx < 5 && tileId != -1) {
         loadTileTexture(tileId);
@@ -170,8 +170,8 @@ void drawMap() {
         int tileWidth = map->textures[tileId].width, tileHeight = map->textures[tileId].height;
 
         Rectangle src = {0.0f, 0.0f, (float)tileWidth, (float)tileHeight};
-        Rectangle dest = {(float)(col * tileWidth) * scale, (float)(row * tileHeight) * scale,
-          (float)tileWidth * scale, (float)tileHeight * scale};  //Scaling the drawn texture by 2
+        Rectangle dest = {(float)(col * tileWidth) * map->scale, (float)(row * tileHeight) * map->scale,
+          (float)tileWidth * map->scale, (float)tileHeight * map->scale};  //Scaling the drawn texture by 2
 
         DrawTexturePro(map->textures[tileId], src, dest, (Vector2){0, 0}, (float)0, WHITE);
         tileId = map->mapIds[row][col][idIdx++];

@@ -170,6 +170,7 @@ typedef struct Map {
   unsigned int numOfCols;
   Texture2D *textures;
   bool *isTexturesLoaded;
+  float scale;
 } Map;
 
 typedef struct
