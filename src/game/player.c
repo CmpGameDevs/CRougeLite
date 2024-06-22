@@ -21,9 +21,15 @@
 #include "player.h"
 
 #include "../system/anime.h"
-// FIXME: delete me later
-#include "../system/init.h"
+#include <raylib.h>
 #include <raymath.h>
+
+// NOTE: those are animation states
+typedef enum PLAYER_STATES {
+  P_IDLE,
+  P_RUNNING,
+  P_DODGE,
+} PLAYER_STATES;
 
 // ***************************
 // Private Function Prototypes
@@ -32,6 +38,7 @@ static Player *initPlayer(const char *name, P_TYPE type, P_WEAPON weapon,
                           Vector2 position, int ID);
 static void clearPlayer(Player **player);
 static void AddPlayerWeapon(Player *player, P_WEAPON weapon);
+static void animationControlor(Player *player);
 
 /* setupPlayers
  *
@@ -39,12 +46,62 @@ static void AddPlayerWeapon(Player *player, P_WEAPON weapon);
  * the state of the game to draw and update.
  *
  */
-void setupPlayers()
-{
+void setupPlayers() {
   Player *player = initPlayer("Marcus", CAT, P_GUN,
                               (Vector2){gameState->settings.screenWidth / 2.0,
                                         gameState->settings.screenHeight / 2.0},
                               0);
+
+  player->object.animator = (Animator){
+      .isFinished = false,
+      .currentState = P_IDLE,
+  };
+
+  player->object.animator.animatinos[P_IDLE] = (SpriteAnimation){
+      .frameNames = {"Meow-Knight_Idle_0_0", "Meow-Knight_Idle_1_0",
+                     "Meow-Knight_Idle_2_0", "Meow-Knight_Idle_3_0",
+                     "Meow-Knight_Idle_4_0", "Meow-Knight_Idle_5_0"},
+      .numOfFrames = 6,
+      .fps = 8,
+      .currentFrame = 0,
+      .frameCount = 0,
+      .isLooping = true,
+      .isFinished = false,
+  };
+  player->object.animator.animatinos[P_RUNNING] = (SpriteAnimation){
+      .frameNames = {"Meow-Knight_Run_0_0", "Meow-Knight_Run_1_0",
+                     "Meow-Knight_Run_2_0", "Meow-Knight_Run_3_0",
+                     "Meow-Knight_Run_4_0", "Meow-Knight_Run_5_0",
+                     "Meow-Knight_Run_6_0", "Meow-Knight_Run_7_0"},
+      .numOfFrames = 8,
+      .fps = 12,
+      .currentFrame = 0,
+      .frameCount = 0,
+      .isLooping = true,
+      .isFinished = false,
+  };
+  player->object.animator.animatinos[P_DODGE] = (SpriteAnimation){
+      .frameNames =
+          {
+              "Meow-Knight_Dodge_0_0",
+              "Meow-Knight_Dodge_1_0",
+              "Meow-Knight_Dodge_2_0",
+              "Meow-Knight_Dodge_3_0",
+              "Meow-Knight_Dodge_4_0",
+              "Meow-Knight_Dodge_5_0",
+              "Meow-Knight_Dodge_6_0",
+              "Meow-Knight_Dodge_7_0",
+          },
+      .numOfFrames = 8,
+      .fps = 8,
+      .currentFrame = 0,
+      .frameCount = 0,
+      .isLooping = false,
+      .isFinished = false,
+  };
+
+  player->object.transform.scale = (Vector2){4, 4};
+
   AddPlayerWeapon(player, P_MISSILE_LAUNCHER);
 }
 
@@ -53,58 +110,16 @@ void setupPlayers()
  * Draw the players in the game.
  *
  */
-void drawPlayers()
-{
+void drawPlayers() {
   Player *players = gameState->players;
   int player_num = gameState->numOfPlayers;
 
-  // FIXME: This is a temporary solution
-  // Move this animation into the animator object
-  // And setup them up at the setup of the player.
-  SpriteAnimation idle = createSpriteAnimation(6,
-                                               (char *[]){
-                                                   "Meow-Knight_Idle_0_0",
-                                                   "Meow-Knight_Idle_1_0",
-                                                   "Meow-Knight_Idle_2_0",
-                                                   "Meow-Knight_Idle_3_0",
-                                                   "Meow-Knight_Idle_4_0",
-                                                   "Meow-Knight_Idle_5_0",
-                                               },
-                                               6, true);
-
-  SpriteAnimation walk = createSpriteAnimation(8,
-                                               (char *[]){
-                                                   "Meow-Knight_Run_0_0",
-                                                   "Meow-Knight_Run_1_0",
-                                                   "Meow-Knight_Run_2_0",
-                                                   "Meow-Knight_Run_3_0",
-                                                   "Meow-Knight_Run_4_0",
-                                                   "Meow-Knight_Run_5_0",
-                                                   "Meow-Knight_Run_6_0",
-                                                   "Meow-Knight_Run_7_0",
-                                               },
-                                               12, true);
-
-  while (player_num--)
-  {
-    Vector2 pos = players->object.transform.position;
+  while (player_num--) {
     bool flip = (players->drawDirection == -1) ? true : false;
-    if (players->isMoving)
-    {
-      drawSpriteAnimationPro(&walk, (Rectangle){pos.x, pos.y, 64, 64},
-                             (Vector2){0, 0}, 0, WHITE, flip);
-    }
-    else
-    {
-      drawSpriteAnimationPro(&idle, (Rectangle){pos.x, pos.y, 64, 64},
-                             (Vector2){0, 0}, 0, WHITE, flip);
-    }
-
+    drawAnimator(&(players->object.animator), &(players->object.transform),
+                 WHITE, flip);
     players++;
   }
-
-  disposeSpriteAnimation(&idle);
-  disposeSpriteAnimation(&walk);
 }
 
 /* updatePlayers
@@ -113,8 +128,7 @@ void drawPlayers()
  * it handles it's input and state too.
  *
  */
-void updatePlayers()
-{
+void updatePlayers() {
   Player *player = gameState->players;
   Input input = player->input;
   double speed = player->stats.speed;
@@ -129,26 +143,23 @@ void updatePlayers()
   if (IsKeyDown(input.right))
     direction.x += 1;
 
-  Vector2 velocity =
-      Vector2Scale(Vector2Normalize(direction), speed);
-  Vector2 position = Vector2Add(
-      player->object.transform.position, velocity);
+  // NOTE: animation controller is the state machine
+  animationControlor(player);
+  // NOTE:: this is the call that forwards the animation
+  updateAnimator(&(player->object.animator));
 
-  if (Vector2Length(velocity) > 0)
-  {
+  Vector2 velocity = Vector2Scale(Vector2Normalize(direction), speed);
+  Vector2 position = Vector2Add(player->object.transform.position, velocity);
+
+  if (Vector2Length(velocity) > 0) {
     player->isMoving = true;
-  }
-  else
-  {
+  } else {
     player->isMoving = false;
   }
 
-  if (velocity.x < 0)
-  {
+  if (velocity.x < 0) {
     player->drawDirection = -1;
-  }
-  else
-  {
+  } else {
     player->drawDirection = 1;
   }
 
@@ -161,10 +172,8 @@ void updatePlayers()
   // FIXME: replace with sprite size
 
   // Swapping between weapons
-  for (int i = 0; i < player->inventory.currentNumOfWeapons; i++)
-  {
-    if (IsKeyPressed(player->input.weapons[i]))
-    {
+  for (int i = 0; i < player->inventory.currentNumOfWeapons; i++) {
+    if (IsKeyPressed(player->input.weapons[i])) {
       player->inventory.currentWeapon = i;
       break;
     }
@@ -172,27 +181,23 @@ void updatePlayers()
 
   float mouseWheelMove = GetMouseWheelMove();
 
-  if (mouseWheelMove != 0)
-  {
+  if (mouseWheelMove != 0) {
     player->inventory.currentWeapon += (int)mouseWheelMove;
-    if (player->inventory.currentWeapon < 0)
-    {
-      player->inventory.currentWeapon = player->inventory.currentNumOfWeapons - 1;
-    }
-    else if (player->inventory.currentWeapon >= player->inventory.currentNumOfWeapons)
-    {
+    if (player->inventory.currentWeapon < 0) {
+      player->inventory.currentWeapon =
+          player->inventory.currentNumOfWeapons - 1;
+    } else if (player->inventory.currentWeapon >=
+               player->inventory.currentNumOfWeapons) {
       player->inventory.currentWeapon = 0;
     }
   }
 }
 
-void clearPlayers()
-{
+void clearPlayers() {
   int player_num = gameState->numOfPlayers;
   Player *players = gameState->players;
 
-  while (player_num--)
-  {
+  while (player_num--) {
     printf("Deleting Player: %s\n", players->name);
     clearPlayer(&players);
     players++;
@@ -204,26 +209,37 @@ void clearPlayers()
 // PRIVATE FUNCTIONS
 // *****************
 
-static void addPlayer(Player *player)
-{
+static void animationControlor(Player *player) {
+  if (IsKeyPressed(KEY_SPACE))
+    setState(&(player->object.animator), P_DODGE);
+
+  // NOTE: this meaning that looping animation have less priority than
+  // non-looping animations like dodge and attack
+  if (player->object.animator.isFinished == true) {
+    if (player->isMoving) {
+      setState(&(player->object.animator), P_RUNNING);
+    } else {
+      setState(&(player->object.animator), P_IDLE);
+    }
+  }
+}
+
+static void addPlayer(Player *player) {
   Player *players = gameState->players;
   players[gameState->numOfPlayers++] = *player;
 }
 
 static Player *initPlayer(const char *name, P_TYPE type, P_WEAPON weapon,
-                          Vector2 position, int ID)
-{
+                          Vector2 position, int ID) {
   Settings settings = gameState->settings;
   Dictionary *dict = gameState->characterDictionary;
   Player *player = &(gameState->players[gameState->numOfPlayers++]);
   int l = 0, r = NUM_OF_E_TYPE - 1;
 
-  while (l <= r)
-  {
+  while (l <= r) {
     int mid = l + (r - l) / 2;
     int cmp = dict[mid].opcode - type;
-    if (!cmp)
-    {
+    if (!cmp) {
       *player = dict[mid].entry.player;
       break;
     }
@@ -247,25 +263,29 @@ static Player *initPlayer(const char *name, P_TYPE type, P_WEAPON weapon,
   player->experience = (Experience){.xp = 0, .level = 0};
   // TODO: Make dictionary for infos related to each type of character.
   // Input
-  int *weapons = (int *)malloc(sizeof(int) * player->inventory.MAX_NUM_OF_WEAPONS);
-  for (int i = 0; i < player->inventory.MAX_NUM_OF_WEAPONS; i++)
-  {
+  int *weapons =
+      (int *)malloc(sizeof(int) * player->inventory.MAX_NUM_OF_WEAPONS);
+  for (int i = 0; i < player->inventory.MAX_NUM_OF_WEAPONS; i++) {
     weapons[i] = KEY_ONE + i;
   }
 
-  player->input = (Input){.up = KEY_W, .down = KEY_S, .left = KEY_A, .right = KEY_D, .action = KEY_E, .weapons = weapons};
+  player->input = (Input){.up = KEY_W,
+                          .down = KEY_S,
+                          .left = KEY_A,
+                          .right = KEY_D,
+                          .action = KEY_E,
+                          .weapons = weapons};
 
   return player;
 }
 
-static void AddPlayerWeapon(Player *player, P_WEAPON weapon)
-{
+static void AddPlayerWeapon(Player *player, P_WEAPON weapon) {
   Weapon newWeapon = initWeapon(weapon, true);
-  player->inventory.weapons[player->inventory.currentNumOfWeapons++] = newWeapon;
+  player->inventory.weapons[player->inventory.currentNumOfWeapons++] =
+      newWeapon;
 }
 
-static void clearPlayer(Player **player)
-{
+static void clearPlayer(Player **player) {
   if (player == NULL || *player == NULL)
     return;
 
