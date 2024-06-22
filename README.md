@@ -1,5 +1,9 @@
 # CRougeLite Game
 
+## System Documentation
+
+- [Animation System](./docs/animation-system.md)
+
 ## building
 
 ### CMake
@@ -22,18 +26,15 @@ cmake --build build
 ./build/CRougeLite/CRougeLite
 ```
 
-
 ## Small Dev Logs
 
 - Enemies
 
 https://github.com/CmpGameDevs/CRougeLite/assets/88613195/0253e1f0-a1e2-4e23-a90d-dfadfa1daea3
 
-
 - Animation
 
 https://github.com/CmpGameDevs/CRougeLite/assets/88613195/f2cdf4f8-d7e9-420a-a4d2-33d8139cf26e
-
 
 - Basic char movement and bullets
 
