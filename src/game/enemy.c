@@ -1,13 +1,13 @@
 /***************************************************************
  *
  *
- *    
+ *
  *    ███████╗███╗   ██╗███████╗███╗   ███╗██╗   ██╗
  *    ██╔════╝████╗  ██║██╔════╝████╗ ████║╚██╗ ██╔╝
- *    █████╗  ██╔██╗ ██║█████╗  ██╔████╔██║ ╚████╔╝ 
- *    ██╔══╝  ██║╚██╗██║██╔══╝  ██║╚██╔╝██║  ╚██╔╝  
- *    ███████╗██║ ╚████║███████╗██║ ╚═╝ ██║   ██║   
- *    ╚══════╝╚═╝  ╚═══╝╚══════╝╚═╝     ╚═╝   ╚═╝   
+ *    █████╗  ██╔██╗ ██║█████╗  ██╔████╔██║ ╚████╔╝
+ *    ██╔══╝  ██║╚██╗██║██╔══╝  ██║╚██╔╝██║  ╚██╔╝
+ *    ███████╗██║ ╚████║███████╗██║ ╚═╝ ██║   ██║
+ *    ╚══════╝╚═╝  ╚═══╝╚══════╝╚═╝     ╚═╝   ╚═╝
  *
  *     Enemy Module Header. (Game Object)
  *     Exposes the logic for the enemy object.
@@ -20,10 +20,8 @@
  **************************************************************/
 
 #include "enemy.h"
-
 #include "../system/anime.h"
-// FIXME: delete me later
-#include "../system/init.h"
+
 #include <raymath.h>
 
 // ***************************
@@ -38,8 +36,7 @@ static void clearEnemy(Enemy **enemy);
  * the state of the game to draw and update.
  *
  */
-void setupEnemies()
-{
+void setupEnemies() {
   const Settings *const settings = &(gameState->settings);
   initEnemy(E_CIVILIAN, E_SWORD, (Vector2){128, 128});
 
@@ -60,39 +57,22 @@ void drawEnemies() {
     return;
 
   while (enemy_num--) {
-
-    char *frames[4];
-    if (enemies->type == E_CIVILIAN) {
-      frames[0] = "vampire_1";
-      frames[1] = "vampire_2";
-      frames[2] = "vampire_3";
-      frames[3] = "vampire_4";
-    } else if (enemies->type == E_FARMER) {
-      frames[0] = "slime_1_0";
-      frames[1] = "slime_1_1";
-      frames[2] = "slime_1_2";
-      frames[3] = "slime_1_3";
-    }
-
-    SpriteAnimation idle = createSpriteAnimation(4, frames, 6, true);
-
-    Vector2 pos = enemies->object.transform.position;
     bool flip = (enemies->drawDirection == -1) ? true : false;
-    drawSpriteAnimationPro(&idle, (Rectangle){pos.x, pos.y, 64, 64},
-                           (Vector2){0, 0}, 0, WHITE, flip);
+    drawAnimator(&enemies->object.animator, &enemies->object.transform, WHITE,
+                 flip);
 
-    disposeSpriteAnimation(&idle);
     enemies++;
   }
-
-  // disposeSpriteAnimation(&walk);
 }
 
-
-void updateEnemies()
-{
+void updateEnemies() {
   Enemy *enemy = gameState->enemies;
   double speed = enemy->stats.speed;
+
+  for (int i = 0; i < gameState->numOfEnemies; i++) {
+    updateAnimator(&enemy->object.animator);
+    enemy++;
+  }
 
   Vector2 direction = {0, 0};
   if (IsKeyDown(KEY_UP))
@@ -104,27 +84,19 @@ void updateEnemies()
   if (IsKeyDown(KEY_RIGHT))
     direction.x += 1;
 
-  Vector2 velocity =
-      Vector2Scale(Vector2Normalize(direction), speed);
+  Vector2 velocity = Vector2Scale(Vector2Normalize(direction), speed);
 
-  Vector2 position = Vector2Add(
-      enemy->object.transform.position, velocity);
+  Vector2 position = Vector2Add(enemy->object.transform.position, velocity);
 
-  if (Vector2Length(velocity) > 0)
-  {
+  if (Vector2Length(velocity) > 0) {
     enemy->isMoving = true;
-  }
-  else
-  {
+  } else {
     enemy->isMoving = false;
   }
 
-  if (velocity.x < 0)
-  {
+  if (velocity.x < 0) {
     enemy->drawDirection = -1;
-  }
-  else
-  {
+  } else {
     enemy->drawDirection = 1;
   }
 
@@ -138,16 +110,15 @@ void updateEnemies()
   // FIXME: replace with sprite size
 }
 
-void clearEnemies()
-{
+void clearEnemies() {
   int enemyNum = gameState->numOfEnemies;
   Enemy *enemies = gameState->enemies;
 
+  // FIXME: this is probably buged
   printf("Deleting Enemies\n");
-  while (enemyNum--)
-  {
+  while (enemyNum--) {
     clearEnemy(&enemies);
-    enemies++;
+    enemies--;
   }
   printf("Deleted all Enemies\n");
 }
@@ -155,18 +126,15 @@ void clearEnemies()
 // *****************
 // PRIVATE FUNCTIONS
 // *****************
-static Enemy *initEnemy(E_TYPE type, E_WEAPON weapon, Vector2 position)
-{
+static Enemy *initEnemy(E_TYPE type, E_WEAPON weapon, Vector2 position) {
   Dictionary *dict = gameState->enemyDictionary;
   Enemy *enemy = &(gameState->enemies[gameState->numOfEnemies++]);
   int l = 0, r = NUM_OF_E_TYPE - 1;
 
-  while (l <= r)
-  {
+  while (l <= r) {
     int mid = l + (r - l) / 2;
     int cmp = dict[mid].opcode - type;
-    if (!cmp)
-    {
+    if (!cmp) {
       *enemy = dict[mid].entry.enemy;
       printf("Added enemy of type: %s\n", enemy->name);
       break;
@@ -176,14 +144,58 @@ static Enemy *initEnemy(E_TYPE type, E_WEAPON weapon, Vector2 position)
     else
       r = mid - 1;
   }
+
+  enemy->object.animator = (Animator){
+      .isFinished = false,
+      .currentState = IDLE,
+  };
+
+  switch (type) {
+  case E_CIVILIAN:
+    enemy->object.animator.animatinos[IDLE] = (SpriteAnimation){
+        .frameNames =
+            {
+                "vampire_1",
+                "vampire_2",
+                "vampire_3",
+                "vampire_4",
+            },
+        .numOfFrames = 4,
+        .fps = 8,
+        .isLooping = true,
+        .isFinished = false,
+        .currentFrame = 0,
+        .frameCount = 0,
+    };
+    break;
+  case E_FARMER:
+  default:
+    enemy->object.animator.animatinos[IDLE] = (SpriteAnimation){
+        .frameNames =
+            {
+                "skeleton_1",
+                "skeleton_2",
+                "skeleton_3",
+                "skeleton_4",
+            },
+        .numOfFrames = 4,
+        .fps = 8,
+        .isLooping = true,
+        .isFinished = false,
+        .currentFrame = 0,
+        .frameCount = 0,
+    };
+    break;
+  }
+
   enemy->type = type;
   enemy->object.transform.position = position;
+  enemy->object.transform.scale = (Vector2){4, 4};
   enemy->weapon = initWeapon(weapon, false);
   return enemy;
 }
 
-static void clearEnemy(Enemy **enemy)
-{
+static void clearEnemy(Enemy **enemy) {
   if (enemy == NULL || *enemy == NULL)
     return;
 

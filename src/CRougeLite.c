@@ -22,8 +22,8 @@
 
 #include "CRougeLite.h" // NOTE: declare global extern vars
 
-#include "game/player.h"
 #include "game/enemy.h"
+#include "game/player.h"
 #include "system/atlas.h"
 #include "system/draw.h"
 #include "system/input.h"
@@ -61,7 +61,7 @@ int main(void) {
   initAtlas();
   initMap();
 
-  loadResources(settings);
+  loadResources();
 
   SetTargetFPS(60);
 
@@ -92,7 +92,6 @@ static void loadResources() {
 
   setupPlayers();
   setupEnemies();
-
 }
 
 static void update() {
@@ -101,13 +100,10 @@ static void update() {
   UpdateMusicStream(music);
 }
 
-
-static void clearResources()
-{
+static void clearResources() {
   clearGameState();
   // clear map
   clearMap();
-
 
   // Unload assets and cleaning
   UnloadMusicStream(music);
