@@ -167,12 +167,12 @@ typedef struct
 
 typedef struct SpriteAnimation
 {
+  char* frameNames[MAX_FRAMES_PER_ANIMATION];
+  int currentFrame;
   int numOfFrames;
-  char **frameNames;
-  int currentFrame; // NOTE: still not used
-  int framesPerSecond;
-  bool loop;     // NOTE: still not used
-  bool finished; // NOTE: still not used
+  int fps;
+  bool isLooping;
+  bool isFinished;
 } SpriteAnimation;
 
 typedef struct
