@@ -20,20 +20,17 @@
 
 // API
 
-/*
- * getSrcRect
+
+/* getSrcRect
  *
- * Get the source rectangle of the frame in the atlas.
- * frameName: the name of the frame in the atlas.
- * Returns: the source rectangle of the frame.
-*/
-Rectangle getSrcRect(char *frameName);
-
-void drawSpriteAnimationPro(SpriteAnimation *anim, Rectangle dest,
-                            Vector2 origin, float rotation, Color tint,
-                            bool flipX);
-
-
+ * Get the source rectangle for the current frame of the animation.
+ *
+ * @param animator - The animator to get the source rectangle from.
+ *
+ * @return - The source rectangle for the current frame of the animation.
+ *
+ */
+Rectangle getSrcRect(Animator *animator);
 
 #endif // ANIME_H
 // vim: fdm=marker
