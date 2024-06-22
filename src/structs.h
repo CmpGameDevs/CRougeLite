@@ -150,21 +150,6 @@ typedef struct
   int height;
 } SpriteRenderer;
 
-// FIXME: Rework SpriteAnimation and animator
-// Animator should handle the state and what animation to show.
-// Animation is the animation itself.
-typedef struct
-{
-  char **frameNames; // Idk what is the type of the animation sprites.
-  int currentFrame;
-  int numOfFrames;
-  int framesPerSecond;
-  float frameTime;
-  float elapsedTime; // Time elapsed since the last frame change.
-  bool loop;         // NOTE: still not used
-  bool finished;     // NOTE: still not used
-} Animator;
-
 typedef struct SpriteAnimation
 {
   char* frameNames[MAX_FRAMES_PER_ANIMATION];
@@ -174,6 +159,14 @@ typedef struct SpriteAnimation
   bool isLooping;
   bool isFinished;
 } SpriteAnimation;
+
+typedef struct
+{
+  SpriteAnimation animatinos[MAX_ANIMATION_STATES];
+  int currentState;
+  bool isFinished;
+} Animator;
+
 
 typedef struct
 {
