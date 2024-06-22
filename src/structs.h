@@ -154,6 +154,7 @@ typedef struct SpriteAnimation
 {
   char* frameNames[MAX_FRAMES_PER_ANIMATION];
   int currentFrame;
+  int frameCount;
   int numOfFrames;
   int fps;
   bool isLooping;
