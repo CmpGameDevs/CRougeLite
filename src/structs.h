@@ -88,7 +88,7 @@ typedef enum
 typedef enum
 {
   // NOTE: those are used for animation as more as you need
-  // NOTE: if the number exceeds 10 change the def in defs
+  // NOTE: if the number exceeds the max change the def in defs
   // cause are stack allocated
   IDLE,
   WALK,
@@ -98,7 +98,7 @@ typedef enum
   ATTACK2,
   TAKE_DAMAGE,
   DIE,
-} State;
+} STATE;
 
 /*============================================================================
  *                                  STRUCTS
@@ -243,7 +243,6 @@ typedef struct
   bool isTracking;
   int pathCode;
   int enemyID;
-  SpriteRenderer bulletSprite;
   RigidBody2D rigidBody;
   Collider2D collider;
 } BulletInfo;
@@ -254,6 +253,7 @@ typedef struct
   BulletInfo bulletInfo;
   Vector2 startPosition; // To know if the bullet exceeded the range.
   Vector2 dest;
+  Animator animator;
   CTransform transform;
 } Bullet;
 
@@ -282,7 +282,6 @@ typedef union
 typedef struct
 {
   float angle;
-  SpriteAnimation anime;
   CombatActionUnion action;
   CombatActionType type;
 } CombatAction;
@@ -341,7 +340,7 @@ typedef struct
   float dodgePercentage; // Dodge or Parry or Block. Or do these three
                          // separately??
   float speed;
-  State state;
+  STATE state;
 } EnemyAI;
 
 typedef struct

@@ -119,7 +119,7 @@ static void initPlayerWeaponDictionary() {
   dict[0].entry.weapon = (Weapon){
       .type = RANGED_WEAPON,
       .weapon.ranged = {.stats = {10, 0.5, 0, .weaponSprite = {}},
-                        .bulletInfo = {4, 10, 600, 10, .bulletSprite = {},
+                        .bulletInfo = {4, 10, 600, 10,
                                        .collider = {(Vector2){0, 0}, 32, 32},
                                        .isTracking = true},
                         30,
@@ -130,7 +130,7 @@ static void initPlayerWeaponDictionary() {
   dict[1].entry.weapon = (Weapon){
       .type = RANGED_WEAPON,
       .weapon.ranged = {.stats = {10, 1, 0, .weaponSprite = {}},
-                        .bulletInfo = {4, 10, 1000, 10, .bulletSprite = {},
+                        .bulletInfo = {4, 10, 1000, 10,
                                        .collider = {(Vector2){0, 0}, 16, 16},
                                        .isTracking = true},
                         30,
