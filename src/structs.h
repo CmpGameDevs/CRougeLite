@@ -87,11 +87,17 @@ typedef enum
 
 typedef enum
 {
-  PATROL,
+  // NOTE: those are used for animation as more as you need
+  // NOTE: if the number exceeds 10 change the def in defs
+  // cause are stack allocated
   IDLE,
-  CHASE,
-  ATTACK,
-  FLEE
+  WALK,
+  RUN,
+  DODGE,
+  ATTACK1,
+  ATTACK2,
+  TAKE_DAMAGE,
+  DIE,
 } State;
 
 /*============================================================================

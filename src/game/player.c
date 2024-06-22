@@ -24,13 +24,6 @@
 #include <raylib.h>
 #include <raymath.h>
 
-// NOTE: those are animation states
-typedef enum PLAYER_STATES {
-  P_IDLE,
-  P_RUNNING,
-  P_DODGE,
-} PLAYER_STATES;
-
 // ***************************
 // Private Function Prototypes
 // ***************************
@@ -54,10 +47,10 @@ void setupPlayers() {
 
   player->object.animator = (Animator){
       .isFinished = false,
-      .currentState = P_IDLE,
+      .currentState = IDLE,
   };
 
-  player->object.animator.animatinos[P_IDLE] = (SpriteAnimation){
+  player->object.animator.animatinos[IDLE] = (SpriteAnimation){
       .frameNames = {"Meow-Knight_Idle_0_0", "Meow-Knight_Idle_1_0",
                      "Meow-Knight_Idle_2_0", "Meow-Knight_Idle_3_0",
                      "Meow-Knight_Idle_4_0", "Meow-Knight_Idle_5_0"},
@@ -68,7 +61,7 @@ void setupPlayers() {
       .isLooping = true,
       .isFinished = false,
   };
-  player->object.animator.animatinos[P_RUNNING] = (SpriteAnimation){
+  player->object.animator.animatinos[RUN] = (SpriteAnimation){
       .frameNames = {"Meow-Knight_Run_0_0", "Meow-Knight_Run_1_0",
                      "Meow-Knight_Run_2_0", "Meow-Knight_Run_3_0",
                      "Meow-Knight_Run_4_0", "Meow-Knight_Run_5_0",
@@ -80,7 +73,7 @@ void setupPlayers() {
       .isLooping = true,
       .isFinished = false,
   };
-  player->object.animator.animatinos[P_DODGE] = (SpriteAnimation){
+  player->object.animator.animatinos[DODGE] = (SpriteAnimation){
       .frameNames =
           {
               "Meow-Knight_Dodge_0_0",
@@ -211,15 +204,15 @@ void clearPlayers() {
 
 static void animationControlor(Player *player) {
   if (IsKeyPressed(KEY_SPACE))
-    setState(&(player->object.animator), P_DODGE);
+    setState(&(player->object.animator), DODGE);
 
   // NOTE: this meaning that looping animation have less priority than
   // non-looping animations like dodge and attack
   if (player->object.animator.isFinished == true) {
     if (player->isMoving) {
-      setState(&(player->object.animator), P_RUNNING);
+      setState(&(player->object.animator), RUN);
     } else {
-      setState(&(player->object.animator), P_IDLE);
+      setState(&(player->object.animator), IDLE);
     }
   }
 }
