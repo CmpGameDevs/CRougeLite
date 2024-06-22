@@ -17,14 +17,23 @@
 #define ANIME_H
 
 #include "../CRougeLite.h"
-SpriteAnimation createSpriteAnimation(int numFrames, char **frameNames,
-                                      int framesPerSecond, int loop);
+
+// API
+
+/*
+ * getSrcRect
+ *
+ * Get the source rectangle of the frame in the atlas.
+ * frameName: the name of the frame in the atlas.
+ * Returns: the source rectangle of the frame.
+*/
+Rectangle getSrcRect(char *frameName);
 
 void drawSpriteAnimationPro(SpriteAnimation *anim, Rectangle dest,
                             Vector2 origin, float rotation, Color tint,
                             bool flipX);
 
 
-void disposeSpriteAnimation(SpriteAnimation *anim);
 
 #endif // ANIME_H
+// vim: fdm=marker

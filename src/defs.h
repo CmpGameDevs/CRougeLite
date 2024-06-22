@@ -34,4 +34,8 @@
 #define MAX_COL_NUM 60
 #define MAX_CELL_ID 5
 
+// ANIMATION
+#define MAX_FRAMES_PER_ANIMATION 60
+#define MAX_ANIMATION_STATES 10
+
 #endif // DEFS_H
