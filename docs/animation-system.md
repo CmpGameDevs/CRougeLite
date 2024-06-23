@@ -177,7 +177,7 @@ player->object.animator = (Animator){
     .currentState = IDLE,
 };
 
-player->object.animator.animatinos[IDLE] = (SpriteAnimation){
+player->object.animator.animations[IDLE] = (SpriteAnimation){
     .frameNames = {"Meow-Knight_Idle_0_0", "Meow-Knight_Idle_1_0",
                    "Meow-Knight_Idle_2_0", "Meow-Knight_Idle_3_0",
                    "Meow-Knight_Idle_4_0", "Meow-Knight_Idle_5_0"},
@@ -188,10 +188,10 @@ player->object.animator.animatinos[IDLE] = (SpriteAnimation){
     .isLooping = true,
     .isFinished = false,
 };
-player->object.animator.animatinos[RUN] = (SpriteAnimation){
+player->object.animator.animations[RUN] = (SpriteAnimation){
   // same as above with different params for run animation
 };
-player->object.animator.animatinos[DODGE] = (SpriteAnimation){
+player->object.animator.animations[DODGE] = (SpriteAnimation){
   .isLooping = false,
   // ...
  };

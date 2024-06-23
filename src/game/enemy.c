@@ -36,7 +36,8 @@ static void clearEnemy(Enemy **enemy);
  * the state of the game to draw and update.
  *
  */
-void setupEnemies() {
+void setupEnemies()
+{
   const Settings *const settings = &(gameState->settings);
   initEnemy(E_CIVILIAN, E_SWORD, (Vector2){128, 128});
 
@@ -49,30 +50,27 @@ void setupEnemies() {
  * Draw the players in the game.
  *
  */
-void drawEnemies() {
+void drawEnemies()
+{
   Enemy *enemies = gameState->enemies;
   int enemy_num = gameState->numOfEnemies;
 
   if (enemies == NULL)
     return;
 
-  while (enemy_num--) {
+  while (enemy_num--)
+  {
     bool flip = (enemies->drawDirection == -1) ? true : false;
     drawAnimator(&enemies->object.animator, &enemies->object.transform, WHITE,
                  flip);
-
     enemies++;
   }
 }
 
-void updateEnemies() {
+void updateEnemies()
+{
   Enemy *enemy = gameState->enemies;
   double speed = enemy->stats.speed;
-
-  for (int i = 0; i < gameState->numOfEnemies; i++) {
-    updateAnimator(&enemy->object.animator);
-    enemy++;
-  }
 
   Vector2 direction = {0, 0};
   if (IsKeyDown(KEY_UP))
@@ -84,39 +82,53 @@ void updateEnemies() {
   if (IsKeyDown(KEY_RIGHT))
     direction.x += 1;
 
-  Vector2 velocity = Vector2Scale(Vector2Normalize(direction), speed);
+  for (int i = 0; i < gameState->numOfEnemies; i++)
+  {
+    updateAnimator(&enemy->object.animator);
 
-  Vector2 position = Vector2Add(enemy->object.transform.position, velocity);
+    Vector2 velocity = Vector2Scale(Vector2Normalize(direction), speed);
 
-  if (Vector2Length(velocity) > 0) {
-    enemy->isMoving = true;
-  } else {
-    enemy->isMoving = false;
+    Vector2 position = Vector2Add(enemy->object.transform.position, velocity);
+
+    if (Vector2Length(velocity) > 0)
+    {
+      enemy->isMoving = true;
+    }
+    else
+    {
+      enemy->isMoving = false;
+    }
+
+    if (velocity.x < 0)
+    {
+      enemy->drawDirection = -1;
+    }
+    else
+    {
+      enemy->drawDirection = 1;
+    }
+
+    // NOTE: this makes the player unable to go out of frame
+    enemy->object.rigidBody.velocity = velocity;
+    enemy->object.transform.position =
+        Vector2Clamp(position, (Vector2){0, 0},
+                     (Vector2){gameState->settings.screenWidth - 64,
+                               gameState->settings.screenHeight - 64});
+
+    // FIXME: replace with sprite size
+    enemy++;
   }
-
-  if (velocity.x < 0) {
-    enemy->drawDirection = -1;
-  } else {
-    enemy->drawDirection = 1;
-  }
-
-  // NOTE: this makes the player unable to go out of frame
-  enemy->object.rigidBody.velocity = velocity;
-  enemy->object.transform.position =
-      Vector2Clamp(position, (Vector2){0, 0},
-                   (Vector2){gameState->settings.screenWidth - 64,
-                             gameState->settings.screenHeight - 64});
-
-  // FIXME: replace with sprite size
 }
 
-void clearEnemies() {
+void clearEnemies()
+{
   int enemyNum = gameState->numOfEnemies;
   Enemy *enemies = gameState->enemies;
 
   // FIXME: this is probably buged
   printf("Deleting Enemies\n");
-  while (enemyNum--) {
+  while (enemyNum--)
+  {
     clearEnemy(&enemies);
     enemies--;
   }
@@ -126,15 +138,18 @@ void clearEnemies() {
 // *****************
 // PRIVATE FUNCTIONS
 // *****************
-static Enemy *initEnemy(E_TYPE type, E_WEAPON weapon, Vector2 position) {
+static Enemy *initEnemy(E_TYPE type, E_WEAPON weapon, Vector2 position)
+{
   Dictionary *dict = gameState->enemyDictionary;
   Enemy *enemy = &(gameState->enemies[gameState->numOfEnemies++]);
   int l = 0, r = NUM_OF_E_TYPE - 1;
 
-  while (l <= r) {
+  while (l <= r)
+  {
     int mid = l + (r - l) / 2;
     int cmp = dict[mid].opcode - type;
-    if (!cmp) {
+    if (!cmp)
+    {
       *enemy = dict[mid].entry.enemy;
       printf("Added enemy of type: %s\n", enemy->name);
       break;
@@ -150,9 +165,10 @@ static Enemy *initEnemy(E_TYPE type, E_WEAPON weapon, Vector2 position) {
       .currentState = IDLE,
   };
 
-  switch (type) {
+  switch (type)
+  {
   case E_CIVILIAN:
-    enemy->object.animator.animatinos[IDLE] = (SpriteAnimation){
+    enemy->object.animator.animations[IDLE] = (SpriteAnimation){
         .frameNames =
             {
                 "vampire_1",
@@ -170,7 +186,7 @@ static Enemy *initEnemy(E_TYPE type, E_WEAPON weapon, Vector2 position) {
     break;
   case E_FARMER:
   default:
-    enemy->object.animator.animatinos[IDLE] = (SpriteAnimation){
+    enemy->object.animator.animations[IDLE] = (SpriteAnimation){
         .frameNames =
             {
                 "skeleton_1",
@@ -195,7 +211,8 @@ static Enemy *initEnemy(E_TYPE type, E_WEAPON weapon, Vector2 position) {
   return enemy;
 }
 
-static void clearEnemy(Enemy **enemy) {
+static void clearEnemy(Enemy **enemy)
+{
   if (enemy == NULL || *enemy == NULL)
     return;
 
