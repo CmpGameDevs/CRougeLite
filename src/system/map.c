@@ -9,6 +9,7 @@
  **********************************************/
 
 #include "map.h"
+#include "draw.h"
 #include <raylib.h>
 #include <string.h>
 
@@ -80,18 +81,14 @@ void initMap() {
 
   initTilesMapper();
 
-  map->loaded = false;
   map->currentLevel = 0;
   map->numOfRows = 0;
   map->numOfCols = 0;
   map->currentLevelPath =
       "./src/resources/gfx/map-assets/level_one/level_one_map.csv";
   map->scale = 3.0f;
-
-  map->textures = malloc(map->tilesMapper.numOfTiles * sizeof(Texture2D));
-  map->isTexturesLoaded = malloc(map->tilesMapper.numOfTiles * sizeof(bool));
-  for (int i = 0; i < map->tilesMapper.numOfTiles; i++)
-    map->isTexturesLoaded[i] = false;
+  map->tileWidth = 16;
+  map->tileHeight = 16;
 
   parseLevelFile();
 }
@@ -165,37 +162,30 @@ void drawMap() {
       int tileId = map->mapIds[row][col][idIdx++];
 
       while (idIdx < 5 && tileId != -1) {
-        loadTileTexture(tileId);
+        int tileWidth = map->tileHeight, tileHeight = map->tileWidth;
 
-        int tileWidth = map->textures[tileId].width,
-            tileHeight = map->textures[tileId].height;
-
-        Rectangle src = {0.0f, 0.0f, (float)tileWidth, (float)tileHeight};
         Rectangle dest = {(float)(col * tileWidth) * map->scale,
                           (float)(row * tileHeight) * map->scale,
                           (float)tileWidth * map->scale,
                           (float)tileHeight *
                               map->scale}; // Scaling the drawn texture by 2
 
-        DrawTexturePro(map->textures[tileId], src, dest, (Vector2){0, 0},
-                       (float)0, WHITE);
+        drawTileTexture(tileId, dest, (Vector2){0, 0}, 0.f, RAYWHITE, false);
         tileId = map->mapIds[row][col][idIdx++];
       }
     }
   }
 }
 
-static void loadTileTexture(int tileIdx) {
+static void drawTileTexture(int tileIdx, Rectangle dest, Vector2 origin,
+                            float rotation, Color tint, bool flipX) {
   GameState *game_system = gameState;
   Map *map = &(game_system->map);
 
-  if (map->isTexturesLoaded[tileIdx])
-    return;
-
   char buffer[256];
-  sprintf(buffer, "./src/resources/gfx/assets-prepare/%s",
-          map->tilesMapper.mapper[tileIdx]);
+  char *tileName = map->tilesMapper.mapper[tileIdx];
+  strncpy(buffer, tileName, strlen(tileName));
 
-  map->textures[tileIdx] = LoadTexture(buffer);
-  map->isTexturesLoaded[tileIdx] = true;
+  char *fileName = strtok(buffer, ".");
+  DrawAtlasSpritePro(fileName, dest, origin, rotation, tint, flipX);
 }
