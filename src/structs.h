@@ -387,8 +387,11 @@ typedef struct
   bool fullscreen;
   int musicVolume;
   int soundVolume;
-  bool music_on;
   bool sfx_on;
+  bool playMusic;
+  bool showTextures;
+  bool showColliders;
+  bool showFPS;
 } Settings;
 
 typedef union

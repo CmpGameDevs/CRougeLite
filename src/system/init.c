@@ -210,8 +210,11 @@ void initSettings() {
   gameState->settings.screenHeight = SCREEN_HEIGHT;
   gameState->settings.musicVolume = 50;
   gameState->settings.soundVolume = 50;
-  gameState->settings.music_on = true;
+  gameState->settings.playMusic = true;
   gameState->settings.sfx_on = true;
+  gameState->settings.showTextures = true;
+  gameState->settings.showColliders = false;
+  gameState->settings.showFPS = false;
 }
 
 static void addEnemy(Enemy *enemy) {

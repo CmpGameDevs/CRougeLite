@@ -1,10 +1,11 @@
 #include "draw.h"
+
 #include "../game/combatAction.h"
+#include "../game/debugMenu.h"
 #include "../game/enemy.h"
 #include "../game/player.h"
 #include "atlas.h"
 #include "map.h"
-#include <raylib.h>
 
 void DrawAtlasSpritePro(char *filename, Rectangle dest, Vector2 origin,
                         float rotation, Color tint, bool flipX) {
@@ -30,6 +31,7 @@ void drawScene() {
   drawEnemies();
 
   drawCombatActions();
+  drawDebugMenu();
 
   EndDrawing();
 }
