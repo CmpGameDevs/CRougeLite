@@ -35,5 +35,8 @@ void drawScene() {
   if (gameState->settings.showDebugMenu)
     drawDebugMenu();
 
+  if (gameState->settings.showFPS)
+    DrawFPS(10, 10);
+
   EndDrawing();
 }
