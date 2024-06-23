@@ -56,6 +56,7 @@ int main(void) {
   initDictionary();
   Settings *settings = &(gameState->settings);
 
+  SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_VSYNC_HINT);
   InitWindow(settings->screenWidth, settings->screenHeight, "C rougelite game");
 
   initAtlas();

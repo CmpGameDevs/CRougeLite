@@ -86,7 +86,7 @@ void initMap() {
   map->numOfCols = 0;
   map->currentLevelPath =
       "./src/resources/gfx/map-assets/level_one/level_one_map.csv";
-  map->scale = 2.0f;
+  map->scale = 3.0f;
 
   map->textures = malloc(map->tilesMapper.numOfTiles * sizeof(Texture2D));
   map->isTexturesLoaded = malloc(map->tilesMapper.numOfTiles * sizeof(bool));
