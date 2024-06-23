@@ -390,6 +390,7 @@ typedef struct
   bool sfx_on;
   bool playMusic;
   bool showTextures;
+  bool showTexturesBounds;
   bool showColliders;
   bool showFPS;
   bool showDebugMenu;

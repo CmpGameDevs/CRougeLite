@@ -213,6 +213,7 @@ void initSettings() {
   gameState->settings.playMusic = true;
   gameState->settings.sfx_on = true;
   gameState->settings.showTextures = true;
+  gameState->settings.showTexturesBounds = false;
   gameState->settings.showColliders = false;
   gameState->settings.showFPS = false;
   gameState->settings.showDebugMenu = true;

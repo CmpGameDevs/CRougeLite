@@ -6,6 +6,7 @@
 #include "../game/player.h"
 #include "atlas.h"
 #include "map.h"
+#include <raylib.h>
 
 void DrawAtlasSpritePro(char *filename, Rectangle dest, Vector2 origin,
                         float rotation, Color tint, bool flipX) {
@@ -19,7 +20,8 @@ void DrawAtlasSpritePro(char *filename, Rectangle dest, Vector2 origin,
     if (gameState->settings.showTextures)
       DrawTexturePro(gameState->atlasTexture, image.source, dest, origin,
                      rotation, tint);
-    DrawRectangleLines(dest.x, dest.y, dest.width, dest.height, RED);
+    if (gameState->settings.showTexturesBounds)
+      DrawRectangleLines(dest.x, dest.y, dest.width, dest.height, ORANGE);
   }
 }
 
