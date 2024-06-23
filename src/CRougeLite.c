@@ -101,7 +101,8 @@ static void update() {
   }
   updatePlayers();
   updateEnemies();
-  UpdateMusicStream(music);
+  if (gameState->settings.playMusic)
+    UpdateMusicStream(music);
 }
 
 static void clearResources() {
