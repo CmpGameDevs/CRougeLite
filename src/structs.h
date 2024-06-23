@@ -158,7 +158,7 @@ typedef struct
 
 typedef struct SpriteAnimation
 {
-  char* frameNames[MAX_FRAMES_PER_ANIMATION];
+  char *frameNames[MAX_FRAMES_PER_ANIMATION];
   int currentFrame;
   int frameCount;
   int numOfFrames;
@@ -169,11 +169,10 @@ typedef struct SpriteAnimation
 
 typedef struct
 {
-  SpriteAnimation animatinos[MAX_ANIMATION_STATES];
+  SpriteAnimation animations[MAX_ANIMATION_STATES];
   int currentState;
   bool isFinished;
 } Animator;
-
 
 typedef struct
 {
@@ -405,14 +404,16 @@ typedef struct
   DictionaryEntry entry;
 } Dictionary;
 
-typedef struct TilesMapper {
+typedef struct TilesMapper
+{
   unsigned int numOfTiles;
   char *mapper[MAX_TILES_NUM];
-  char *path;         // Path of the mapper file
+  char *path; // Path of the mapper file
 } TilesMapper;
 
-typedef struct Map {
-  unsigned int currentLevel;   // NOTE: maybe convert it to a Level struct
+typedef struct Map
+{
+  unsigned int currentLevel; // NOTE: maybe convert it to a Level struct
   char *currentLevelPath;
   TilesMapper tilesMapper;
   int mapIds[MAX_ROW_NUM][MAX_COL_NUM][MAX_CELL_ID];

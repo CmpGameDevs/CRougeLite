@@ -18,26 +18,30 @@
 #include "draw.h"
 #include <raylib.h>
 
-Rectangle getSrcRect(Animator *animator) {
-  SpriteAnimation *anim = &animator->animatinos[animator->currentState];
+Rectangle getSrcRect(Animator *animator)
+{
+  SpriteAnimation *anim = &animator->animations[animator->currentState];
   return getAtlasImage(anim->frameNames[anim->currentFrame]).source;
 }
 
-void setState(Animator *animator, int state) {
+void setState(Animator *animator, int state)
+{
   if (animator->currentState == state)
     return;
 
   animator->currentState = state;
-  animator->animatinos[state].currentFrame = 0;
-  animator->animatinos[state].frameCount = 0;
-  animator->animatinos[state].isFinished = false;
+  animator->animations[state].currentFrame = 0;
+  animator->animations[state].frameCount = 0;
+  animator->animations[state].isFinished = false;
   animator->isFinished = false;
 }
 
-void updateAnimator(Animator *animator) {
-  SpriteAnimation *anim = &animator->animatinos[animator->currentState];
+void updateAnimator(Animator *animator)
+{
+  SpriteAnimation *anim = &animator->animations[animator->currentState];
 
-  if (anim->isFinished && !anim->isLooping) {
+  if (anim->isFinished && !anim->isLooping)
+  {
     animator->isFinished = true;
     return;
   }
@@ -51,13 +55,15 @@ void updateAnimator(Animator *animator) {
   double divisor = 60.0f / anim->fps;
   anim->currentFrame = anim->frameCount / divisor;
 
-  if (anim->currentFrame >= anim->numOfFrames) {
+  if (anim->currentFrame >= anim->numOfFrames)
+  {
     anim->currentFrame = 0;
     anim->frameCount = 0;
     anim->isFinished = true;
   }
 
-  if (anim->isFinished && anim->isLooping) {
+  if (anim->isFinished && anim->isLooping)
+  {
     anim->currentFrame = 0;
     anim->frameCount = 0;
     anim->isFinished = false;
@@ -65,8 +71,9 @@ void updateAnimator(Animator *animator) {
 }
 
 void drawAnimator(Animator *animator, CTransform *transform, Color tint,
-                  bool flipX) {
-  SpriteAnimation *anim = &animator->animatinos[animator->currentState];
+                  bool flipX)
+{
+  SpriteAnimation *anim = &animator->animations[animator->currentState];
   Rectangle src = getSrcRect(animator);
   DrawAtlasSpritePro(anim->frameNames[anim->currentFrame],
                      (Rectangle){transform->position.x, transform->position.y,
