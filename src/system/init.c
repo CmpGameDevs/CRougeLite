@@ -215,6 +215,7 @@ void initSettings() {
   gameState->settings.showTextures = true;
   gameState->settings.showColliders = false;
   gameState->settings.showFPS = false;
+  gameState->settings.showDebugMenu = true;
 }
 
 static void addEnemy(Enemy *enemy) {

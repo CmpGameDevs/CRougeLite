@@ -31,7 +31,8 @@ void drawScene() {
   drawEnemies();
 
   drawCombatActions();
-  drawDebugMenu();
+  if (gameState->settings.showDebugMenu)
+    drawDebugMenu();
 
   EndDrawing();
 }

@@ -392,6 +392,7 @@ typedef struct
   bool showTextures;
   bool showColliders;
   bool showFPS;
+  bool showDebugMenu;
 } Settings;
 
 typedef union
