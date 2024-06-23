@@ -28,11 +28,17 @@ cmake --build build
 
 ## Small Dev Logs
 
+- Debug menu
+
+
+https://github.com/CmpGameDevs/CRougeLite/assets/88613195/7f33f56e-48b9-44d7-b6b7-c17bb6e8cf0c
+
+
+
+
 - bullet mechanism animation system map drawing
 
-
 https://github.com/CmpGameDevs/CRougeLite/assets/88613195/b4f882e9-f777-4ef8-86b4-f07be2bca59c
-
 
 
 - Enemies
