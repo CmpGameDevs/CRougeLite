@@ -38,5 +38,5 @@ void drawDebugMenu() {
       "Show FPS", &gameState->settings.showFPS);
   GuiCheckBox(
       (Rectangle){GetScreenWidth() - 200, 150, CHECKBOX_SIZE, CHECKBOX_SIZE},
-      "Mute Music", &gameState->settings.playMusic);
+      "Play Music", &gameState->settings.playMusic);
 }

@@ -16,8 +16,9 @@ void DrawAtlasSpritePro(char *filename, Rectangle dest, Vector2 origin,
       image.source.width *= -1;
     }
 
-    DrawTexturePro(gameState->atlasTexture, image.source, dest, origin,
-                   rotation, tint);
+    if (gameState->settings.showTextures)
+      DrawTexturePro(gameState->atlasTexture, image.source, dest, origin,
+                     rotation, tint);
     DrawRectangleLines(dest.x, dest.y, dest.width, dest.height, RED);
   }
 }
