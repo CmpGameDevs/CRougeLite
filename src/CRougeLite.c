@@ -96,9 +96,13 @@ static void loadResources() {
 }
 
 static void update() {
+  if (IsKeyPressed(KEY_TAB)) {
+    gameState->settings.showDebugMenu = !gameState->settings.showDebugMenu;
+  }
   updatePlayers();
   updateEnemies();
-  UpdateMusicStream(music);
+  if (gameState->settings.playMusic)
+    UpdateMusicStream(music);
 }
 
 static void clearResources() {
