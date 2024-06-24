@@ -63,6 +63,8 @@ CombatAction *initBullet(int ID, BulletInfo bulletInfo, Vector2 pathInfo,
   GameObject *object = &(bulletInfo.object);
   bullet.playerID = ID;
   bullet.startPosition = src;
+  object->collider.bounds.x = src.x;
+  object->collider.bounds.y = src.y;
   object->transform =
       (CTransform){src, 0, pathInfo.x, pathInfo.y, (Vector2){3, 3}};
   if (bulletInfo.isTracking && bulletInfo.enemyID >= 0)
@@ -156,6 +158,8 @@ CombatAction *initSlash(int ID, SlashInfo slashInfo, Vector2 src,
   // Init slash
   Slash slash;
   GameObject *object = &(slashInfo.object);
+  object->collider.bounds.x = src.x;
+  object->collider.bounds.y = src.y;
   slash.playerID = ID;
   object->transform = (CTransform){src, 0, 0, 0, (Vector2){1, 1}};
 
@@ -347,6 +351,8 @@ static void drawBullet(CombatAction **combatActions)
   rotated = RotatePoint(rotated, bullet->startPosition, combatAction->angle * DEG2RAD);
 
   *pos = rotated;
+  object->collider.bounds.x = pos->x;
+  object->collider.bounds.y = pos->y;
 
   if (bullet->bulletInfo.bulletRange <= 0)
   {

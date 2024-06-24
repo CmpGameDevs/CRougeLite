@@ -34,20 +34,22 @@ void drawColliders() {
   Player *players = gameState->players;
   for (int i = 0; i < gameState->numOfPlayers; i++) {
     Rectangle bounds = players[i].object.collider.bounds;
+    Color color = (players[i].object.collider.isColliding ? BLUE : RED);
     DrawRectangleLines(bounds.x,
                        bounds.y,
                        bounds.width,
-                       bounds.height, RED);
+                       bounds.height, color);
   }
 
   // draw enemies colliders
   Enemy *enemies = gameState->enemies;
   for (int i = 0; i < gameState->numOfEnemies; i++) {
     Rectangle bounds = enemies[i].object.collider.bounds;
+    Color color = (enemies[i].object.collider.isColliding ? BLUE : RED);
     DrawRectangleLines(bounds.x,
                        bounds.y,
                        bounds.width,
-                       bounds.height, RED);
+                       bounds.height, color);
   }
 
   // draw bullet actions colliders
@@ -65,10 +67,11 @@ void drawColliders() {
         break;
     }
     Rectangle bounds = object->collider.bounds;
+    Color color = (object->collider.isColliding ? BLUE : RED);
     DrawRectangleLines(bounds.x,
                        bounds.y,
                        bounds.width,
-                       bounds.height, RED);
+                       bounds.height, color);
   }
 }
 

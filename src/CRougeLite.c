@@ -29,6 +29,7 @@
 #include "system/draw.h"
 #include "system/input.h"
 #include "system/map.h"
+#include "system/collision.h"
 
 //========================================================
 // Global Shared Variables
@@ -104,6 +105,7 @@ static void update() {
   updateCamera();
   updatePlayers();
   updateEnemies();
+  updateMapGrid();
   if (gameState->settings.playMusic)
     UpdateMusicStream(music);
 }

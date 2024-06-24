@@ -10,22 +10,23 @@ static int GRID_WIDTH, GRID_CELL_WIDTH, GRID_HEIGHT, GRID_CELL_HEIGHT;
 // Private Function Prototypes
 // ***************************
 static void getGameObjectIndices(int *startX, int *startY, int *endX, int *endY, Collider2D *collider);
-static bool CheckAABBCollision(const Rectangle a, const Rectangle b);
+static void narrowPhaseCollision(void);
+static GameObject *getGameObjectByIndices(Pair index);
+static bool checkAABBCollision(const Rectangle a, const Rectangle b);
 
 void updateMapGrid(void)
 {
+  printf("Updating Map Grid\n");
   Map *map = &(gameState->map);
-  GridCell **grid = &(map->grid);
-  int GRID_WIDTH = map->numOfCols;
-  int GRID_CELL_WIDTH = map->tileWidth;
-  int GRID_HEIGHT = map->numOfRows;
-  int GRID_CELL_HEIGHT = map->tileHeight;
-  printf("W: %d, H: %d\n", GRID_WIDTH, GRID_HEIGHT);
+  GRID_WIDTH = map->numOfCols;
+  GRID_CELL_WIDTH = map->tileWidth * map->scale;
+  GRID_HEIGHT = map->numOfRows;
+  GRID_CELL_HEIGHT = map->tileHeight * map->scale;
 
   // Reset object count
-  for (int i = 0; i < GRID_WIDTH; i++) {
-    for (int j = 0; j < GRID_HEIGHT; j++) {
-      grid[i][j].objectCount = 0;
+  for (int i = 0; i < GRID_HEIGHT; i++) {
+    for (int j = 0; j < GRID_WIDTH; j++) {
+      map->grid[i][j].objectCount = 0;
     }
   }
 
@@ -34,13 +35,17 @@ void updateMapGrid(void)
   for (int k = 0; k < gameState->numOfPlayers; k++) {
     GameObject *object = &(players[k].object);
     int startX, startY, endX, endY;
+
+    object->collider.isColliding = false;
     getGameObjectIndices(&startX, &startY, &endX, &endY, &(object->collider));
+    printf("%d %d %d %d\n", startX, startY, endX, endY);
+    printf("W: %d, H: %d\n", GRID_WIDTH, GRID_HEIGHT);
     for (int i = startY; i <= endY; i++) {
       for (int j = startX; j <= endX; j++) {
-        GridCell *cell = &grid[i][j];
+        GridCell *cell = &(map->grid[i][j]);
         if (cell->objectCount < MAX_OBJECTS_PER_CELL) {
-          cell->objectIndices[cell->objectCount].first = k;
-          cell->objectIndices[cell->objectCount].second = ENTITY_PLAYER;
+          cell->objectIndices[cell->objectCount].first = (void *)k;
+          cell->objectIndices[cell->objectCount++].second = (void *)ENTITY_PLAYER;
         }
       }
     }
@@ -48,16 +53,20 @@ void updateMapGrid(void)
 
   // draw enemies colliders
   Enemy *enemies = gameState->enemies;
-  for (int k = 0; k < gameState->numOfPlayers; k++) {
+  for (int k = 0; k < gameState->numOfEnemies; k++) {
     GameObject *object = &(enemies[k].object);
     int startX, startY, endX, endY;
+
+    object->collider.isColliding = false;
     getGameObjectIndices(&startX, &startY, &endX, &endY, &(object->collider));
+    printf("%d %d %d %d\n", startX, startY, endX, endY);
+    printf("W: %d, H: %d\n", GRID_WIDTH, GRID_HEIGHT);
     for (int i = startY; i <= endY; i++) {
       for (int j = startX; j <= endX; j++) {
-        GridCell *cell = &grid[i][j];
+        GridCell *cell = &(map->grid[i][j]);
         if (cell->objectCount < MAX_OBJECTS_PER_CELL) {
-          cell->objectIndices[cell->objectCount].first = k;
-          cell->objectIndices[cell->objectCount].second = ENTITY_PLAYER;
+          cell->objectIndices[cell->objectCount].first = (void *)k;
+          cell->objectIndices[cell->objectCount++].second = (void *)ENTITY_ENEMY;
         }
       }
     }
@@ -65,8 +74,9 @@ void updateMapGrid(void)
 
   // draw bullet actions colliders
   CombatAction *actions = gameState->combatActions;
-  for (int k = 0; k < gameState->numOfPlayers; k++) {
+  for (int k = 0; k < gameState->numOfCombatActions; k++) {
     GameObject *object = NULL;
+    int startX, startY, endX, endY;
     switch (actions[k].type) {
       case ACTION_BULLET:
         object = &(actions[k].action.bullet.bulletInfo.object);
@@ -77,30 +87,39 @@ void updateMapGrid(void)
       default:
         break;
     }
-    int startX, startY, endX, endY;
+    
+    object->collider.isColliding = false;
     getGameObjectIndices(&startX, &startY, &endX, &endY, &(object->collider));
+    printf("%d %d %d %d\n", startX, startY, endX, endY);
+    printf("W: %d, H: %d\n", GRID_WIDTH, GRID_HEIGHT);
     for (int i = startY; i <= endY; i++) {
       for (int j = startX; j <= endX; j++) {
-        GridCell *cell = &grid[i][j];
+        GridCell *cell = &(map->grid[i][j]);
         if (cell->objectCount < MAX_OBJECTS_PER_CELL) {
-          cell->objectIndices[cell->objectCount].first = k;
-          cell->objectIndices[cell->objectCount].second = ENTITY_PLAYER;
+          cell->objectIndices[cell->objectCount].first = (void *)k;
+          cell->objectIndices[cell->objectCount++].second = (void *)ENTITY_COMBAT_ACTION;
         }
       }
     }
   }
+  narrowPhaseCollision();
+  printf("Finished Map Grid\n");
 }
 
 void resolveCollision(GameObject *a, GameObject *b)
 {
-
+  a->collider.isColliding = true;
+  b->collider.isColliding = true;
 }
 
 void updateGameObjectPosition(GameObject *a, Vector2 newPosition)
 {
-  
+
 }
 
+// *****************
+// PRIVATE FUNCTIONS
+// *****************
 static void getGameObjectIndices(int *startX, int *startY, int *endX, int *endY, Collider2D *collider)
 {
   *startX = collider->bounds.x / GRID_CELL_WIDTH;
@@ -109,7 +128,61 @@ static void getGameObjectIndices(int *startX, int *startY, int *endX, int *endY,
   *endY = (collider->bounds.y + collider->bounds.height) / GRID_CELL_HEIGHT;
 }
 
-static bool CheckAABBCollision(const Rectangle a, const Rectangle b)
+static void narrowPhaseCollision(void)
+{
+  Map *map = &(gameState->map);
+  // Reset object count
+  for (int i = 0; i < GRID_HEIGHT; i++) {
+    for (int j = 0; j < GRID_WIDTH; j++) {
+      GridCell *cell = &(map->grid[i][j]);
+      int objectCount = cell->objectCount;
+      for (int n = 0; n < objectCount; n++) {
+        Pair indexA = cell->objectIndices[n];
+        GameObject *objectA = getGameObjectByIndices(indexA);
+        for (int m = n + 1; m < objectCount; m++) {
+          Pair indexB = cell->objectIndices[m];
+          GameObject *objectB = getGameObjectByIndices(indexB);
+
+          if (checkAABBCollision(objectA->collider.bounds, objectB->collider.bounds)) {
+            resolveCollision(objectA, objectB);
+          }
+        }
+      }
+    }
+  }
+}
+
+static GameObject *getGameObjectByIndices(Pair index)
+{
+  Player *players = gameState->players;
+  Enemy *enemies = gameState->enemies;
+  CombatAction *actions = gameState->combatActions;
+
+  switch ((EntityType)(index.second))
+  {
+  case ENTITY_PLAYER:
+    return &(players[(int)(index.first)].object);
+  case ENTITY_ENEMY:
+    return &(enemies[(int)(index.first)].object);
+  case ENTITY_COMBAT_ACTION:
+    switch (actions[(int)(index.first)].type)
+    {
+    case ACTION_BULLET:
+      return &(actions[(int)(index.first)].action.bullet.bulletInfo.object);
+    case ACTION_SLASH:
+      return &(actions[(int)(index.first)].action.slash.slashInfo.object);
+    default:
+      break;
+    }
+    break;
+  default:
+    break;
+  }
+
+  return NULL;
+}
+
+static bool checkAABBCollision(const Rectangle a, const Rectangle b)
 {
   return (a.x < b.x + b.width &&
           a.x + a.width > b.x &&

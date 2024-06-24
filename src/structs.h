@@ -88,8 +88,8 @@ typedef enum {
 // **********************
 
 typedef struct {
-  int first;
-  int second;
+  void *first;
+  void *second;
 } Pair;
 
 typedef struct CTransform {
@@ -109,6 +109,7 @@ typedef struct {
 
 typedef struct {
   Rectangle bounds;
+  bool isColliding;
 } Collider2D;
 
 typedef struct AtlasImage {
