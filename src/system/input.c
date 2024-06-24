@@ -5,31 +5,25 @@
 
 static void mouseEventHandler();
 
-void handleInput()
-{
-  mouseEventHandler();
-}
+void handleInput() { mouseEventHandler(); }
 
-static int getClickedEnemy(Vector2 mousePos)
-{
+static int getClickedEnemy(Vector2 mousePos) {
 
-  for (int i = 0; i < gameState->numOfEnemies; i++)
-  {
+  for (int i = 0; i < gameState->numOfEnemies; i++) {
     Enemy *enemy = (gameState->enemies + i);
     float positionX = enemy->object.transform.position.x;
     float positionY = enemy->object.transform.position.y;
     float width = enemy->object.collider.width;
     float height = enemy->object.collider.height;
-    if (CheckCollisionPointRec(mousePos, (Rectangle){positionX, positionY, width, height}))
-    {
+    if (CheckCollisionPointRec(
+            mousePos, (Rectangle){positionX, positionY, width, height})) {
       return i;
     }
   }
-   return -1;
+  return -1;
 }
 
-static void mouseEventHandler()
-{
+static void mouseEventHandler() {
   int selected_player = 0;
   Player *player = ((gameState->players) + selected_player);
 
@@ -39,30 +33,29 @@ static void mouseEventHandler()
                         player->object.collider.height / 2};
 
   Vector2 mousePos = GetMousePosition();
+  mousePos = GetScreenToWorld2D(mousePos, gameState->camera);
 
   mousePos.x -= 16;
   mousePos.y -= 16;
 
-  if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
-  {
+  if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
     player->fire = 1;
   }
-  if (IsMouseButtonReleased(MOUSE_LEFT_BUTTON))
-  {
+  if (IsMouseButtonReleased(MOUSE_LEFT_BUTTON)) {
     player->fire = 0;
   }
   float deltaTime = GetFrameTime(); // Get time in seconds for one frame
 
-  Weapon *weapon = (player->inventory.weapons + player->inventory.currentWeapon);
-  if (weapon->type == RANGED_WEAPON)
-  {
-    if(weapon->weapon.ranged.bulletInfo.isTracking){
+  Weapon *weapon =
+      (player->inventory.weapons + player->inventory.currentWeapon);
+  if (weapon->type == RANGED_WEAPON) {
+    if (weapon->weapon.ranged.bulletInfo.isTracking) {
       weapon->weapon.ranged.bulletInfo.enemyID = getClickedEnemy(mousePos);
     }
-    updateRangedWeapon(weapon, player->fire, player->ID, srcPos, mousePos, deltaTime);
-  }
-  else if (weapon->type == MELEE_WEAPON)
-  {
-    updateMeleeWeapon(weapon, player->fire, player->ID, srcPos, mousePos, deltaTime);
+    updateRangedWeapon(weapon, player->fire, player->ID, srcPos, mousePos,
+                       deltaTime);
+  } else if (weapon->type == MELEE_WEAPON) {
+    updateMeleeWeapon(weapon, player->fire, player->ID, srcPos, mousePos,
+                      deltaTime);
   }
 }

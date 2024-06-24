@@ -1,4 +1,5 @@
 #include "init.h"
+#include <raylib.h>
 
 //========================================================
 // LOCAL VARIABLE DEFINITIONS (local to this file)
@@ -193,6 +194,8 @@ GameState *initGameState() {
     gameSystemInstance->enemyDictionary = NULL;
     gameSystemInstance->playerWeaponDictionary = NULL;
     gameSystemInstance->enemyWeaponDictionary = NULL;
+    gameSystemInstance->settings = (Settings){};
+    gameSystemInstance->camera = (Camera2D){};
   }
 
   return gameSystemInstance;
@@ -217,6 +220,7 @@ void initSettings() {
   gameState->settings.showColliders = false;
   gameState->settings.showFPS = false;
   gameState->settings.showDebugMenu = true;
+  gameState->settings.zoom = 1.0;
 }
 
 static void addEnemy(Enemy *enemy) {
