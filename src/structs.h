@@ -324,9 +324,9 @@ typedef struct {
 typedef struct {
   int screenWidth;
   int screenHeight;
-  bool fullscreen;
   int musicVolume;
   int soundVolume;
+  bool fullscreen;
   bool sfx_on;
   bool playMusic;
   bool showTextures;
@@ -334,6 +334,7 @@ typedef struct {
   bool showColliders;
   bool showFPS;
   bool showDebugMenu;
+  float zoom;
 } Settings;
 
 typedef union {
@@ -389,6 +390,8 @@ typedef struct {
   Dictionary *enemyDictionary;
 
   Settings settings;
+
+  Camera2D camera;
 
   Map map;
 } GameState;
