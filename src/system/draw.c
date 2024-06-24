@@ -62,18 +62,28 @@ void drawColidors() {
 
 void drawScene() {
   BeginDrawing();
-  ClearBackground(GetColor(0x052c46ff));
+
+  ClearBackground(GetColor(0x25131aff));
+
+  BeginMode2D(gameState->camera);
   drawMap();
 
   drawPlayers();
   drawEnemies();
 
   drawCombatActions();
-  if (gameState->settings.showDebugMenu)
-    drawDebugMenu();
+
+  Vector2 cur = GetMousePosition();
+  Vector2 worldPos = GetScreenToWorld2D(cur, gameState->camera);
+  DrawCircle(worldPos.x, worldPos.y, 5, RED);
 
   if (gameState->settings.showColliders)
     drawColidors();
+
+  EndMode2D();
+
+  if (gameState->settings.showDebugMenu)
+    drawDebugMenu();
 
   if (gameState->settings.showFPS)
     DrawFPS(10, 10);
