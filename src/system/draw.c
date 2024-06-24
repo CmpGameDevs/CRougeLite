@@ -26,37 +26,49 @@ void DrawAtlasSpritePro(char *filename, Rectangle dest, Vector2 origin,
   }
 }
 
-void drawColidors() {
+void drawColliders() {
   // draw map colliders
   // TODO: ya akram
 
   // draw players colliders
   Player *players = gameState->players;
   for (int i = 0; i < gameState->numOfPlayers; i++) {
-    Player *player = &players[i];
-    DrawRectangleLines(player->object.transform.position.x,
-                       player->object.transform.position.y,
-                       player->object.collider.width,
-                       player->object.collider.height, RED);
+    Rectangle bounds = players[i].object.collider.bounds;
+    DrawRectangleLines(bounds.x,
+                       bounds.y,
+                       bounds.width,
+                       bounds.height, RED);
   }
 
   // draw enemies colliders
   Enemy *enemies = gameState->enemies;
   for (int i = 0; i < gameState->numOfEnemies; i++) {
-    Enemy *enemy = &enemies[i];
-    DrawRectangleLines(
-        enemy->object.transform.position.x, enemy->object.transform.position.y,
-        enemy->object.collider.width, enemy->object.collider.height, RED);
+    Rectangle bounds = enemies[i].object.collider.bounds;
+    DrawRectangleLines(bounds.x,
+                       bounds.y,
+                       bounds.width,
+                       bounds.height, RED);
   }
 
   // draw bullet actions colliders
   CombatAction *actions = gameState->combatActions;
   for (int i = 0; i < gameState->numOfCombatActions; i++) {
-    CombatAction *action = &actions[i];
-    DrawRectangleLines(action->action.bullet.transform.position.x,
-                       action->action.bullet.transform.position.y,
-                       action->action.bullet.bulletInfo.collider.width,
-                       action->action.bullet.bulletInfo.collider.height, RED);
+    GameObject *object = NULL;
+    switch (actions[i].type) {
+      case ACTION_BULLET:
+        object = &(actions[i].action.bullet.bulletInfo.object);
+        break;
+      case ACTION_SLASH:
+        object = &(actions[i].action.slash.slashInfo.object);
+        break;
+      default:
+        break;
+    }
+    Rectangle bounds = object->collider.bounds;
+    DrawRectangleLines(bounds.x,
+                       bounds.y,
+                       bounds.width,
+                       bounds.height, RED);
   }
 }
 
@@ -78,7 +90,7 @@ void drawScene() {
   DrawCircle(worldPos.x, worldPos.y, 5, RED);
 
   if (gameState->settings.showColliders)
-    drawColidors();
+    drawColliders();
 
   EndMode2D();
 

@@ -4,7 +4,7 @@
 #include <raylib.h>
 #include "../CRougeLite.h"
 
-void drawColidors();
+void drawColliders();
 void drawScene();
 void DrawAtlasSpritePro(char *filename, Rectangle dest, Vector2 origin,
                         float rotation, Color tint, bool flipX); 

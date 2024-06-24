@@ -104,6 +104,8 @@ void updateEnemies() {
     //  Vector2Clamp(position, (Vector2){0, 0},
     //  (Vector2){GetScreenWidth() - 64, GetScreenHeight() - 64});
     enemy->object.transform.position = position;
+    enemy->object.collider.bounds.x = position.x;
+    enemy->object.collider.bounds.y = position.y;
 
     // FIXME: replace with sprite size
     enemy++;
@@ -190,6 +192,8 @@ static Enemy *initEnemy(E_TYPE type, E_WEAPON weapon, Vector2 position) {
 
   enemy->type = type;
   enemy->object.transform.position = position;
+  enemy->object.collider.bounds.x = position.x;
+    enemy->object.collider.bounds.y = position.y;
   enemy->object.transform.scale = (Vector2){4, 4};
   enemy->weapon = initWeapon(weapon, false);
   return enemy;

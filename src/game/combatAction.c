@@ -60,22 +60,22 @@ CombatAction *initBullet(int ID, BulletInfo bulletInfo, Vector2 pathInfo,
     return NULL;
   // Init bullet
   Bullet bullet;
+  GameObject *object = &(bulletInfo.object);
   bullet.playerID = ID;
-  bullet.bulletInfo = bulletInfo;
   bullet.startPosition = src;
-  bullet.transform =
+  object->transform =
       (CTransform){src, 0, pathInfo.x, pathInfo.y, (Vector2){3, 3}};
-  if (bullet.bulletInfo.isTracking && bullet.bulletInfo.enemyID >= 0)
+  if (bulletInfo.isTracking && bulletInfo.enemyID >= 0)
     bullet.dest =
-        gameState->enemies[bullet.bulletInfo.enemyID].object.transform.position;
+        gameState->enemies[bulletInfo.enemyID].object.transform.position;
   else
     bullet.dest = dest;
 
-  bullet.animator = (Animator){
+  object->animator = (Animator){
       .isFinished = false,
       .currentState = IDLE,
   };
-  bullet.animator.animations[IDLE] = (SpriteAnimation){
+  object->animator.animations[IDLE] = (SpriteAnimation){
       .frameNames =
           {
               "fire_1_0_0",
@@ -92,6 +92,8 @@ CombatAction *initBullet(int ID, BulletInfo bulletInfo, Vector2 pathInfo,
       .currentFrame = 0,
       .frameCount = 0,
   };
+
+  bullet.bulletInfo = bulletInfo;
 
   // Init combatAction
   CombatAction *combatAction =
@@ -153,9 +155,11 @@ CombatAction *initSlash(int ID, SlashInfo slashInfo, Vector2 src,
     return NULL;
   // Init slash
   Slash slash;
+  GameObject *object = &(slashInfo.object);
   slash.playerID = ID;
+  object->transform = (CTransform){src, 0, 0, 0, (Vector2){1, 1}};
+
   slash.slashInfo = slashInfo;
-  slash.transform = (CTransform){src, 0, 0, 0, (Vector2){1, 1}};
 
   // Init combatAction
   CombatAction *combatAction =
@@ -239,19 +243,15 @@ static bool checkCollision(Rectangle rect1, Rectangle rect2)
 static bool bulletCollision(CombatAction *combatAction)
 {
   Bullet *bullet = &combatAction->action.bullet;
-  Collider2D bulletCollider = bullet->bulletInfo.collider;
-  Vector2 bulletPosition = bullet->transform.position;
+  Rectangle bulletBounds = bullet->bulletInfo.object.collider.bounds;
+  Vector2 bulletPosition = bullet->bulletInfo.object.transform.position;
   for (int j = 0; j < gameState->numOfEnemies; j++)
   {
     Enemy *enemy = &gameState->enemies[j];
     Vector2 enemyPosition = enemy->object.transform.position;
-    Collider2D enemyCollider = enemy->object.collider;
+    Rectangle enemyBounds = enemy->object.collider.bounds;
 
-    if (checkCollision((Rectangle){bulletPosition.x, bulletPosition.y,
-                                   bulletCollider.width, bulletCollider.height},
-                       (Rectangle){enemyPosition.x, enemyPosition.y,
-                                   enemyCollider.width,
-                                   enemyCollider.height}))
+    if (checkCollision(bulletBounds, enemyBounds))
     {
       // Clear combatAction
       // TODO: decrease the bullet's health and indicate that it is currently
@@ -287,16 +287,12 @@ static bool slashCollision(CombatAction *combatAction)
   for (int j = 0; j < gameState->numOfEnemies; j++)
   {
     Enemy *enemy = &gameState->enemies[j];
-    Vector2 slashPosition = slash->transform.position;
+    Vector2 slashPosition = slash->slashInfo.object.transform.position;
     Vector2 enemyPosition = enemy->object.transform.position;
-    Collider2D slashCollider = slash->slashInfo.collider;
-    Collider2D enemyCollider = enemy->object.collider;
+    Rectangle slashBounds = slash->slashInfo.object.collider.bounds;
+    Rectangle enemyBounds = enemy->object.collider.bounds;
 
-    if (checkCollision((Rectangle){slashPosition.x, slashPosition.y,
-                                   slashCollider.width, slashCollider.height},
-                       (Rectangle){enemyPosition.x, enemyPosition.y,
-                                   enemyCollider.width,
-                                   enemyCollider.height}))
+    if (checkCollision(slashBounds, enemyBounds))
     {
       // Clear combatAction
       // TODO: decrease the bullet's health and indicate that it is currently
@@ -322,7 +318,8 @@ static void drawBullet(CombatAction **combatActions)
 {
   CombatAction *combatAction = *combatActions;
   Bullet *bullet = &(combatAction->action.bullet);
-  Vector2 *pos = &(bullet->transform.position);
+  GameObject *object = &(bullet->bulletInfo.object);
+  Vector2 *pos = &(object->transform.position);
 
   Vector2 rotated = RotatePoint(*pos, bullet->startPosition, -combatAction->angle * DEG2RAD);
 
@@ -343,7 +340,7 @@ static void drawBullet(CombatAction **combatActions)
   Vector2 transformedDest = RotatePoint(bullet->dest, bullet->startPosition,
                                         -combatAction->angle * DEG2RAD);
 
-  rotated.y = path(rotated.x, bullet->transform.frequency, bullet->transform.amplitude, transformedDest) + bullet->startPosition.y;
+  rotated.y = path(rotated.x, object->transform.frequency, object->transform.amplitude, transformedDest) + bullet->startPosition.y;
 
   bullet->bulletInfo.bulletRange -= bullet->bulletInfo.bulletSpeed;
 
@@ -359,17 +356,17 @@ static void drawBullet(CombatAction **combatActions)
   else
     (*combatActions) -= bulletCollision(combatAction);
 
-  updateAnimator(&(bullet->animator));
-  drawAnimator(&(bullet->animator), &bullet->transform, WHITE, false);
+  updateAnimator(&(object->animator));
+  drawAnimator(&(object->animator), &object->transform, WHITE, false);
 }
 
 static void drawSlash(CombatAction **combatActions)
 {
   CombatAction *combatAction = *combatActions;
   Slash *slash = &combatAction->action.slash;
-  Vector2 *pos = &slash->transform.position;
-  Rectangle dest = {pos->x, pos->y, slash->slashInfo.collider.width,
-                    slash->slashInfo.collider.height};
+  GameObject *object = &(slash->slashInfo.object);
+  Vector2 *pos = &object->transform.position;
+  Rectangle dest = object->collider.bounds;
   // TODO: add draw here
   combatAction->angle++;
   (*combatActions) -= slashCollision(combatAction);

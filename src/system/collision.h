@@ -4,6 +4,7 @@
 
 #include "../CRougeLite.h"
 
+void updateMapGrid(void);
 bool CheckCollision(GameObject *a, GameObject *b);
 void resolveCollision(GameObject *a, GameObject *b);
 void updateGameObjectPosition(GameObject *a, Vector2 newPosition);

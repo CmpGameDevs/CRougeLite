@@ -32,6 +32,10 @@
 
 // FIXME: this probably should be refactored and removed.
 
+typedef enum { ENTITY_PLAYER, ENTITY_ENEMY, ENTITY_COMBAT_ACTION, ENTITY_MISC } EntityType;
+
+typedef enum { BODY_STATIC, BODY_DYNAMIC, BODY_KINEMATIC } BodyType;
+
 typedef enum { ACTION_NONE, ACTION_BULLET, ACTION_SLASH } CombatActionType;
 
 typedef enum { RANGED_WEAPON, MELEE_WEAPON, NUM_OF_WEAPON_TYPES } WeaponType;
@@ -83,6 +87,11 @@ typedef enum {
 // GENERAL ENGINE STRUCTS
 // **********************
 
+typedef struct {
+  int first;
+  int second;
+} Pair;
+
 typedef struct CTransform {
   Vector2 position;
   float rotation;
@@ -95,15 +104,11 @@ typedef struct {
   Vector2 velocity;
   Vector2 acceleration;
   float drag;
-  bool isKinematic; // Kinematic object is typically not affected by physics
-                    // forces but can still interact with other objects in
-                    // certain ways.
+  BodyType type;
 } RigidBody2D;
 
 typedef struct {
-  Vector2 offset;
-  float width;
-  float height;
+  Rectangle bounds;
 } Collider2D;
 
 typedef struct AtlasImage {
@@ -197,8 +202,7 @@ typedef struct {
   bool isTracking;
   int pathCode;
   int enemyID;
-  RigidBody2D rigidBody;
-  Collider2D collider;
+  GameObject object;
 } BulletInfo;
 
 typedef struct {
@@ -206,22 +210,18 @@ typedef struct {
   BulletInfo bulletInfo;
   Vector2 startPosition; // To know if the bullet exceeded the range.
   Vector2 dest;
-  Animator animator;
-  CTransform transform;
 } Bullet;
 
 typedef struct {
   float slashRange;
   float slashDamage;
   bool isActive;
-  SpriteRenderer slashSprite;
-  Collider2D collider;
+  GameObject object;
 } SlashInfo;
 
 typedef struct {
   int playerID;
   SlashInfo slashInfo;
-  CTransform transform;
 } Slash;
 
 typedef union {
@@ -348,17 +348,23 @@ typedef struct {
   DictionaryEntry entry;
 } Dictionary;
 
-typedef struct TilesMapper {
+typedef struct {
   unsigned int numOfTiles;
   char *mapper[MAX_TILES_NUM];
   char *path; // Path of the mapper file
 } TilesMapper;
 
-typedef struct Map {
+typedef struct {
+  Pair objectIndices[MAX_OBJECTS_PER_CELL];
+  unsigned int objectCount;
+} GridCell;
+
+typedef struct {
   unsigned int currentLevel; // NOTE: maybe convert it to a Level struct
   char *currentLevelPath;
   TilesMapper tilesMapper;
   int mapIds[MAX_ROW_NUM][MAX_COL_NUM][MAX_CELL_ID];
+  GridCell grid[MAX_ROW_NUM][MAX_COL_NUM];
   unsigned int numOfRows;
   unsigned int numOfCols;
   int tileHeight;
