@@ -99,9 +99,11 @@ void updateEnemies() {
 
     // NOTE: this makes the player unable to go out of frame
     enemy->object.rigidBody.velocity = velocity;
-    enemy->object.transform.position =
-        Vector2Clamp(position, (Vector2){0, 0},
-                     (Vector2){GetScreenWidth() - 64, GetScreenHeight() - 64});
+    // TODO: enemy clamping is removed for now restore later
+    //  enemy->object.transform.position =
+    //  Vector2Clamp(position, (Vector2){0, 0},
+    //  (Vector2){GetScreenWidth() - 64, GetScreenHeight() - 64});
+    enemy->object.transform.position = position;
 
     // FIXME: replace with sprite size
     enemy++;

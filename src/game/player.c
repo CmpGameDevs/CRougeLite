@@ -157,10 +157,11 @@ void updatePlayers() {
 
   // NOTE: this makes the player unable to go out of frame
   player->object.rigidBody.velocity = velocity;
-  player->object.transform.position =
-      Vector2Clamp(position, (Vector2){0, 0},
-                   (Vector2){GetScreenWidth() - 64, GetScreenHeight() - 64});
-  // FIXME: replace with sprite size
+  // TODO: position clamping is removed for now
+  // player->object.transform.position =
+  // Vector2Clamp(position, (Vector2){0, 0},
+  // (Vector2){GetScreenWidth() - 64, GetScreenHeight() - 64});
+  player->object.transform.position = position;
 
   // Swapping between weapons
   for (int i = 0; i < player->inventory.currentNumOfWeapons; i++) {

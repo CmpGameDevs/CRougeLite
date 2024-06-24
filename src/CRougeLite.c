@@ -25,6 +25,7 @@
 #include "game/enemy.h"
 #include "game/player.h"
 #include "system/atlas.h"
+#include "system/camera.h"
 #include "system/draw.h"
 #include "system/input.h"
 #include "system/map.h"
@@ -53,6 +54,7 @@ static void clearResources();
 int main(void) {
   gameState = initGameState();
   initSettings();
+  initCamera();
   initDictionary();
   Settings *settings = &(gameState->settings);
 
@@ -99,6 +101,7 @@ static void update() {
   if (IsKeyPressed(KEY_TAB)) {
     gameState->settings.showDebugMenu = !gameState->settings.showDebugMenu;
   }
+  updateCamera();
   updatePlayers();
   updateEnemies();
   if (gameState->settings.playMusic)
