@@ -162,6 +162,8 @@ void updatePlayers() {
   // Vector2Clamp(position, (Vector2){0, 0},
   // (Vector2){GetScreenWidth() - 64, GetScreenHeight() - 64});
   player->object.transform.position = position;
+  player->object.collider.bounds.x = position.x;
+  player->object.collider.bounds.y = position.y;
 
   // Swapping between weapons
   for (int i = 0; i < player->inventory.currentNumOfWeapons; i++) {
@@ -247,6 +249,8 @@ static Player *initPlayer(const char *name, P_TYPE type, P_WEAPON weapon,
   player->inventory = initInventory();
   AddPlayerWeapon(player, weapon);
   player->object.transform.position = position;
+  player->object.collider.bounds.x = position.x;
+  player->object.collider.bounds.y = position.y;
   player->score = 0;
   player->drawDirection = 1;
   player->direction = RIGHT;

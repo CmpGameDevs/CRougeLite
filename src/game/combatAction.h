@@ -54,7 +54,6 @@ CombatAction *initBullet(int ID, BulletInfo bulletInfo, Vector2 pathInfo, Vector
  */
 void initRangedWeaponShoot(int ID, RangedWeapon weapon, Vector2 src, Vector2 dest);
 
-
 /**
  *  initSlash - initialize a slash object
  * 
@@ -68,6 +67,22 @@ void initRangedWeaponShoot(int ID, RangedWeapon weapon, Vector2 src, Vector2 des
  *
  */
 CombatAction *initSlash(int ID, SlashInfo slashInfo, Vector2 src, Vector2 dest);
+
+/**
+ * updateCombatActions - update the combat actions
+ */
+void updateCombatActions();
+
+/**
+ * resolveCombatActionCollision - resolve the collision of a combat 
+ * action object with other entity
+ * 
+ * @param action Pointer to the combat action object
+ * @param entity Pointer to the hit entity
+ * @param isFriendly Indicates if the combat action is friendly
+ */
+void resolveCombatActionCollision(CombatAction *action, Entity *entity, bool isFriendly);
+
 /**
  * drawCombatActions - draw all combat actions and update them
  */

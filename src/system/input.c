@@ -11,12 +11,8 @@ static int getClickedEnemy(Vector2 mousePos) {
 
   for (int i = 0; i < gameState->numOfEnemies; i++) {
     Enemy *enemy = (gameState->enemies + i);
-    float positionX = enemy->object.transform.position.x;
-    float positionY = enemy->object.transform.position.y;
-    float width = enemy->object.collider.width;
-    float height = enemy->object.collider.height;
-    if (CheckCollisionPointRec(
-            mousePos, (Rectangle){positionX, positionY, width, height})) {
+    Rectangle bounds = enemy->object.collider.bounds;
+    if (CheckCollisionPointRec(mousePos, bounds)) {
       return i;
     }
   }
@@ -28,9 +24,9 @@ static void mouseEventHandler() {
   Player *player = ((gameState->players) + selected_player);
 
   Vector2 srcPos = {(double)player->object.transform.position.x +
-                        player->object.collider.width / 2,
+                        player->object.collider.bounds.width / 2,
                     (double)player->object.transform.position.y +
-                        player->object.collider.height / 2};
+                        player->object.collider.bounds.height / 2};
 
   Vector2 mousePos = GetMousePosition();
   mousePos = GetScreenToWorld2D(mousePos, gameState->camera);

@@ -3,9 +3,11 @@
 
 
 #include "../CRougeLite.h"
+// FIXME: add hit struct later maybe
+#include "../game/combatAction.h"
 
-bool CheckCollision(GameObject *a, GameObject *b);
-void resolveCollision(GameObject *a, GameObject *b);
-void updateGameObjectPosition(GameObject *a, Vector2 newPosition);
+void broadPhaseCollision(void);
+void getGameObjectIndices(int *startX, int *startY, int *endX, int *endY, Collider2D *collider);
+void resolveEntityCollision(Entity *a, Entity *b);
 
 #endif // COLLISION_H

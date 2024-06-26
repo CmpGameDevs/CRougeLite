@@ -65,8 +65,8 @@ void drawEnemies() {
 }
 
 void updateEnemies() {
-  Enemy *enemy = gameState->enemies;
-  double speed = enemy->stats.speed;
+  Enemy *enemies = gameState->enemies;
+  double speed = enemies->stats.speed;
 
   Vector2 direction = {0, 0};
   if (IsKeyDown(KEY_UP))
@@ -79,34 +79,42 @@ void updateEnemies() {
     direction.x += 1;
 
   for (int i = 0; i < gameState->numOfEnemies; i++) {
-    updateAnimator(&enemy->object.animator);
+    updateAnimator(&enemies[i].object.animator);
 
     Vector2 velocity = Vector2Scale(Vector2Normalize(direction), speed);
 
-    Vector2 position = Vector2Add(enemy->object.transform.position, velocity);
+    Vector2 position = Vector2Add(enemies[i].object.transform.position, velocity);
 
     if (Vector2Length(velocity) > 0) {
-      enemy->isMoving = true;
+      enemies[i].isMoving = true;
     } else {
-      enemy->isMoving = false;
+      enemies[i].isMoving = false;
     }
 
     if (velocity.x < 0) {
-      enemy->drawDirection = -1;
+      enemies[i].drawDirection = -1;
     } else {
-      enemy->drawDirection = 1;
+      enemies[i].drawDirection = 1;
     }
 
     // NOTE: this makes the player unable to go out of frame
-    enemy->object.rigidBody.velocity = velocity;
+    enemies[i].object.rigidBody.velocity = velocity;
     // TODO: enemy clamping is removed for now restore later
     //  enemy->object.transform.position =
     //  Vector2Clamp(position, (Vector2){0, 0},
     //  (Vector2){GetScreenWidth() - 64, GetScreenHeight() - 64});
-    enemy->object.transform.position = position;
+    enemies[i].object.transform.position = position;
+    enemies[i].object.collider.bounds.x = position.x;
+    enemies[i].object.collider.bounds.y = position.y;
 
     // FIXME: replace with sprite size
-    enemy++;
+
+    // Remove Enemy when it dies
+    if (enemies[i].stats.health.currentHealth <= 0) {
+      printf("Killed Enemy\n");
+      enemies[i] = enemies[--(gameState->numOfEnemies)];
+      i--;
+    }
   }
 }
 
@@ -190,6 +198,8 @@ static Enemy *initEnemy(E_TYPE type, E_WEAPON weapon, Vector2 position) {
 
   enemy->type = type;
   enemy->object.transform.position = position;
+  enemy->object.collider.bounds.x = position.x;
+    enemy->object.collider.bounds.y = position.y;
   enemy->object.transform.scale = (Vector2){4, 4};
   enemy->weapon = initWeapon(weapon, false);
   return enemy;

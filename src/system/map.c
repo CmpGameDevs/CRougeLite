@@ -162,7 +162,7 @@ void drawMap() {
       int tileId = map->mapIds[row][col][idIdx++];
 
       while (idIdx < 5 && tileId != -1) {
-        int tileWidth = map->tileHeight, tileHeight = map->tileWidth;
+        int tileWidth = map->tileWidth, tileHeight = map->tileHeight;
 
         Rectangle dest = {(float)(col * tileWidth) * map->scale,
                           (float)(row * tileHeight) * map->scale,
