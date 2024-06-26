@@ -60,8 +60,8 @@ static void initEnemyDictionary()
           {
               .rigidBody = {.velocity = (Vector2){5, 5},
                             .acceleration = (Vector2){0, 0},
-                            1.0,
-                            false},
+                            .drag = 1.0,
+                            .type = BODY_DYNAMIC},
               .collider = {.bounds = {0, 0, 64, 64}},
               .spriteRenderer = {},
               .animator = {0},
@@ -73,7 +73,7 @@ static void initEnemyDictionary()
              .state = IDLE},
       .stats = {.health = {.maxHealth = 100, .currentHealth = 100},
                 .attack = {.power = 1.0f, .cooldown = 5, .speed = 1.0f},
-                .defense = {.value = 3, .nearHitValue = 6},
+                .defense = {.value = 3, .nearHitValue = 6, .constant = 50},
                 .speed = 5},
   };
 
@@ -84,8 +84,8 @@ static void initEnemyDictionary()
           {
               .rigidBody = {.velocity = (Vector2){5, 5},
                             .acceleration = (Vector2){0, 0},
-                            1.0,
-                            false},
+                            .drag = 1.0,
+                            .type = BODY_DYNAMIC},
               .collider = {.bounds = {0, 0, 64, 64}},
               .spriteRenderer = {},
               .animator = {},
@@ -97,7 +97,7 @@ static void initEnemyDictionary()
              .state = IDLE},
       .stats = {.health = {.maxHealth = 100, .currentHealth = 100},
                 .attack = {.power = 1.0f, .cooldown = 5, .speed = 1.0f},
-                .defense = {.value = 3, .nearHitValue = 6},
+                .defense = {.value = 3, .nearHitValue = 6, .constant = 45},
                 .speed = 5},
   };
 
@@ -126,7 +126,13 @@ static void initPlayerWeaponDictionary()
       .type = RANGED_WEAPON,
       .weapon.ranged = {
           .stats = {10, 0.5, 0, .weaponSprite = {}},
-          .bulletInfo = {3, 10, 600, 10, .object = {.collider = {.bounds = {0, 0, 32, 32}}}, .isTracking = false},
+          .bulletInfo = {.bulletSpeed = 3, .bulletDamage = 10, 
+            .bulletRange = 600, .bulletHealth = 10, 
+            .isTracking = false,
+            .critMultiplier = 1.05,
+            .critChance = 0.05,
+            .object = {.collider = {.bounds = {0, 0, 32, 32}}}
+            },
           30,
           30,
           1}};
@@ -136,7 +142,13 @@ static void initPlayerWeaponDictionary()
       .type = RANGED_WEAPON,
       .weapon.ranged = {
           .stats = {10, 1, 0, .weaponSprite = {}},
-          .bulletInfo = {2, 10, 1000, 10, .object = {.collider = {.bounds = {0, 0, 16, 16}}}, .isTracking = true},
+          .bulletInfo = {.bulletSpeed = 2, .bulletDamage = 10, 
+            .bulletRange = 1000, .bulletHealth = 10, 
+            .isTracking = true,
+            .critMultiplier = 1.05,
+            .critChance = 0.05,
+            .object = {.collider = {.bounds = {0, 0, 16, 16}}}
+            },
           30,
           30,
           4}};

@@ -32,7 +32,7 @@
 
 // FIXME: this probably should be refactored and removed.
 
-typedef enum { ENTITY_PLAYER, ENTITY_ENEMY, ENTITY_COMBAT_ACTION, ENTITY_MISC } EntityType;
+typedef enum { ENTITY_PLAYER, ENTITY_ENEMY, ENTITY_P_COMBAT_ACTION, ENTITY_E_COMBAT_ACTION, ENTITY_MISC } EntityType;
 
 typedef enum { BODY_STATIC, BODY_DYNAMIC, BODY_KINEMATIC } BodyType;
 
@@ -91,6 +91,10 @@ typedef struct {
   void *first;
   void *second;
 } Pair;
+
+typedef struct {
+  
+} Hit;
 
 typedef struct CTransform {
   Vector2 position;
@@ -166,8 +170,8 @@ typedef struct {
 // *********************
 
 typedef struct {
-  int currentHealth;
-  int maxHealth;
+  float currentHealth;
+  float maxHealth;
 } Health;
 
 // IDK if those affect the other structs or not (like leveling up)
@@ -178,7 +182,8 @@ typedef struct {
 } Attack;
 
 typedef struct {
-  int value;
+  float constant;   // Higher value means less effective defense
+  float value;
   int nearHitValue; // Blocked on the last second.
   // TODO: Add defense for different type of attacks?
 } Defense;
@@ -196,6 +201,7 @@ typedef struct {
 } Stats;
 
 typedef struct {
+  
   float bulletSpeed;
   float bulletDamage;
   float bulletRange;
@@ -203,6 +209,8 @@ typedef struct {
   bool isTracking;
   int pathCode;
   int enemyID;
+  float critMultiplier;
+  float critChance;
   GameObject object;
 } BulletInfo;
 
@@ -214,6 +222,7 @@ typedef struct {
 } Bullet;
 
 typedef struct {
+  float criticalChance;
   float slashRange;
   float slashDamage;
   bool isActive;
@@ -318,6 +327,17 @@ typedef struct {
   DIRECTIONS direction; // to get info on the direction the player is facing.
 } Player;
 
+typedef union {
+  Player *player;
+  Enemy *enemy;
+  CombatAction *action;
+} EntityUnion;
+
+typedef struct {
+  EntityType type;
+  EntityUnion entity;
+} Entity;
+
 // ******************
 // GAME STATE STRUCTS
 // ******************
@@ -356,7 +376,7 @@ typedef struct {
 } TilesMapper;
 
 typedef struct {
-  Pair objectIndices[MAX_OBJECTS_PER_CELL];
+  Entity objectIndices[MAX_OBJECTS_PER_CELL];
   unsigned int objectCount;
 } GridCell;
 

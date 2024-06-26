@@ -9,14 +9,13 @@ static int GRID_WIDTH, GRID_CELL_WIDTH, GRID_HEIGHT, GRID_CELL_HEIGHT;
 // ***************************
 // Private Function Prototypes
 // ***************************
-static void getGameObjectIndices(int *startX, int *startY, int *endX, int *endY, Collider2D *collider);
 static void narrowPhaseCollision(void);
-static GameObject *getGameObjectByIndices(Pair index);
+static GameObject *getGameObjectByIndices(Entity *entity);
 static bool checkAABBCollision(const Rectangle a, const Rectangle b);
+static bool resolveAABBCollision (GameObject *a, GameObject *b);
 
-void updateMapGrid(void)
+void broadPhaseCollision(void)
 {
-  printf("Updating Map Grid\n");
   Map *map = &(gameState->map);
   GRID_WIDTH = map->numOfCols;
   GRID_CELL_WIDTH = map->tileWidth * map->scale;
@@ -38,14 +37,12 @@ void updateMapGrid(void)
 
     object->collider.isColliding = false;
     getGameObjectIndices(&startX, &startY, &endX, &endY, &(object->collider));
-    printf("%d %d %d %d\n", startX, startY, endX, endY);
-    printf("W: %d, H: %d\n", GRID_WIDTH, GRID_HEIGHT);
     for (int i = startY; i <= endY; i++) {
       for (int j = startX; j <= endX; j++) {
         GridCell *cell = &(map->grid[i][j]);
         if (cell->objectCount < MAX_OBJECTS_PER_CELL) {
-          cell->objectIndices[cell->objectCount].first = (void *)k;
-          cell->objectIndices[cell->objectCount++].second = (void *)ENTITY_PLAYER;
+          cell->objectIndices[cell->objectCount].type = ENTITY_PLAYER;
+          cell->objectIndices[cell->objectCount++].entity.player = &(players[k]);
         }
       }
     }
@@ -59,14 +56,12 @@ void updateMapGrid(void)
 
     object->collider.isColliding = false;
     getGameObjectIndices(&startX, &startY, &endX, &endY, &(object->collider));
-    printf("%d %d %d %d\n", startX, startY, endX, endY);
-    printf("W: %d, H: %d\n", GRID_WIDTH, GRID_HEIGHT);
     for (int i = startY; i <= endY; i++) {
       for (int j = startX; j <= endX; j++) {
         GridCell *cell = &(map->grid[i][j]);
         if (cell->objectCount < MAX_OBJECTS_PER_CELL) {
-          cell->objectIndices[cell->objectCount].first = (void *)k;
-          cell->objectIndices[cell->objectCount++].second = (void *)ENTITY_ENEMY;
+          cell->objectIndices[cell->objectCount].type = ENTITY_ENEMY;
+          cell->objectIndices[cell->objectCount++].entity.enemy = &(enemies[k]);
         }
       }
     }
@@ -90,43 +85,50 @@ void updateMapGrid(void)
     
     object->collider.isColliding = false;
     getGameObjectIndices(&startX, &startY, &endX, &endY, &(object->collider));
-    printf("%d %d %d %d\n", startX, startY, endX, endY);
-    printf("W: %d, H: %d\n", GRID_WIDTH, GRID_HEIGHT);
     for (int i = startY; i <= endY; i++) {
       for (int j = startX; j <= endX; j++) {
         GridCell *cell = &(map->grid[i][j]);
         if (cell->objectCount < MAX_OBJECTS_PER_CELL) {
-          cell->objectIndices[cell->objectCount].first = (void *)k;
-          cell->objectIndices[cell->objectCount++].second = (void *)ENTITY_COMBAT_ACTION;
+          cell->objectIndices[cell->objectCount].type = ENTITY_P_COMBAT_ACTION;
+          cell->objectIndices[cell->objectCount++].entity.action = &(actions[k]);
         }
       }
     }
   }
   narrowPhaseCollision();
-  printf("Finished Map Grid\n");
 }
 
-void resolveCollision(GameObject *a, GameObject *b)
+void resolveEntityCollision(Entity *a, Entity *b)
 {
-  a->collider.isColliding = true;
-  b->collider.isColliding = true;
+  switch (a->type) {
+    case ENTITY_PLAYER:
+      // Player Collision System
+      break;
+    case ENTITY_ENEMY:
+      // Enemy Collision System
+      break;
+    case ENTITY_E_COMBAT_ACTION:
+      resolveCombatActionCollision(a->entity.action, b, false);
+      break;
+    case ENTITY_P_COMBAT_ACTION:
+      resolveCombatActionCollision(a->entity.action, b, true);
+      break;
+    default:
+      break;
+  }
 }
 
-void updateGameObjectPosition(GameObject *a, Vector2 newPosition)
+void getGameObjectIndices(int *startX, int *startY, int *endX, int *endY, Collider2D *collider)
 {
-
+  *startX = Clamp(collider->bounds.x / GRID_CELL_WIDTH, 0, GRID_WIDTH - 1);
+  *startY = Clamp(collider->bounds.y / GRID_CELL_HEIGHT, 0, GRID_HEIGHT - 1);
+  *endX = Clamp((collider->bounds.x + collider->bounds.width) / GRID_CELL_WIDTH, 0, GRID_WIDTH - 1);
+  *endY = Clamp((collider->bounds.y + collider->bounds.height) / GRID_CELL_HEIGHT, 0, GRID_HEIGHT - 1);
 }
 
 // *****************
 // PRIVATE FUNCTIONS
 // *****************
-static void getGameObjectIndices(int *startX, int *startY, int *endX, int *endY, Collider2D *collider)
-{
-  *startX = collider->bounds.x / GRID_CELL_WIDTH;
-  *startY = collider->bounds.y / GRID_CELL_HEIGHT;
-  *endX = (collider->bounds.x + collider->bounds.width) / GRID_CELL_WIDTH;
-  *endY = (collider->bounds.y + collider->bounds.height) / GRID_CELL_HEIGHT;
-}
 
 static void narrowPhaseCollision(void)
 {
@@ -137,14 +139,16 @@ static void narrowPhaseCollision(void)
       GridCell *cell = &(map->grid[i][j]);
       int objectCount = cell->objectCount;
       for (int n = 0; n < objectCount; n++) {
-        Pair indexA = cell->objectIndices[n];
-        GameObject *objectA = getGameObjectByIndices(indexA);
+        Entity *entityA = &(cell->objectIndices[n]);
+        GameObject *objectA = getGameObjectByIndices(entityA);
         for (int m = n + 1; m < objectCount; m++) {
-          Pair indexB = cell->objectIndices[m];
-          GameObject *objectB = getGameObjectByIndices(indexB);
+          Entity *entityB = &(cell->objectIndices[m]);
+          GameObject *objectB = getGameObjectByIndices(entityB);
 
           if (checkAABBCollision(objectA->collider.bounds, objectB->collider.bounds)) {
-            resolveCollision(objectA, objectB);
+            resolveEntityCollision(entityA, entityB);
+            resolveEntityCollision(entityB, entityA);
+            resolveAABBCollision(objectA, objectB);
           }
         }
       }
@@ -152,25 +156,25 @@ static void narrowPhaseCollision(void)
   }
 }
 
-static GameObject *getGameObjectByIndices(Pair index)
+static GameObject *getGameObjectByIndices(Entity *entity)
 {
   Player *players = gameState->players;
   Enemy *enemies = gameState->enemies;
   CombatAction *actions = gameState->combatActions;
 
-  switch ((EntityType)(index.second))
+  switch (entity->type)
   {
   case ENTITY_PLAYER:
-    return &(players[(int)(index.first)].object);
+    return &(entity->entity.player->object);
   case ENTITY_ENEMY:
-    return &(enemies[(int)(index.first)].object);
-  case ENTITY_COMBAT_ACTION:
-    switch (actions[(int)(index.first)].type)
+    return &(entity->entity.enemy->object);
+  case ENTITY_P_COMBAT_ACTION:
+    switch (entity->entity.action->type)
     {
     case ACTION_BULLET:
-      return &(actions[(int)(index.first)].action.bullet.bulletInfo.object);
+      return &(entity->entity.action->action.bullet.bulletInfo.object);
     case ACTION_SLASH:
-      return &(actions[(int)(index.first)].action.slash.slashInfo.object);
+      return &(entity->entity.action->action.slash.slashInfo.object);
     default:
       break;
     }
@@ -188,4 +192,51 @@ static bool checkAABBCollision(const Rectangle a, const Rectangle b)
           a.x + a.width > b.x &&
           a.y < b.y + b.height &&
           a.y + a.height > b.y);
+}
+
+static bool resolveAABBCollision (GameObject *a, GameObject *b)
+{
+  a->collider.isColliding = true;
+  b->collider.isColliding = true;
+  Rectangle *boundsA = &(a->collider.bounds);
+  Rectangle *boundsB = &(b->collider.bounds);
+  Vector2 *positionA = &(a->transform.position);
+  Vector2 *positionB = &(b->transform.position);
+  Vector2 tempA = *positionA, tempB = *positionB;
+  float centerDiffX = fabs((boundsA->x + (boundsA->width / 2.0)) - (boundsB->x + (boundsB->width / 2.0)));
+  float optimalDiffX = (boundsA->width + boundsB->width) / 2.0;
+  float centerDiffY = fabs((boundsA->y + (a->collider.bounds.height / 2.0)) - (boundsB->y + (boundsB->height / 2.0)));
+  float optimalDiffY = (boundsA->height + boundsB->height) / 2.0;
+  float overlapX = optimalDiffX - centerDiffX;
+  float overlapY = optimalDiffY - centerDiffY;
+
+  if (overlapX < overlapY) {
+    if (tempA.x < tempB.x) {
+      tempA.x -= overlapX / 2;
+      tempB.x += overlapX / 2;
+    } else {
+      tempA.x += overlapX / 2;
+      tempB.x -= overlapX / 2;
+    }
+  } else {
+    if (tempA.y < tempB.y) {
+      tempA.y -= overlapY / 2;
+      tempB.y += overlapY / 2;
+    } else {
+      tempA.y += overlapY / 2;
+      tempB.y -= overlapY / 2;
+    }
+  }
+  
+  if (a->rigidBody.type == BODY_DYNAMIC) {
+    *positionA = tempA;
+    boundsA->x = positionA->x;
+    boundsA->y = positionA->y;
+  }
+
+  if (b->rigidBody.type == BODY_DYNAMIC) {
+    *positionB = tempB;
+    boundsB->x = positionB->x;
+    boundsB->y = positionB->y;
+  }
 }

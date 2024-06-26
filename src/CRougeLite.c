@@ -105,7 +105,8 @@ static void update() {
   updateCamera();
   updatePlayers();
   updateEnemies();
-  updateMapGrid();
+  updateCombatActions();
+  broadPhaseCollision();
   if (gameState->settings.playMusic)
     UpdateMusicStream(music);
 }
