@@ -52,6 +52,18 @@ typedef enum {
 } P_WEAPON;
 
 typedef enum {
+  INPUT_UP = 1,
+  INPUT_DOWN = 1 << 1,
+  INPUT_LEFT = 1 << 2,
+  INPUT_RIGHT = 1 << 3,
+  INPUT_USE = 1 << 4,
+  INPUT_INVENTORY_1 = 1 << 5,
+  INPUT_INVENTORY_2 = 1 << 6,
+  INPUT_INVENTORY_3 = 1 << 7,
+  INPUT_INVENTORY_4 = 1 << 8,
+} InputType;
+
+typedef enum {
   UP,
   DOWN,
   LEFT,
@@ -155,6 +167,7 @@ typedef struct {
   int shoot;
   int action;
   int *weapons;
+  float mouseWheelMove;
 } Input;
 
 typedef struct {

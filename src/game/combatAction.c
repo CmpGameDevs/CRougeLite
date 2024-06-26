@@ -1,14 +1,14 @@
 /***************************************************************
  *
  *
- * 
+ *
  *     ██████╗ ██████╗ ███╗   ███╗██████╗  █████╗ ████████╗   █████╗  ██████╗████████╗██╗ ██████╗ ███╗   ██╗
  *    ██╔════╝██╔═══██╗████╗ ████║██╔══██╗██╔══██╗╚══██╔══╝  ██╔══██╗██╔════╝╚══██╔══╝██║██╔═══██╗████╗  ██║
  *    ██║     ██║   ██║██╔████╔██║██████╔╝███████║   ██║     ███████║██║        ██║   ██║██║   ██║██╔██╗ ██║
  *    ██║     ██║   ██║██║╚██╔╝██║██╔══██╗██╔══██║   ██║     ██╔══██║██║        ██║   ██║██║   ██║██║╚██╗██║
  *    ╚██████╗╚██████╔╝██║ ╚═╝ ██║██████╔╝██║  ██║   ██║     ██║  ██║╚██████╗   ██║   ██║╚██████╔╝██║ ╚████║
  *     ╚═════╝ ╚═════╝ ╚═╝     ╚═╝╚═════╝ ╚═╝  ╚═╝   ╚═╝     ╚═╝  ╚═╝ ╚═════╝   ╚═╝   ╚═╝ ╚═════╝ ╚═╝  ╚═══╝
- *                                                                                                          
+ *
  *     Combat Action Module Header. (Game Object)
  *     Exposes the logic for the Combat Action object.
  *
@@ -31,6 +31,8 @@
 // ***************************
 // Private Function Prototypes
 // ***************************
+static float calculateDamageTaken(float damage, Defense defense);
+static void applyBulletDamage(BulletInfo *bulletInfo, Stats *stats);
 static void damageEntity(CombatAction *action, Stats *stats);
 static void resolveTwoCombatActionsCollision(CombatAction *a, CombatAction *b);
 static void drawBullet(CombatAction **combatAction);
@@ -114,7 +116,6 @@ CombatAction *initBullet(int ID, BulletInfo bulletInfo, Vector2 pathInfo,
  * by `ID`, its information is provided by the used ranged weapon.
  *
  */
-
 void initRangedWeaponShoot(int ID, RangedWeapon weapon, Vector2 src,
                            Vector2 dest)
 {
@@ -178,52 +179,60 @@ void updateCombatActions()
 {
   CombatAction *actions = gameState->combatActions;
 
-  for (int i = 0; i < gameState->numOfCombatActions; i++) {
-    switch (actions[i].type) {
-      case ACTION_BULLET:
-        if (actions[i].action.bullet.bulletInfo.bulletHealth <= 0) {
-          actions[i] = actions[--(gameState->numOfCombatActions)];
-          i--;
-        }
-        break;
-      default:
-        break;
+  for (int i = 0; i < gameState->numOfCombatActions; i++)
+  {
+    switch (actions[i].type)
+    {
+    case ACTION_BULLET:
+      if (actions[i].action.bullet.bulletInfo.bulletHealth <= 0)
+      {
+        actions[i] = actions[--(gameState->numOfCombatActions)];
+        i--;
+      }
+      break;
+    default:
+      break;
     }
   }
 }
 
 /**
- * resolveCombatActionCollision - resolve the collision of a combat 
+ * resolveCombatActionCollision - resolve the collision of a combat
  * action object with other entity
- * 
+ *
  * @param action Pointer to the combat action object
  * @param entity Pointer to the hit entity
  * @param isFriendly Indicates if the combat action is friendly
  */
 void resolveCombatActionCollision(CombatAction *action, Entity *entity, bool isFriendly)
 {
-  switch (entity->type) {
-    case ENTITY_PLAYER:
-      if (isFriendly) return;
-      printf("Player took");
-      damageEntity(action, &(entity->entity.player->stats));
-      break;
-    case ENTITY_ENEMY:
-      if (!isFriendly) return;
-      printf("Enemy took");
-      damageEntity(action, &(entity->entity.enemy->stats));
-      // TODO: add score to the player (maybe each enemy has its own score).
-      break;
-    case ENTITY_E_COMBAT_ACTION:
-      if (!isFriendly) return;
-      resolveTwoCombatActionsCollision(action, entity->entity.action);
-      break;
-    case ENTITY_P_COMBAT_ACTION:
-      if (isFriendly) return;
-      resolveTwoCombatActionsCollision(action, entity->entity.action);
-      break;
-    default:
-      break;
+  switch (entity->type)
+  {
+  case ENTITY_PLAYER:
+    if (isFriendly)
+      return;
+    printf("Player took");
+    damageEntity(action, &(entity->entity.player->stats));
+    break;
+  case ENTITY_ENEMY:
+    if (!isFriendly)
+      return;
+    printf("Enemy took");
+    damageEntity(action, &(entity->entity.enemy->stats));
+    // TODO: add score to the player (maybe each enemy has its own score).
+    break;
+  case ENTITY_E_COMBAT_ACTION:
+    if (!isFriendly)
+      return;
+    resolveTwoCombatActionsCollision(action, entity->entity.action);
+    break;
+  case ENTITY_P_COMBAT_ACTION:
+    if (isFriendly)
+      return;
+    resolveTwoCombatActionsCollision(action, entity->entity.action);
+    break;
+  default:
+    break;
   }
 }
 
@@ -267,13 +276,34 @@ void clearCombatActions()
 // PRIVATE FUNCTIONS
 // *****************
 
-static float calculateDamageTaken(float damage, Defense defense) {
+/**
+ * calculateDamageTaken - calculate the damage output with the
+ * entity's defense.
+ * 
+ * @param damage The final damage of the combat action object
+ * @param defense The entity's defense stats
+ * 
+ * @return The damage after considering the entity's defense
+ */
+static float calculateDamageTaken(float damage, Defense defense)
+{
   float defenseNormalizer = defense.value + defense.constant;
   float defenseEffectiveness = defense.value / (defenseNormalizer == 0 ? 1 : defenseNormalizer);
   return damage * (1 - defenseEffectiveness);
 }
 
-static void applyBulletDamage(BulletInfo *bulletInfo, Stats *stats) {
+/**
+ * applyBulletDamage - apply the bullet's damage to the hit entity
+ * and update the bullet's stats
+ * 
+ * @param bulletInfo Pointer to the bullet's info
+ * @param stats Pointer to the entity's stats
+ * 
+ * @details calculate the bullet's damage after checking for critical
+ * hits, defense, and variance. After that update the bullet's stats.
+ */
+static void applyBulletDamage(BulletInfo *bulletInfo, Stats *stats)
+{
   // Determine if it's a critical hit
   float isCritical = (rand() / (float)RAND_MAX) < bulletInfo->critChance;
   float damage = bulletInfo->bulletDamage * (isCritical ? bulletInfo->critMultiplier : 1.0f);
@@ -294,7 +324,7 @@ static void applyBulletDamage(BulletInfo *bulletInfo, Stats *stats) {
 
 /**
  * damageEntity - Register damage to an entity's stats
- * 
+ *
  * @param action Pointer to the combat action
  * @param stats Pointer to the entity's stats
  */
@@ -314,7 +344,7 @@ static void damageEntity(CombatAction *action, Stats *stats)
 
 /**
  * resolveTwoCombatActionsCollision - Resolve collision between two combat actions
- * 
+ *
  * @param a Pointer to the first combat action
  * @param b Pointer to the second combat action
  */
@@ -322,6 +352,11 @@ static void resolveTwoCombatActionsCollision(CombatAction *a, CombatAction *b)
 {
 }
 
+/**
+ * drawBullet - draw bullet on the scene
+ * 
+ * @param combatActions Pointer to a pointer pointing to the bullet object
+ */
 static void drawBullet(CombatAction **combatActions)
 {
   CombatAction *combatAction = *combatActions;
@@ -368,6 +403,11 @@ static void drawBullet(CombatAction **combatActions)
   drawAnimator(&(object->animator), &object->transform, WHITE, false);
 }
 
+/**
+ * drawSlash - draw slash on the scene
+ * 
+ * @param combatActions Pointer to a pointer pointing to the slash object
+ */
 static void drawSlash(CombatAction **combatActions)
 {
   CombatAction *combatAction = *combatActions;
@@ -379,6 +419,9 @@ static void drawSlash(CombatAction **combatActions)
   combatAction->angle++;
 }
 
+/**
+ * clearCombatAction - free the combat action object from the memory 
+ */
 static void clearCombatAction(CombatAction **combatAction)
 {
   if (combatAction == NULL || *combatAction == NULL)
