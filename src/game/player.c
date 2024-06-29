@@ -31,7 +31,7 @@ static Player *initPlayer(const char *name, P_TYPE type, P_WEAPON weapon,
                           Vector2 position, int ID);
 static void AddPlayerWeapon(Player *player, P_WEAPON weapon);
 static void animationController(Player *player);
-static int handlePlayerInput(Player *player)
+static int handlePlayerInput(Player *player);
 static void handlePlayerMovement(Player *player, int bitmask);
 static void handlePlayerInventory(Player *player, int bitmask);
 static void clearPlayer(Player **player);
@@ -305,9 +305,9 @@ static int handlePlayerInput(Player *player)
  * the player input
  *
  * @param player Pointer to the player object
- * @param bitmask Bitmask for the player's input
+ * @param playerInput Bitmask for the player's input
  */
-static void handlePlayerMovement(Player *player, int bitmask)
+static void handlePlayerMovement(Player *player, int playerInput)
 {
   Vector2 direction = {0, 0};
   if (playerInput & INPUT_UP)
@@ -319,6 +319,7 @@ static void handlePlayerMovement(Player *player, int bitmask)
   if (playerInput & INPUT_RIGHT)
     direction.x += 1;
 
+  double speed = player->stats.speed;
   Vector2 velocity = Vector2Scale(Vector2Normalize(direction), speed);
   Vector2 position = Vector2Add(player->object.transform.position, velocity);
 
@@ -358,12 +359,12 @@ static void handlePlayerMovement(Player *player, int bitmask)
  * @param player Pointer to the player object
  * @param bitmask Bitmask for the player's input
  */
-static void handlePlayerInventory(Player *player, int bitmask)
+static void handlePlayerInventory(Player *player, int playerInput)
 {
-  Inventory inventory = &(player->inventory);
+  Inventory *inventory = &(player->inventory);
   for (int i = 0; i < inventory->currentNumOfWeapons; i++)
   {
-    if (playerInput & (INPUT_WEAPONS_1 << i))
+    if (playerInput & (INPUT_INVENTORY_1 << i))
     {
       inventory->currentWeapon = i;
       break;

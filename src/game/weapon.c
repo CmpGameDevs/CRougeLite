@@ -65,7 +65,7 @@ void updateRangedWeapon(Weapon *weapon, bool isFired, int ID, Vector2 src, Vecto
   int numBullets = weapon->weapon.ranged.numBullets;
   if (isFired && *ammo - numBullets > 0 && *reloadTime <= 0.0f)
   {
-    initRangedWeaponShoot(ID, weapon->weapon.ranged, src, dest);
+    initRangedWeaponShoot(ID, weapon->weapon.ranged, src, dest, true);
 
     *ammo -= numBullets;
     *reloadTime = cooldown;

@@ -104,8 +104,12 @@ typedef struct {
   void *second;
 } Pair;
 
+typedef struct Entity Entity;
+
 typedef struct {
-  
+  Entity *entities;
+  int numOfEntities;
+  int hitCount;
 } Hit;
 
 typedef struct CTransform {
@@ -256,6 +260,8 @@ typedef struct {
   float angle;
   CombatActionUnion action;
   CombatActionType type;
+  Hit hit;
+  bool isFriendly;
 } CombatAction;
 
 typedef struct {
@@ -309,6 +315,7 @@ typedef struct {
 } EnemyAI;
 
 typedef struct {
+  unsigned int ID;
   char *name;
   GameObject object;
   Stats stats;
@@ -346,7 +353,7 @@ typedef union {
   CombatAction *action;
 } EntityUnion;
 
-typedef struct {
+typedef struct Entity {
   EntityType type;
   EntityUnion entity;
 } Entity;

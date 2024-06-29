@@ -29,6 +29,7 @@
 // Private Function Prototypes
 // ***************************
 static Enemy *initEnemy(E_TYPE type, E_WEAPON weapon, Vector2 position);
+static void deleteEnemy(Enemy **enemy);
 static void clearEnemy(Enemy **enemy);
 
 /**
@@ -122,7 +123,8 @@ void updateEnemies()
     if (enemies[i].stats.health.currentHealth <= 0)
     {
       printf("Killed Enemy\n");
-      deleteEnemy(&(enemies + i));
+      Enemy *enemy = enemies + i;
+      deleteEnemy(&enemy);
       i--;
     }
   }
@@ -143,6 +145,7 @@ void clearEnemies()
     clearEnemy(&enemies);
     enemies--;
   }
+  free(gameState->enemies);
   printf("Deleted all Enemies\n");
 }
 
@@ -161,6 +164,7 @@ void clearEnemies()
  */
 static Enemy *initEnemy(E_TYPE type, E_WEAPON weapon, Vector2 position)
 {
+  static unsigned int ID = 0;
   Dictionary *dict = gameState->enemyDictionary;
   Enemy *enemy = &(gameState->enemies[gameState->numOfEnemies++]);
   int l = 0, r = NUM_OF_E_TYPE - 1;
@@ -225,6 +229,7 @@ static Enemy *initEnemy(E_TYPE type, E_WEAPON weapon, Vector2 position)
     break;
   }
 
+  enemy->ID = ID;
   enemy->type = type;
   enemy->object.transform.position = position;
   enemy->object.collider.bounds.x = position.x;
@@ -236,11 +241,13 @@ static Enemy *initEnemy(E_TYPE type, E_WEAPON weapon, Vector2 position)
 
 /**
  * deleteEnemy - remove the enemy object from the game state
+ * 
+ * @param enemy Pointer to a pointer to the enemy object
  */
 static void deleteEnemy(Enemy **enemy)
 {
-  Enemy *enemies = &(gameState->enemies);
-  *enemy = enemies[--(gameState->numOfEnemies)];
+  Enemy *enemies = gameState->enemies;
+  *enemy = (enemies + --(gameState->numOfEnemies));
   // TODO: rework clearEnemy and call it
   //  clearEnemy(enemy);
 }
@@ -253,6 +260,4 @@ static void clearEnemy(Enemy **enemy)
   if (enemy == NULL || *enemy == NULL)
     return;
 
-  free(*enemy);
-  *enemy = NULL;
 }

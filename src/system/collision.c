@@ -14,6 +14,34 @@ static GameObject *getGameObjectByIndices(Entity *entity);
 static bool checkAABBCollision(const Rectangle a, const Rectangle b);
 static bool resolveAABBCollision (GameObject *a, GameObject *b);
 
+Hit initHitObject(void)
+{
+  Hit hit;
+  hit.entities = NULL;
+  hit.numOfEntities = hit.hitCount = 0;
+  return hit;
+}
+
+/**
+ * addEntityToHitObject - add entity to hit object
+ * 
+ * @param hit Pointer to the hit object
+ * @param entity Pointer to the entity 
+ */
+void addEntityToHitObject(Hit *hit, Entity *entity)
+{
+  if (hit->hitCount == hit->numOfEntities) {
+    hit->numOfEntities = (!hit->numOfEntities ? 1 : hit->numOfEntities * 2);
+    hit->entities = realloc(hit->entities, hit->numOfEntities);
+  }
+  hit->entities[hit->hitCount++] = *entity;
+}
+
+void clearHitObject(Hit *hit)
+{
+  free(hit->entities);
+}
+
 void broadPhaseCollision(void)
 {
   Map *map = &(gameState->map);
@@ -108,10 +136,12 @@ void resolveEntityCollision(Entity *a, Entity *b)
       // Enemy Collision System
       break;
     case ENTITY_E_COMBAT_ACTION:
-      resolveCombatActionCollision(a->entity.action, b, false);
+      addEntityToHitObject(&(a->entity.action->hit), b);
+      //resolveCombatActionCollision(a->entity.action, b, false);
       break;
     case ENTITY_P_COMBAT_ACTION:
-      resolveCombatActionCollision(a->entity.action, b, true);
+      addEntityToHitObject(&(a->entity.action->hit), b);
+      //resolveCombatActionCollision(a->entity.action, b, true);
       break;
     default:
       break;

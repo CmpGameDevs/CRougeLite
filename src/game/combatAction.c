@@ -23,6 +23,7 @@
 #include "combatAction.h"
 
 #include "../system/anime.h"
+#include "../system/collision.h"
 // FIXME: delete me later
 #include "../system/init.h"
 #include <raymath.h>
@@ -31,6 +32,7 @@
 // ***************************
 // Private Function Prototypes
 // ***************************
+static void checkHitObject(CombatAction *action);
 static float calculateDamageTaken(float damage, Defense defense);
 static void applyBulletDamage(BulletInfo *bulletInfo, Stats *stats);
 static void damageEntity(CombatAction *action, Stats *stats);
@@ -44,6 +46,9 @@ static void clearCombatAction(CombatAction **combatAction);
  *
  * @param ID Player's ID
  * @param bulletInfo Bullet's information from the used weapon
+ * @param pathInfo Path code for different path types
+ * @param src Spawn position of bullet
+ * @param dest The mouse click position
  *
  * @return Pointer to the combat action object
  *
@@ -101,6 +106,7 @@ CombatAction *initBullet(int ID, BulletInfo bulletInfo, Vector2 pathInfo,
   combatAction->angle = GetAngleBetweenPoints(src, bullet.dest);
   combatAction->type = ACTION_BULLET;
   combatAction->action.bullet = bullet;
+  combatAction->hit = initHitObject();
   return combatAction;
 }
 
@@ -111,13 +117,16 @@ CombatAction *initBullet(int ID, BulletInfo bulletInfo, Vector2 pathInfo,
  * @param weapon Ranged weapon used
  *
  * @return Pointer to the combat action object
+ * @param src Spawn position of bullet
+ * @param dest The mouse click position
+ * @param isFriendly Is the object shot by players or not
  *
  * @details Initialize a ranged weapon shoot object and link it to the player
  * by `ID`, its information is provided by the used ranged weapon.
  *
  */
 void initRangedWeaponShoot(int ID, RangedWeapon weapon, Vector2 src,
-                           Vector2 dest)
+                           Vector2 dest, bool isFriendly)
 {
   if (gameState->numOfCombatActions == DEFAULT_MAX_COMBAT_ACTIONS)
     return;
@@ -129,9 +138,11 @@ void initRangedWeaponShoot(int ID, RangedWeapon weapon, Vector2 src,
   //    {-.0051, 20}};
   Vector2 freq_amp[] = {
       {0, 0}, {.053, 50}, {.061, 40}, {-.031, 30}, {-.03, 20}};
+  CombatAction *action;
   while (numOfBullets--)
   {
-    initBullet(ID, weapon.bulletInfo, freq_amp[numOfBullets], src, dest);
+    action = initBullet(ID, weapon.bulletInfo, freq_amp[numOfBullets], src, dest);
+    action->isFriendly = isFriendly;
   }
 }
 
@@ -179,6 +190,12 @@ void updateCombatActions()
 {
   CombatAction *actions = gameState->combatActions;
 
+  for (int i = 0; i < gameState->numOfCombatActions; i++)
+  {
+    checkHitObject(actions + i);
+  }
+
+  // Check Health
   for (int i = 0; i < gameState->numOfCombatActions; i++)
   {
     switch (actions[i].type)
@@ -269,12 +286,30 @@ void clearCombatActions()
     clearCombatAction(&combatActions);
     combatActions++;
   }
+  free(gameState->combatActions);
   printf("Deleted combat actions\n");
 }
 
 // *****************
 // PRIVATE FUNCTIONS
 // *****************
+
+/**
+ * checkHitObject - check the hit object and handle any hit entities
+ * 
+ * @param action Pointer to the combat action
+ */
+static void checkHitObject(CombatAction *action)
+{
+  Hit *hit = &(action->hit);
+  if (hit->hitCount == 0) return;
+
+  Entity *entities = hit->entities;
+  for (int i = 0; i < hit->hitCount; i++)
+  {
+    resolveCombatActionCollision(action, entities + i, action[i].isFriendly);
+  }
+}
 
 /**
  * calculateDamageTaken - calculate the damage output with the
@@ -427,6 +462,5 @@ static void clearCombatAction(CombatAction **combatAction)
   if (combatAction == NULL || *combatAction == NULL)
     return;
 
-  free(*combatAction);
-  *combatAction = NULL;
+  clearHitObject(&((*combatAction)->hit));
 }

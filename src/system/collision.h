@@ -6,6 +6,9 @@
 // FIXME: add hit struct later maybe
 #include "../game/combatAction.h"
 
+Hit initHitObject(void);
+void addEntityToHitObject(Hit *hit, Entity *entity);
+void clearHitObject(Hit *hit);
 void broadPhaseCollision(void);
 void getGameObjectIndices(int *startX, int *startY, int *endX, int *endY, Collider2D *collider);
 void resolveEntityCollision(Entity *a, Entity *b);
