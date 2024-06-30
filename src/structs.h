@@ -110,6 +110,7 @@ typedef struct {
   Entity *entities;
   int numOfEntities;
   int hitCount;
+  int checkedCount;
 } Hit;
 
 typedef struct CTransform {
@@ -257,6 +258,7 @@ typedef union {
 } CombatActionUnion;
 
 typedef struct {
+  unsigned int ID;
   float angle;
   CombatActionUnion action;
   CombatActionType type;
@@ -329,7 +331,7 @@ typedef struct {
 typedef struct {
   // Player Info
   char *name;
-  int ID;
+  unsigned int ID;
 
   // Player Selection
   P_TYPE type;
@@ -356,6 +358,7 @@ typedef union {
 typedef struct Entity {
   EntityType type;
   EntityUnion entity;
+  unsigned int ID;
 } Entity;
 
 // ******************

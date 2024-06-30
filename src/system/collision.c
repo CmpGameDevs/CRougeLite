@@ -10,38 +10,61 @@ static int GRID_WIDTH, GRID_CELL_WIDTH, GRID_HEIGHT, GRID_CELL_HEIGHT;
 // Private Function Prototypes
 // ***************************
 static void narrowPhaseCollision(void);
+static void getGameObjectIndices(int *startX, int *startY, int *endX, int *endY, Collider2D *collider);
 static GameObject *getGameObjectByIndices(Entity *entity);
 static bool checkAABBCollision(const Rectangle a, const Rectangle b);
 static bool resolveAABBCollision (GameObject *a, GameObject *b);
 
+/**
+ * initHitObject - initialize a hit struct to be used for collision handling
+ * 
+ * @return the hit struct object
+ */
 Hit initHitObject(void)
 {
   Hit hit;
   hit.entities = NULL;
-  hit.numOfEntities = hit.hitCount = 0;
+  hit.numOfEntities = hit.hitCount = hit.checkedCount = 0;
   return hit;
 }
 
 /**
- * addEntityToHitObject - add entity to hit object
+ * addEntityToHitObject - add a collided entity to hit object
  * 
  * @param hit Pointer to the hit object
- * @param entity Pointer to the entity 
+ * @param entity Pointer to the entity
+ * 
+ * @return false if the entity is already in the list, true otherwise
  */
-void addEntityToHitObject(Hit *hit, Entity *entity)
+bool addEntityToHitObject(Hit *hit, Entity *entity)
 {
+  Entity **entitiesPtr = &(hit->entities);
+  for (int i = 0; i < hit->hitCount; i++)
+    if ((*entitiesPtr + i)->ID == entity->ID &&
+        (*entitiesPtr + i)->type == entity->type)  return false;
+
   if (hit->hitCount == hit->numOfEntities) {
     hit->numOfEntities = (!hit->numOfEntities ? 1 : hit->numOfEntities * 2);
-    hit->entities = realloc(hit->entities, hit->numOfEntities);
+    *entitiesPtr = realloc(*entitiesPtr, hit->numOfEntities * sizeof(Entity));
   }
   hit->entities[hit->hitCount++] = *entity;
+  return true;
 }
 
+/**
+ * clearHitObject - free used heap space
+ * 
+ * @param hit Pointer to the hit object
+ */
 void clearHitObject(Hit *hit)
 {
   free(hit->entities);
 }
 
+/**
+ * broadPhaseCollision - Handles the broad collision detection phase
+ * and calls the Narrow Phase Collision Detections
+ */
 void broadPhaseCollision(void)
 {
   Map *map = &(gameState->map);
@@ -70,6 +93,7 @@ void broadPhaseCollision(void)
         GridCell *cell = &(map->grid[i][j]);
         if (cell->objectCount < MAX_OBJECTS_PER_CELL) {
           cell->objectIndices[cell->objectCount].type = ENTITY_PLAYER;
+          cell->objectIndices[cell->objectCount].ID = players[k].ID;
           cell->objectIndices[cell->objectCount++].entity.player = &(players[k]);
         }
       }
@@ -89,6 +113,7 @@ void broadPhaseCollision(void)
         GridCell *cell = &(map->grid[i][j]);
         if (cell->objectCount < MAX_OBJECTS_PER_CELL) {
           cell->objectIndices[cell->objectCount].type = ENTITY_ENEMY;
+          cell->objectIndices[cell->objectCount].ID = enemies[k].ID;
           cell->objectIndices[cell->objectCount++].entity.enemy = &(enemies[k]);
         }
       }
@@ -118,6 +143,7 @@ void broadPhaseCollision(void)
         GridCell *cell = &(map->grid[i][j]);
         if (cell->objectCount < MAX_OBJECTS_PER_CELL) {
           cell->objectIndices[cell->objectCount].type = ENTITY_P_COMBAT_ACTION;
+          cell->objectIndices[cell->objectCount].ID = actions[k].ID;
           cell->objectIndices[cell->objectCount++].entity.action = &(actions[k]);
         }
       }
@@ -126,34 +152,28 @@ void broadPhaseCollision(void)
   narrowPhaseCollision();
 }
 
-void resolveEntityCollision(Entity *a, Entity *b)
+bool resolveEntityCollision(Entity *a, Entity *b)
 {
   switch (a->type) {
     case ENTITY_PLAYER:
+      return true;
       // Player Collision System
       break;
     case ENTITY_ENEMY:
+      return true;
       // Enemy Collision System
       break;
     case ENTITY_E_COMBAT_ACTION:
-      addEntityToHitObject(&(a->entity.action->hit), b);
+      return addEntityToHitObject(&(a->entity.action->hit), b);
       //resolveCombatActionCollision(a->entity.action, b, false);
       break;
     case ENTITY_P_COMBAT_ACTION:
-      addEntityToHitObject(&(a->entity.action->hit), b);
+      return addEntityToHitObject(&(a->entity.action->hit), b);
       //resolveCombatActionCollision(a->entity.action, b, true);
       break;
     default:
       break;
   }
-}
-
-void getGameObjectIndices(int *startX, int *startY, int *endX, int *endY, Collider2D *collider)
-{
-  *startX = Clamp(collider->bounds.x / GRID_CELL_WIDTH, 0, GRID_WIDTH - 1);
-  *startY = Clamp(collider->bounds.y / GRID_CELL_HEIGHT, 0, GRID_HEIGHT - 1);
-  *endX = Clamp((collider->bounds.x + collider->bounds.width) / GRID_CELL_WIDTH, 0, GRID_WIDTH - 1);
-  *endY = Clamp((collider->bounds.y + collider->bounds.height) / GRID_CELL_HEIGHT, 0, GRID_HEIGHT - 1);
 }
 
 // *****************
@@ -176,14 +196,21 @@ static void narrowPhaseCollision(void)
           GameObject *objectB = getGameObjectByIndices(entityB);
 
           if (checkAABBCollision(objectA->collider.bounds, objectB->collider.bounds)) {
-            resolveEntityCollision(entityA, entityB);
-            resolveEntityCollision(entityB, entityA);
-            resolveAABBCollision(objectA, objectB);
+            if (resolveEntityCollision(entityA, entityB) && resolveEntityCollision(entityB, entityA))
+              resolveAABBCollision(objectA, objectB);
           }
         }
       }
     }
   }
+}
+
+static void getGameObjectIndices(int *startX, int *startY, int *endX, int *endY, Collider2D *collider)
+{
+  *startX = Clamp(collider->bounds.x / GRID_CELL_WIDTH, 0, GRID_WIDTH - 1);
+  *startY = Clamp(collider->bounds.y / GRID_CELL_HEIGHT, 0, GRID_HEIGHT - 1);
+  *endX = Clamp((collider->bounds.x + collider->bounds.width) / GRID_CELL_WIDTH, 0, GRID_WIDTH - 1);
+  *endY = Clamp((collider->bounds.y + collider->bounds.height) / GRID_CELL_HEIGHT, 0, GRID_HEIGHT - 1);
 }
 
 static GameObject *getGameObjectByIndices(Entity *entity)

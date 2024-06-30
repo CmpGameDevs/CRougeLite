@@ -85,9 +85,8 @@ void updateCombatActions();
  * 
  * @param action Pointer to the combat action object
  * @param entity Pointer to the hit entity
- * @param isFriendly Indicates if the combat action is friendly
  */
-void resolveCombatActionCollision(CombatAction *action, Entity *entity, bool isFriendly);
+void resolveCombatActionCollision(CombatAction *action, Entity *entity);
 
 /**
  * drawCombatActions - draw all combat actions and update them

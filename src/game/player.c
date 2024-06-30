@@ -28,7 +28,7 @@
 // Private Function Prototypes
 // ***************************
 static Player *initPlayer(const char *name, P_TYPE type, P_WEAPON weapon,
-                          Vector2 position, int ID);
+                          Vector2 position);
 static void AddPlayerWeapon(Player *player, P_WEAPON weapon);
 static void animationController(Player *player);
 static int handlePlayerInput(Player *player);
@@ -43,7 +43,7 @@ void setupPlayers()
 {
   Player *player =
       initPlayer("Marcus", CAT, P_GUN,
-                 (Vector2){GetScreenWidth() / 2.0, GetScreenHeight() / 2.0}, 0);
+                 (Vector2){GetScreenWidth() / 2.0, GetScreenHeight() / 2.0});
 
   player->object.animator = (Animator){
       .isFinished = false,
@@ -167,13 +167,13 @@ void clearPlayers()
  * @param type Player type
  * @param weapon Player weapon
  * @param position Player spawn position
- * @param ID Player ID
  *
  * @return Pointer to the new player object
  */
 static Player *initPlayer(const char *name, P_TYPE type, P_WEAPON weapon,
-                          Vector2 position, int ID)
+                          Vector2 position)
 {
+  static unsigned int playerID = 0;
   Settings settings = gameState->settings;
   Dictionary *dict = gameState->characterDictionary;
   Player *player = &(gameState->players[gameState->numOfPlayers++]);
@@ -193,9 +193,9 @@ static Player *initPlayer(const char *name, P_TYPE type, P_WEAPON weapon,
     else
       r = mid - 1;
   }
-  printf("Adding Player #%d\n", ID);
+  printf("Adding Player #%d\n", playerID);
   player->name = strdup(name);
-  player->ID = ID;
+  player->ID = playerID++;
   player->type = type;
   player->inventory = initInventory();
   AddPlayerWeapon(player, weapon);
@@ -206,7 +206,6 @@ static Player *initPlayer(const char *name, P_TYPE type, P_WEAPON weapon,
   player->drawDirection = 1;
   player->direction = RIGHT;
   player->fire = 0;
-  player->ID = ID;
   player->experience = (Experience){.xp = 0, .level = 0};
   // TODO: Make dictionary for infos related to each type of character.
   // Input

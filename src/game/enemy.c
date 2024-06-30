@@ -229,7 +229,7 @@ static Enemy *initEnemy(E_TYPE type, E_WEAPON weapon, Vector2 position)
     break;
   }
 
-  enemy->ID = ID;
+  enemy->ID = ID++;
   enemy->type = type;
   enemy->object.transform.position = position;
   enemy->object.collider.bounds.x = position.x;

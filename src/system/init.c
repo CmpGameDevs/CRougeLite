@@ -127,7 +127,7 @@ static void initPlayerWeaponDictionary()
       .weapon.ranged = {
           .stats = {10, 0.5, 0, .weaponSprite = {}},
           .bulletInfo = {.bulletSpeed = 3, .bulletDamage = 10, 
-            .bulletRange = 600, .bulletHealth = 10, 
+            .bulletRange = 600, .bulletHealth = 20, 
             .isTracking = false,
             .critMultiplier = 1.05,
             .critChance = 0.05,

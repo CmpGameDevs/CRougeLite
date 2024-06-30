@@ -30,6 +30,11 @@
 #include <stdbool.h>
 
 // ***************************
+// Local Global Variables
+// ***************************
+static unsigned int actionID = 0;
+
+// ***************************
 // Private Function Prototypes
 // ***************************
 static void checkHitObject(CombatAction *action);
@@ -107,6 +112,7 @@ CombatAction *initBullet(int ID, BulletInfo bulletInfo, Vector2 pathInfo,
   combatAction->type = ACTION_BULLET;
   combatAction->action.bullet = bullet;
   combatAction->hit = initHitObject();
+  combatAction->ID = actionID++;
   return combatAction;
 }
 
@@ -219,22 +225,22 @@ void updateCombatActions()
  *
  * @param action Pointer to the combat action object
  * @param entity Pointer to the hit entity
- * @param isFriendly Indicates if the combat action is friendly
  */
-void resolveCombatActionCollision(CombatAction *action, Entity *entity, bool isFriendly)
+void resolveCombatActionCollision(CombatAction *action, Entity *entity)
 {
+  bool isFriendly = action->isFriendly;
   switch (entity->type)
   {
   case ENTITY_PLAYER:
     if (isFriendly)
       return;
-    printf("Player took");
+    printf("Player #%d took", entity->ID);
     damageEntity(action, &(entity->entity.player->stats));
     break;
   case ENTITY_ENEMY:
     if (!isFriendly)
       return;
-    printf("Enemy took");
+    printf("Enemy #%d took", entity->ID);
     damageEntity(action, &(entity->entity.enemy->stats));
     // TODO: add score to the player (maybe each enemy has its own score).
     break;
@@ -305,9 +311,10 @@ static void checkHitObject(CombatAction *action)
   if (hit->hitCount == 0) return;
 
   Entity *entities = hit->entities;
-  for (int i = 0; i < hit->hitCount; i++)
+  for (int i = hit->checkedCount; i < hit->hitCount; i++)
   {
-    resolveCombatActionCollision(action, entities + i, action[i].isFriendly);
+    resolveCombatActionCollision(action, entities + i);
+    hit->checkedCount++;
   }
 }
 
@@ -370,7 +377,9 @@ static void damageEntity(CombatAction *action, Stats *stats)
   switch (type)
   {
   case ACTION_BULLET:
-    applyBulletDamage(&(action->action.bullet.bulletInfo), stats);
+    BulletInfo *bulletInfo = &(action->action.bullet.bulletInfo);
+    applyBulletDamage(bulletInfo, stats);
+    printf("Bullet #%d taken %.2f damage, remaining health: %f\n", action->ID, bulletInfo->bulletDamage, bulletInfo->bulletHealth);
     break;
   default:
     break;
