@@ -1,3 +1,23 @@
+/***************************************************************
+ *
+ *
+ *    
+ *    ██╗    ██╗███████╗ █████╗ ██████╗  ██████╗ ███╗   ██╗
+ *    ██║    ██║██╔════╝██╔══██╗██╔══██╗██╔═══██╗████╗  ██║
+ *    ██║ █╗ ██║█████╗  ███████║██████╔╝██║   ██║██╔██╗ ██║
+ *    ██║███╗██║██╔══╝  ██╔══██║██╔═══╝ ██║   ██║██║╚██╗██║
+ *    ╚███╔███╔╝███████╗██║  ██║██║     ╚██████╔╝██║ ╚████║
+ *     ╚══╝╚══╝ ╚══════╝╚═╝  ╚═╝╚═╝      ╚═════╝ ╚═╝  ╚═══╝
+ *
+ *     Weapon Module Header. (Game Object)
+ *     Exposes the logic for the weapon object.
+ *
+ *     - Load Weapon
+ *     - Use Weapon
+ *     - Draw Weapon
+ *
+ **************************************************************/
+
 #include "weapon.h"
 
 Weapon initWeapon(int opcode, bool isPlayer)
@@ -45,7 +65,7 @@ void updateRangedWeapon(Weapon *weapon, bool isFired, int ID, Vector2 src, Vecto
   int numBullets = weapon->weapon.ranged.numBullets;
   if (isFired && *ammo - numBullets > 0 && *reloadTime <= 0.0f)
   {
-    initRangedWeaponShoot(ID, weapon->weapon.ranged, src, dest);
+    initRangedWeaponShoot(ID, weapon->weapon.ranged, src, dest, true);
 
     *ammo -= numBullets;
     *reloadTime = cooldown;

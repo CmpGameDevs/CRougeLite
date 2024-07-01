@@ -28,12 +28,15 @@
 
 /**
  *  initBullet - initialize a bullet object
- * 
+ *
  * @param ID Player's ID
  * @param bulletInfo Bullet's information from the used weapon
- * 
+ * @param pathInfo Path code for different path types
+ * @param src Spawn position of bullet
+ * @param dest The mouse click position
+ *
  * @return Pointer to the combat action object
- * 
+ *
  * @details Initialize a bullet object and link it to the player
  * by `ID`, its information is provided by the fired weapon.
  *
@@ -47,13 +50,15 @@ CombatAction *initBullet(int ID, BulletInfo bulletInfo, Vector2 pathInfo, Vector
  * @param weapon Ranged weapon used
  *
  * @return Pointer to the combat action object
+ * @param src Spawn position of bullet
+ * @param dest The mouse click position
+ * @param isFriendly Is the object shot by players or not
  *
  * @details Initialize a ranged weapon shoot object and link it to the player
  * by `ID`, its information is provided by the used ranged weapon.
  *
  */
-void initRangedWeaponShoot(int ID, RangedWeapon weapon, Vector2 src, Vector2 dest);
-
+void initRangedWeaponShoot(int ID, RangedWeapon weapon, Vector2 src, Vector2 dest, bool isFriendly);
 
 /**
  *  initSlash - initialize a slash object
@@ -68,6 +73,21 @@ void initRangedWeaponShoot(int ID, RangedWeapon weapon, Vector2 src, Vector2 des
  *
  */
 CombatAction *initSlash(int ID, SlashInfo slashInfo, Vector2 src, Vector2 dest);
+
+/**
+ * updateCombatActions - update the combat actions
+ */
+void updateCombatActions();
+
+/**
+ * resolveCombatActionCollision - resolve the collision of a combat 
+ * action object with other entity
+ * 
+ * @param action Pointer to the combat action object
+ * @param entity Pointer to the hit entity
+ */
+void resolveCombatActionCollision(CombatAction *action, Entity *entity);
+
 /**
  * drawCombatActions - draw all combat actions and update them
  */
