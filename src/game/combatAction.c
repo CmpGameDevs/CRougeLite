@@ -81,6 +81,7 @@ CombatAction *initBullet(int ID, BulletInfo bulletInfo, Vector2 pathInfo,
   else
     bullet.dest = dest;
 
+  object->rigidBody.type = BODY_DYNAMIC;
   object->animator = (Animator){
       .isFinished = false,
       .currentState = IDLE,

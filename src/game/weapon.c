@@ -44,9 +44,9 @@ Weapon initWeapon(int opcode, bool isPlayer)
   exit(EXIT_FAILURE);
 }
 
-Inventory initInventory()
+WeaponsInventory initInventory()
 {
-  Inventory inventory;
+  WeaponsInventory inventory;
   inventory.MAX_NUM_OF_WEAPONS = 2;
   inventory.weapons = malloc(sizeof(Weapon) * inventory.MAX_NUM_OF_WEAPONS);
   inventory.currentNumOfWeapons = 0;
@@ -92,7 +92,7 @@ void updateMeleeWeapon(Weapon *weapon, bool isFired, int ID, Vector2 src, Vector
     *reloadTime -= deltaTime;
 }
 
-void clearInventory(Inventory *inventory) {
+void clearInventory(WeaponsInventory *inventory) {
   if (inventory == NULL || inventory->weapons) return;
 
   free(inventory->weapons);
