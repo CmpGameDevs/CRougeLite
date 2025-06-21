@@ -26,9 +26,9 @@ static void initCharacterDictionary()
       .object = {
           .rigidBody = {.velocity = (Vector2){0, 0},
                         .acceleration = (Vector2){0, 0},
-                        1.0,
-                        false},
-          .collider = {.bounds = {0, 0, 32, 32}},
+                        .drag = 1.0,
+                        .type = BODY_GHOST},
+          .collider = {.bounds = {0, 0, 64, 64}},
           .spriteRenderer = {},
           .animator = {},
       }};
@@ -242,6 +242,7 @@ void initSettings()
   gameState->settings.showColliders = false;
   gameState->settings.showFPS = false;
   gameState->settings.showDebugMenu = true;
+  gameState->settings.showInventory = true;
   gameState->settings.zoom = 1.0;
 }
 

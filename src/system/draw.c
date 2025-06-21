@@ -8,6 +8,11 @@
 #include "map.h"
 #include <raylib.h>
 
+// ***************************
+// Private Function Prototypes
+// ***************************
+static void drawInventory();
+static void drawInteractionUI();
 
 /**
  * drawAtlasSpritePro - draws a sprite from the atlas with the given parameters.
@@ -37,9 +42,38 @@ void drawAtlasSpritePro(char *filename, Rectangle dest, Vector2 origin,
   }
 }
 
+/**
+ * drawColliders - draws the colliders of the map, players, enemies, and combat actions.
+ */
 void drawColliders() {
   // draw map colliders
-  // TODO: ya akram
+  Map *map = &(gameState->map);
+  for (int i = 0; i < map->numOfRows; i++) {
+    for (int j = 0; j < map->numOfCols; j++) {
+      Rectangle bounds = {
+            .x = j * map->tileWidth * map->scale,
+            .y = i * map->tileHeight * map->scale,
+            .width = map->tileWidth * map->scale,
+            .height = map->tileHeight * map->scale,
+        };
+      Color color = {0,0,0,0};
+      if (map->mapIds[i][j][LAYER_WALLS] != -1) {
+        color = GREEN;
+      }
+      if (map->mapIds[i][j][LAYER_INTERACTABLE] != -1) {
+        color = YELLOW;
+      }
+      if (map->mapIds[i][j][LAYER_PICKABLE] != -1) {
+        color = PURPLE;
+      }
+      
+      DrawRectangleLines(bounds.x,
+                         bounds.y,
+                         bounds.width,
+                         bounds.height,
+                         color);
+    }
+  }
 
   // draw players colliders
   Player *players = gameState->players;
@@ -86,6 +120,9 @@ void drawColliders() {
   }
 }
 
+/**
+ * drawScene - draws the entire game scene including map, players, enemies,
+ */
 void drawScene() {
   BeginDrawing();
 
@@ -105,14 +142,176 @@ void drawScene() {
 
   if (gameState->settings.showColliders)
     drawColliders();
-
   EndMode2D();
-
   if (gameState->settings.showDebugMenu)
     drawDebugMenu();
+
+  // Draw interaction UI (F prompt and required items)
+  drawInteractionUI();
+
+  if (gameState->settings.showInventory)
+    drawInventory();
 
   if (gameState->settings.showFPS)
     DrawFPS(10, 10);
 
   EndDrawing();
+}
+
+// *****************
+// PRIVATE FUNCTIONS
+// *****************
+
+/**
+ * drawInventory - draws the player's inventory at the bottom of the screen.
+ */
+static void drawInventory() {
+  int selected_player = 0; // TODO: Make this configurable for multiplayer
+  Player *player = &(gameState->players[selected_player]);
+  
+  int screenWidth = GetScreenWidth();
+  int screenHeight = GetScreenHeight();
+  
+  const int slotSize = 48;
+  const int slotSpacing = 4;
+  const int totalSlots = MAX_COLLECTED_ITEMS;
+  const int totalWidth = (slotSize * totalSlots) + (slotSpacing * (totalSlots - 1));
+  
+  int startX = (screenWidth - totalWidth) / 2;
+  int startY = screenHeight - slotSize - 15;
+    Rectangle panelBounds = {
+    .x = startX - 6,
+    .y = startY - 6,
+    .width = totalWidth + 12,
+    .height = slotSize + 12
+  };
+  DrawRectangleRec(panelBounds, (Color){0, 0, 0, 64});
+  DrawRectangleLines(panelBounds.x, panelBounds.y, panelBounds.width, panelBounds.height, (Color){120, 120, 120, 144});
+  
+  // Draw inventory slots
+  for (int i = 0; i < MAX_COLLECTED_ITEMS; i++) {
+    int slotX = startX + (i * (slotSize + slotSpacing));
+    int slotY = startY;
+    
+    Rectangle slotRect = {
+      .x = slotX,
+      .y = slotY,
+      .width = slotSize,
+      .height = slotSize    };
+    DrawRectangleRec(slotRect, (Color){40, 40, 40, 200});
+    DrawRectangleLines(slotRect.x, slotRect.y, slotRect.width, slotRect.height, (Color){100, 100, 100, 200});
+    
+    CollectibleItem *item = &(player->collectedItems[i]);
+    
+    if (item->tileId != -1 && item->count > 0) {
+      GameState *game_system = gameState;
+      Map *map = &(game_system->map);
+      TilesMapper *tiles_mapper = &(map->tilesMapper);
+      
+      if (item->tileId < MAX_TILES_NUM && tiles_mapper->tileInfo[item->tileId].filename != NULL) {
+        char buffer[256];
+        char *tileName = tiles_mapper->tileInfo[item->tileId].filename;
+        strncpy(buffer, tileName, sizeof(buffer) - 1);
+        buffer[sizeof(buffer) - 1] = '\0';
+        
+        char *fileName = strtok(buffer, ".");
+
+        Rectangle itemDest = {
+          .x = slotX + 3,
+          .y = slotY + 3,
+          .width = slotSize - 6,
+          .height = slotSize - 6
+        };
+        
+        drawAtlasSpritePro(fileName, itemDest, (Vector2){0, 0}, 0.0f, WHITE, false);
+        
+        if (item->count > 1) {
+          char countText[16];
+          snprintf(countText, sizeof(countText), "%d", item->count);
+          
+          Vector2 countPos = {slotX + slotSize - 16, slotY + slotSize - 16};
+          DrawText(countText, countPos.x + 1, countPos.y + 1, 12, BLACK); // Shadow
+          DrawText(countText, countPos.x, countPos.y, 12, WHITE); // Text
+        }
+      }
+    }
+  }
+}
+
+/**
+ * drawInteractionUI - draws the interaction UI for nearby interactable tiles.
+ */
+static void drawInteractionUI() {
+  int selected_player = 0; // TODO: Make this configurable for multiplayer
+  Player *player = &(gameState->players[selected_player]);
+  
+  if (player->interactableTileIndex == -1) return;
+  
+  Map *map = &(gameState->map);
+  int row = player->interactableTileIndex / map->numOfCols;
+  int col = player->interactableTileIndex % map->numOfCols;
+  int tileId = map->mapIds[row][col][LAYER_INTERACTABLE];
+  
+  if (tileId == -1) return;
+  
+  float tileWorldX = col * map->tileWidth * map->scale + (map->tileWidth * map->scale) / 2;
+  float tileWorldY = row * map->tileHeight * map->scale + (map->tileHeight * map->scale) / 2;
+  Vector2 tileScreenPos = GetWorldToScreen2D((Vector2){tileWorldX, tileWorldY}, gameState->camera);
+  const char* promptText = "F";
+  int fontSize = 24;
+  const int promptSize = 40;
+  
+  Vector2 promptPos = {
+    tileScreenPos.x - promptSize / 2,
+    tileScreenPos.y - 80
+  };
+  
+  Rectangle promptBg = {
+    promptPos.x,
+    promptPos.y,
+    promptSize,
+    promptSize
+  };
+  DrawRectangleRec(promptBg, (Color){40, 40, 40, 200});
+  DrawRectangleLines(promptBg.x, promptBg.y, promptBg.width, promptBg.height, (Color){100, 100, 100, 200});
+  
+  Vector2 textSize = MeasureTextEx(GetFontDefault(), promptText, fontSize, 2);
+  Vector2 textPos = {
+    promptPos.x + (promptSize - textSize.x) / 2,
+    promptPos.y + (promptSize - textSize.y) / 2
+  };
+  
+  DrawText(promptText, textPos.x + 1, textPos.y + 1, fontSize, BLACK); // Shadow
+  DrawText(promptText, textPos.x, textPos.y, fontSize, WHITE); // Text
+  
+  InteractableMapping *mapping = getInteractableMapping(tileId);
+  if (mapping && mapping->requiredItem != -1) {
+    TilesMapper *tiles_mapper = &(map->tilesMapper);
+    if (mapping->requiredItem < MAX_TILES_NUM && tiles_mapper->tileInfo[mapping->requiredItem].filename != NULL) {
+      char buffer[256];
+      char *tileName = tiles_mapper->tileInfo[mapping->requiredItem].filename;
+      strncpy(buffer, tileName, sizeof(buffer) - 1);
+      buffer[sizeof(buffer) - 1] = '\0';
+      
+      char *fileName = strtok(buffer, ".");
+      const int itemIconSize = 28;
+      Rectangle itemDest = {
+        promptPos.x + promptSize + 10,
+        promptPos.y + (promptSize - itemIconSize) / 2,
+        itemIconSize,
+        itemIconSize
+      };
+      
+      Rectangle itemBg = {
+        itemDest.x - 3,
+        itemDest.y - 3,
+        itemDest.width + 6,
+        itemDest.height + 6
+      };
+      DrawRectangleRec(itemBg, (Color){40, 40, 40, 200});
+      DrawRectangleLines(itemBg.x, itemBg.y, itemBg.width, itemBg.height, (Color){100, 100, 100, 200});
+      
+      drawAtlasSpritePro(fileName, itemDest, (Vector2){0, 0}, 0.0f, WHITE, false);
+    }
+  }
 }

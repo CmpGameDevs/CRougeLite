@@ -1,4 +1,5 @@
 #include "collision.h"
+#include "../game/player.h"
 #include <raylib.h>
 
 // ***************************
@@ -10,10 +11,14 @@ static int GRID_WIDTH, GRID_CELL_WIDTH, GRID_HEIGHT, GRID_CELL_HEIGHT;
 // Private Function Prototypes
 // ***************************
 static void narrowPhaseCollision(void);
-static void getGameObjectIndices(int *startX, int *startY, int *endX, int *endY, Collider2D *collider);
 static GameObject *getGameObjectByIndices(Entity *entity);
 static bool checkAABBCollision(const Rectangle a, const Rectangle b);
-static bool resolveAABBCollision (GameObject *a, GameObject *b);
+static void resolveAABBCollision(GameObject *a, GameObject *b);
+static Rectangle getTileCollisionBounds(int row, int col);
+static void calculateCollisionSeparation(Rectangle objBounds, Rectangle tileBounds, Vector2 *separation);
+static bool checkTileCollision(int row, int col, Entity *entity, bool resolveCollision);
+static bool resolveEntityCollision(Entity *a, Entity *b);
+static bool resolveTileCollision(Entity *entity, int row, int col, int layer);
 
 /**
  * initHitObject - initialize a hit struct to be used for collision handling
@@ -87,7 +92,15 @@ void broadPhaseCollision(void)
     int startX, startY, endX, endY;
 
     object->collider.isColliding = false;
-    getGameObjectIndices(&startX, &startY, &endX, &endY, &(object->collider));
+    
+    // For interactive objects, pad the collider bounds
+    Collider2D paddedBounds = object->collider;
+    paddedBounds.bounds.x -= 5;
+    paddedBounds.bounds.y -= 5;
+    paddedBounds.bounds.width += 10;
+    paddedBounds.bounds.height += 10;
+    
+    getGameObjectIndices(&startX, &startY, &endX, &endY, &(paddedBounds));
     for (int i = startY; i <= endY; i++) {
       for (int j = startX; j <= endX; j++) {
         GridCell *cell = &(map->grid[i][j]);
@@ -152,7 +165,15 @@ void broadPhaseCollision(void)
   narrowPhaseCollision();
 }
 
-bool resolveEntityCollision(Entity *a, Entity *b)
+/**
+ * resolveEntityCollision - Resolve collision between two entities
+ * 
+ * @param a Pointer to the first entity
+ * @param b Pointer to the second entity
+ * 
+ * @return true if the collision was resolved, false otherwise
+ */
+static bool resolveEntityCollision(Entity *a, Entity *b)
 {
   switch (a->type) {
     case ENTITY_PLAYER:
@@ -176,14 +197,48 @@ bool resolveEntityCollision(Entity *a, Entity *b)
   }
 }
 
+/**
+ * getGameObjectByIndices - Get the GameObject from the entity indices
+ * 
+ * @param startX The starting X index of the GameObject
+ * @param startY The starting Y index of the GameObject
+ * @param endX The ending X index of the GameObject
+ * @param endY The ending Y index of the GameObject
+ * @param collider The Collider2D of the GameObject
+ */
+void getGameObjectIndices(int *startX, int *startY, int *endX, int *endY, Collider2D *collider)
+{
+  *startX = Clamp(collider->bounds.x / GRID_CELL_WIDTH, 0, GRID_WIDTH - 1);
+  *startY = Clamp(collider->bounds.y / GRID_CELL_HEIGHT, 0, GRID_HEIGHT - 1);
+  *endX = Clamp((collider->bounds.x + collider->bounds.width) / GRID_CELL_WIDTH, 0, GRID_WIDTH - 1);
+  *endY = Clamp((collider->bounds.y + collider->bounds.height) / GRID_CELL_HEIGHT, 0, GRID_HEIGHT - 1);
+}
+
 // *****************
 // PRIVATE FUNCTIONS
 // *****************
 
+/**
+ * narrowPhaseCollision - Handles the narrow phase collision detection
+ */
 static void narrowPhaseCollision(void)
 {
   Map *map = &(gameState->map);
-  // Reset object count
+  
+  // Check tile collisions for all objects
+  for (int i = 0; i < GRID_HEIGHT; i++) {
+    for (int j = 0; j < GRID_WIDTH; j++) {
+      GridCell *cell = &(map->grid[i][j]);
+      int objectCount = cell->objectCount;
+      
+      for (int n = 0; n < objectCount; n++) {
+        Entity *entity = &(cell->objectIndices[n]);
+        checkTileCollision(i, j, entity, true);
+      }
+    }
+  }
+  
+  // Check entity-to-entity collisions
   for (int i = 0; i < GRID_HEIGHT; i++) {
     for (int j = 0; j < GRID_WIDTH; j++) {
       GridCell *cell = &(map->grid[i][j]);
@@ -205,14 +260,14 @@ static void narrowPhaseCollision(void)
   }
 }
 
-static void getGameObjectIndices(int *startX, int *startY, int *endX, int *endY, Collider2D *collider)
-{
-  *startX = Clamp(collider->bounds.x / GRID_CELL_WIDTH, 0, GRID_WIDTH - 1);
-  *startY = Clamp(collider->bounds.y / GRID_CELL_HEIGHT, 0, GRID_HEIGHT - 1);
-  *endX = Clamp((collider->bounds.x + collider->bounds.width) / GRID_CELL_WIDTH, 0, GRID_WIDTH - 1);
-  *endY = Clamp((collider->bounds.y + collider->bounds.height) / GRID_CELL_HEIGHT, 0, GRID_HEIGHT - 1);
-}
-
+/**
+ * getGameObjectByIndices - Get the GameObject from an Entity based on its type
+ * 
+ * @param entity The Entity to get the GameObject from
+ * 
+ * @return Pointer to the GameObject associated with the Entity
+ *         or NULL if the Entity type is not recognized
+ */
 static GameObject *getGameObjectByIndices(Entity *entity)
 {
   Player *players = gameState->players;
@@ -243,6 +298,14 @@ static GameObject *getGameObjectByIndices(Entity *entity)
   return NULL;
 }
 
+/**
+ * checkAABBCollision - Check if two Axis-Aligned Bounding Boxes (AABB) collide
+ * 
+ * @param a The first rectangle (AABB)
+ * @param b The second rectangle (AABB)
+ * 
+ * @return true if the rectangles collide, false otherwise
+ */
 static bool checkAABBCollision(const Rectangle a, const Rectangle b)
 {
   return (a.x < b.x + b.width &&
@@ -251,7 +314,13 @@ static bool checkAABBCollision(const Rectangle a, const Rectangle b)
           a.y + a.height > b.y);
 }
 
-static bool resolveAABBCollision (GameObject *a, GameObject *b)
+/**
+ * resolveAABBCollision - Resolve collision between two Axis-Aligned Bounding Boxes (AABB)
+ * 
+ * @param a Pointer to the first GameObject
+ * @param b Pointer to the second GameObject
+ */
+static void resolveAABBCollision(GameObject *a, GameObject *b)
 {
   a->collider.isColliding = true;
   b->collider.isColliding = true;
@@ -296,4 +365,196 @@ static bool resolveAABBCollision (GameObject *a, GameObject *b)
     boundsB->x = positionB->x;
     boundsB->y = positionB->y;
   }
+}
+
+/**
+ * calculateCollisionSeparation - Helper function to calculate separation vector for collision resolution
+ * 
+ * @param objBounds The bounds of the colliding object
+ * @param tileBounds The bounds of the tile being collided with
+ * @param separation Pointer to the separation vector to modify
+ */
+static void calculateCollisionSeparation(Rectangle objBounds, Rectangle tileBounds, Vector2 *separation) {
+  float overlapX = fmin(objBounds.x + objBounds.width, tileBounds.x + tileBounds.width) -
+                 fmax(objBounds.x, tileBounds.x);
+  float overlapY = fmin(objBounds.y + objBounds.height, tileBounds.y + tileBounds.height) -
+                 fmax(objBounds.y, tileBounds.y);
+  
+  // Choose minimum separation
+  if (overlapX < overlapY) {
+    // Separate horizontally
+    if (objBounds.x < tileBounds.x) {
+      separation->x -= overlapX;
+    } else {
+      separation->x += overlapX;
+    }
+  } else {
+    // Separate vertically
+    if (objBounds.y < tileBounds.y) {
+      separation->y -= overlapY;
+    } else {
+      separation->y += overlapY;
+    }
+  }
+}
+
+/**
+ * getTileCollisionBounds - Get the collision rectangle for a tile at row, col
+ * 
+ * @param row The row index of the tile
+ * @param col The column index of the tile
+ * 
+ * @return The collision bounds of the tile as a Rectangle
+ */
+static Rectangle getTileCollisionBounds(int row, int col) {
+  Map *map = &(gameState->map);
+  float tileWidth = map->tileWidth * map->scale;
+  float tileHeight = map->tileHeight * map->scale;
+  
+  return (Rectangle){
+    col * tileWidth,
+    row * tileHeight,
+    tileWidth,
+    tileHeight
+  };
+}
+
+/**
+ * checkTileCollision - Check if a GameObject collides with tiles in the specified cell
+ * 
+ * @param row The row index of the cell to check
+ * @param col The column index of the cell to check
+ * @param entity The Entity to check for collisions
+ * @param resolveCollision Whether to resolve the collision by moving the object
+ * 
+ * @return true if there was a collision, false otherwise
+ */
+static bool checkTileCollision(int row, int col, Entity *entity, bool resolveCollision) {
+  if (!entity) return false;
+  
+  Map *map = &(gameState->map);
+  
+  // Bounds check for the cell
+  if (row < 0 || row >= map->numOfRows || col < 0 || col >= map->numOfCols) {
+    return false;
+  }
+  
+  GameObject *object = getGameObjectByIndices(entity);
+  Rectangle objectBounds = object->collider.bounds;
+  bool hasCollision = false;
+  Vector2 separation = {0, 0};
+  BodyType objectType = object->rigidBody.type;
+  
+  // Check all layers in this specific cell
+  for (int layer = LAYER_WALLS; layer < MAX_CELL_ID; layer++) {
+    // Skip empty tiles
+    if (map->mapIds[row][col][layer] == -1) continue;
+
+    TileProperties tileProperties = getTileProperties(map->mapIds[row][col][layer]);
+    
+    // Skip walkable tiles that don't have special properties
+    if (isPropertySet(tileProperties, TILE_PROP_WALKABLE) &&
+        !isPropertySet(tileProperties, TILE_PROP_INTERACTIVE) &&
+        !isPropertySet(tileProperties, TILE_PROP_COLLECTIBLE) &&
+        !isPropertySet(tileProperties, TILE_PROP_DESTRUCTIBLE)) {
+      continue;
+    }
+
+    Rectangle tileBounds = getTileCollisionBounds(row, col);
+    
+    if (isPropertySet(tileProperties, TILE_PROP_INTERACTIVE)) {
+      // Adjust bounds for interactive tiles to allow interaction
+      tileBounds.x -= 5;
+      tileBounds.y -= 5;
+      tileBounds.width += 10;
+      tileBounds.height += 10;
+    } else if (isPropertySet(tileProperties, TILE_PROP_COLLECTIBLE)) {
+      // Adjust bounds for collectible tiles to make collection logical
+      tileBounds.x += 10;
+      tileBounds.y += 10;
+      tileBounds.width -= 20;
+      tileBounds.height -= 20;
+    }
+
+    if (checkAABBCollision(objectBounds, tileBounds)) {
+      hasCollision = true;
+      object->collider.isColliding = true;
+      
+      if (!isPropertySet(tileProperties, TILE_PROP_WALKABLE)) {
+        if (resolveCollision && object->rigidBody.type == BODY_DYNAMIC) {
+          calculateCollisionSeparation(objectBounds, tileBounds, &separation);
+        }
+      }
+
+      resolveTileCollision(entity, row, col, layer);
+    }
+  }
+  
+  // Apply collision resolution if needed
+  if (resolveCollision && object->rigidBody.type == BODY_DYNAMIC && 
+      (separation.x != 0 || separation.y != 0)) {
+    object->transform.position.x += separation.x;
+    object->transform.position.y += separation.y;
+    object->collider.bounds.x = object->transform.position.x;
+    object->collider.bounds.y = object->transform.position.y;
+  }
+  
+  return hasCollision;
+}
+
+/**
+ * resolveTileCollision - Resolve collision with a tile
+ * 
+ * @param entity The Entity that is colliding with the tile
+ * @param row The row index of the tile
+ * @param col The column index of the tile
+ * @param layer The layer index of the tile
+ * 
+ * @return true if the collision was resolved, false otherwise
+ */
+
+static bool resolveTileCollision(Entity *entity, int row, int col, int layer) {
+  if (!entity) return false;
+  
+  Map *map = &(gameState->map);
+  
+  if (row < 0 || row >= map->numOfRows || col < 0 || col >= map->numOfCols) {
+    return false;
+  }
+
+  int tileId = map->mapIds[row][col][layer];
+  if (tileId == -1) {
+    return true;
+  }
+  
+  TileProperties tileProperties = getTileProperties(tileId);
+  EntityType entityType = entity->type;
+  
+  switch (entityType) {
+    case ENTITY_PLAYER:
+      Player *player = entity->entity.player;
+      if (isTileCollectible(tileId) && addToInventory(player, tileId)) {
+        removePickable(row, col);
+        return true;
+      }
+      if (isTileInteractive(tileId)) {
+        player->interactableTileIndex = row * map->numOfCols + col;
+        return true;
+      }
+      break;
+    case ENTITY_P_COMBAT_ACTION:
+    case ENTITY_E_COMBAT_ACTION:
+      if (isPropertySet(tileProperties, TILE_PROP_SOLID)) {
+        // Handle combat action collision with solid tiles
+        CombatAction *action = entity->entity.action;
+        if (action->type == ACTION_BULLET) {
+          Bullet *bullet = &(action->action.bullet);
+          bullet->bulletInfo.bulletHealth = 0;
+        }
+      }
+      break;
+    default:
+      break;
+  }
+  return false;
 }

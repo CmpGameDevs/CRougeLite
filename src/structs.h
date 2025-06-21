@@ -34,7 +34,7 @@
 
 typedef enum { ENTITY_PLAYER, ENTITY_ENEMY, ENTITY_P_COMBAT_ACTION, ENTITY_E_COMBAT_ACTION, ENTITY_MISC } EntityType;
 
-typedef enum { BODY_STATIC, BODY_DYNAMIC, BODY_KINEMATIC } BodyType;
+typedef enum { BODY_STATIC, BODY_DYNAMIC, BODY_KINEMATIC, BODY_GHOST } BodyType;
 
 typedef enum { ACTION_NONE, ACTION_BULLET, ACTION_SLASH } CombatActionType;
 
@@ -314,7 +314,7 @@ typedef struct {
   int currentNumOfWeapons;
   int currentWeapon;
   Weapon *weapons;
-} Inventory;
+} WeaponsInventory;
 
 typedef struct {
   Vector2 patrolStart;
@@ -355,7 +355,7 @@ typedef struct {
 
   // Player Stats
   Stats stats;
-  Inventory inventory;
+  WeaponsInventory inventory;
   GameObject object;
   Input input;
   Experience experience;
@@ -365,6 +365,7 @@ typedef struct {
   CollectibleItem collectedItems[MAX_COLLECTED_ITEMS];
   bool isMoving;
   DIRECTIONS direction; // to get info on the direction the player is facing.
+  int interactableTileIndex;
 } Player;
 
 typedef union {
@@ -396,6 +397,7 @@ typedef struct {
   bool showColliders;
   bool showFPS;
   bool showDebugMenu;
+  bool showInventory;
   float zoom;
 } Settings;
 

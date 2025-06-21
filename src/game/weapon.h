@@ -25,10 +25,10 @@
 #include "combatAction.h"
 
 Weapon initWeapon(int opcode, bool isPlayer);
-Inventory initInventory();
+WeaponsInventory initInventory();
 void updateRangedWeapon(Weapon *weapon, bool isFired, int ID, Vector2 src, Vector2 dest, float deltaTime);
 void updateMeleeWeapon(Weapon *weapon, bool isFired, int ID, Vector2 src, Vector2 dest, float deltaTime);
 void drawWeapon();
-void clearInventory(Inventory *inventory);
+void clearInventory(WeaponsInventory *inventory);
 
 #endif // INPUT_H

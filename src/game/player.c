@@ -19,6 +19,7 @@
  **************************************************************/
 
 #include "player.h"
+#include "../system/collision.h"
 
 #include "../system/anime.h"
 #include <raylib.h>
@@ -34,6 +35,8 @@ static void animationController(Player *player);
 static int handlePlayerInput(Player *player);
 static void handlePlayerMovement(Player *player, int bitmask);
 static void handlePlayerInventory(Player *player, int bitmask);
+static void handlePlayerInteraction(Player *player, int bitmask);
+static bool canMovePlayer(float posX, float posY, Vector2 size);
 static void clearPlayer(Player **player);
 
 /**
@@ -125,18 +128,89 @@ void updatePlayers()
   double speed = player->stats.speed;
 
   int playerInput = handlePlayerInput(player);
+  handlePlayerMovement(player, playerInput);
 
   if (playerInput)
   {
-    handlePlayerMovement(player, playerInput);
     // Swapping between weapons
     handlePlayerInventory(player, playerInput);
+
+    // Interact with the map
+    handlePlayerInteraction(player, playerInput);
   }
 
   // NOTE: animation controller is the state machine
   animationController(player);
   // NOTE:: this is the call that forwards the animation
   updateAnimator(&(player->object.animator));
+}
+
+/**
+ * addToInventory - add an item to the player inventory
+ * 
+ * @param player The player to add the item to
+ * @param itemId The ID of the item to add
+ * 
+ * @return true if the item was added successfully, false otherwise
+ */
+bool addToInventory(Player *player, int itemId) {
+  CollectibleItem item = {
+      .tileId = itemId,
+      .count = 1
+  };
+  
+  CollectibleItem *collectedItems = player->collectedItems;
+  for (int i = 0; i < MAX_COLLECTED_ITEMS; i++)
+  {
+    if (collectedItems[i].tileId == itemId)
+    {
+      collectedItems[i].count++;
+      return true;
+    }
+    if (collectedItems[i].tileId == -1)
+    {
+      collectedItems[i] = item;
+      return true;
+    }
+  }
+  
+  return false;
+}
+
+/**
+ * useFromInventory - remove an item from the player inventory
+ * 
+ * @param player The player to remove the item from
+ * @param itemId The ID of the item to remove
+ * 
+ * @return true if the item was removed successfully, false otherwise
+ */
+bool useFromInventory(Player *player, int itemId) {
+  CollectibleItem *collectedItems = player->collectedItems;
+  int indexToRemove = -1;
+  for (int i = 0; i < MAX_COLLECTED_ITEMS; i++)
+  {
+    if (collectedItems[i].tileId == itemId)
+    {
+      if (collectedItems[i].count > 1)
+      {
+        collectedItems[i].count--;
+        return true;
+      }
+      indexToRemove = i;
+      break;
+    }
+  }
+
+  if (indexToRemove == -1)  return false;
+
+  // Compact the inventory
+  for (int i = indexToRemove; i < MAX_COLLECTED_ITEMS - 1; i++)
+  {
+    collectedItems[i] = collectedItems[i + 1];
+  }
+  collectedItems[MAX_COLLECTED_ITEMS - 1] = (CollectibleItem){-1, 0}; // Reset last item
+  return true;
 }
 
 /**
@@ -198,6 +272,10 @@ static Player *initPlayer(const char *name, P_TYPE type, P_WEAPON weapon,
   player->ID = playerID++;
   player->type = type;
   player->inventory = initInventory();
+  for (int i = 0; i < MAX_COLLECTED_ITEMS; i++)
+  {
+    player->collectedItems[i] = (CollectibleItem){-1, 0};
+  }
   AddPlayerWeapon(player, weapon);
   player->object.transform.position = position;
   player->object.collider.bounds.x = position.x;
@@ -221,6 +299,7 @@ static Player *initPlayer(const char *name, P_TYPE type, P_WEAPON weapon,
                           .left = KEY_A,
                           .right = KEY_D,
                           .action = KEY_E,
+                          .interact = KEY_F,
                           .weapons = weapons};
 
   return player;
@@ -284,6 +363,9 @@ static int handlePlayerInput(Player *player)
     bitmask |= INPUT_LEFT;
   if (IsKeyDown(input.right))
     bitmask |= INPUT_RIGHT;
+  if (player->interactableTileIndex != -1 &&
+      IsKeyDown(input.interact))
+    bitmask |= INPUT_INTERACT;
 
   for (int i = 0; i < player->inventory.currentNumOfWeapons; i++)
   {
@@ -320,16 +402,10 @@ static void handlePlayerMovement(Player *player, int playerInput)
 
   double speed = player->stats.speed;
   Vector2 velocity = Vector2Scale(Vector2Normalize(direction), speed);
-  Vector2 position = Vector2Add(player->object.transform.position, velocity);
+  Vector2 position = player->object.transform.position;
+  Vector2 newPosition = Vector2Add(player->object.transform.position, velocity);
 
-  if (Vector2Length(velocity) > 0)
-  {
-    player->isMoving = true;
-  }
-  else
-  {
-    player->isMoving = false;
-  }
+  player->isMoving = (Vector2Length(velocity) > 0);
 
   if (velocity.x < 0)
   {
@@ -340,15 +416,59 @@ static void handlePlayerMovement(Player *player, int playerInput)
     player->drawDirection = 1;
   }
 
-  // NOTE: this makes the player unable to go out of frame
+  // Get edges points
+  // Subtract an offset from the top row and left column to account for "depth"
+  Vector2 playerColliderSize = {
+      .x = player->object.collider.bounds.width,
+      .y = player->object.collider.bounds.height,
+  };
+
+  bool canMove = canMovePlayer(newPosition.x, newPosition.y, playerColliderSize);
+
+  if (!canMove) {
+    if (velocity.y != 0 &&
+        canMovePlayer(position.x, newPosition.y, playerColliderSize)) {
+      newPosition.x = position.x;
+      velocity.x = 0;
+    } else if (velocity.x != 0 &&
+               canMovePlayer(newPosition.x, position.y, playerColliderSize)) {
+      newPosition.y = position.y;
+      velocity.y = 0;
+    } else {
+      player->isMoving = false;
+      return;
+    }
+  }
+  
   player->object.rigidBody.velocity = velocity;
-  // TODO: position clamping is removed for now
-  // player->object.transform.position =
-  // Vector2Clamp(position, (Vector2){0, 0},
-  // (Vector2){GetScreenWidth() - 64, GetScreenHeight() - 64});
-  player->object.transform.position = position;
-  player->object.collider.bounds.x = position.x;
-  player->object.collider.bounds.y = position.y;
+  player->object.transform.position = newPosition;
+  player->object.collider.bounds.x = newPosition.x;
+  player->object.collider.bounds.y = newPosition.y;  
+}
+
+/**
+ * canMovePlayer - check if the player can move to the new position
+ * 
+ * @param posX X position of the player
+ * @param posY Y position of the player
+ * @param size Size of the player collider
+ * 
+ * @return true if the player can move, false otherwise
+ */
+static bool canMovePlayer(float posX, float posY, Vector2 size)
+{
+  int offsetX = 30, offsetY = 40;
+  Collider2D collider = {
+      .bounds = (Rectangle){posX + offsetX / 2, posY + offsetY, size.x - offsetX, size.y - offsetY},
+      .isColliding = false,
+  };
+  int startX, startY, endX, endY;
+
+  getGameObjectIndices(&startX, &startY, &endX, &endY, &collider);
+  return isWalkable(startY, startX) &&
+         isWalkable(startY, endX) &&
+         isWalkable(endY, startX) &&
+         isWalkable(endY, endX);
 }
 
 /**
@@ -360,7 +480,8 @@ static void handlePlayerMovement(Player *player, int playerInput)
  */
 static void handlePlayerInventory(Player *player, int playerInput)
 {
-  Inventory *inventory = &(player->inventory);
+  // Handle weapon selection
+  WeaponsInventory *inventory = &(player->inventory);
   for (int i = 0; i < inventory->currentNumOfWeapons; i++)
   {
     if (playerInput & (INPUT_INVENTORY_1 << i))
@@ -388,6 +509,35 @@ static void handlePlayerInventory(Player *player, int playerInput)
   }
 }
 
+/**
+ * handlePlayerInteraction - handle player interaction with the map
+ * 
+ * @param player Pointer to the player object
+ * @param bitmask Bitmask for the player's input
+ */
+static void handlePlayerInteraction(Player *player, int playerInput)
+{
+  int interactableTileIndex = player->interactableTileIndex;
+  player->interactableTileIndex = -1; // Reset interaction
+
+  if (!(playerInput & INPUT_INTERACT) ||
+    interactableTileIndex == -1) return;
+
+  int row = interactableTileIndex / gameState->map.numOfCols;
+  int col = interactableTileIndex % gameState->map.numOfCols;
+  int tileId = gameState->map.mapIds[row][col][LAYER_INTERACTABLE];
+  if (tileId == -1) return;
+
+  InteractableMapping *mapping = getInteractableMapping(tileId);
+  if (mapping == NULL) return;
+
+  int requiredItem = mapping->requiredItem;
+  if (canInteractWith(tileId, player->collectedItems)) {
+    toggleInteractable(row, col, player->collectedItems);
+    useFromInventory(player, requiredItem);
+  }
+
+}
 
 static void clearPlayer(Player **player)
 {
