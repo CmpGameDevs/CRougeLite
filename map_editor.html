@@ -1,0 +1,1536 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>CRougeLite Map Editor</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .container {
+            display: flex;
+            gap: 20px;
+            height: calc(100vh - 100px);
+            max-width: 100vw;
+            overflow: hidden;
+        }
+
+        .controls {
+            width: 380px;
+            min-width: 380px;
+            max-height: 100%;
+            overflow-y: auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+
+        .controls h3 {
+            margin-top: 0;
+            color: #34495e;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+
+        .controls h4 {
+            color: #2c3e50;
+            margin-top: 25px;
+            margin-bottom: 10px;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .map-container {
+            flex: 1;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            overflow: auto;
+            position: relative;
+        }
+
+        .editor {
+            border: 2px solid #34495e;
+            border-radius: 8px;
+            padding: 10px;
+            background: #ecf0f1;
+            overflow: visible;
+            white-space: nowrap;
+            display: inline-block;
+            min-width: fit-content;
+        }
+
+        .editor-row {
+            display: block;
+            height: 26px;
+            line-height: 0;
+            white-space: nowrap;
+        }
+
+        .tile {
+            width: 24px;
+            height: 24px;
+            border: 1px solid #bdc3c7;
+            display: inline-block;
+            cursor: pointer;
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+            position: relative;
+            vertical-align: top;
+            transition: all 0.1s ease;
+        }
+
+        .tile:hover {
+            border-color: #3498db;
+            transform: scale(1.1);
+            z-index: 10;
+            box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
+        }
+
+        .tile.empty {
+            background-color: #ecf0f1;
+        }
+
+        .tile-id {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            font-size: 6px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 1px;
+            line-height: 1;
+            border-radius: 2px 0 0 0;
+            font-weight: bold;
+        }
+
+        .controls {
+            width: 350px;
+            max-height: 100vh;
+            overflow-y: auto;
+        }
+
+        .layer-selector {
+            margin: 15px 0;
+        }
+
+        .layer-selector select {
+            width: 100%;
+            padding: 8px;
+            border: 2px solid #bdc3c7;
+            border-radius: 5px;
+            background: white;
+            font-size: 12px;
+            transition: border-color 0.3s ease;
+        }
+
+        .layer-selector select:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .layer-visibility {
+            margin: 15px 0;
+            padding: 15px;
+            border: 2px solid #e8e8e8;
+            border-radius: 8px;
+            background: linear-gradient(145deg, #f8f9fa, #e9ecef);
+        }
+
+        .layer-visibility h4 {
+            margin-top: 0;
+            color: #495057;
+        }
+
+        .layer-visibility label {
+            display: flex;
+            align-items: center;
+            margin: 8px 0;
+            font-size: 13px;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+
+        .layer-visibility label:hover {
+            color: #3498db;
+        }
+
+        .layer-visibility input[type="checkbox"] {
+            margin-right: 8px;
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        .layer-visibility .button-group {
+            margin-top: 10px;
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+
+        .layer-visibility button {
+            font-size: 10px;
+            padding: 6px 10px;
+            margin: 0;
+            border: none;
+            border-radius: 4px;
+            background: #3498db;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            flex: 1;
+            min-width: 70px;
+        }
+
+        .layer-visibility button:hover {
+            background: #2980b9;
+            transform: translateY(-1px);
+        }
+
+        .tile-palette {
+            display: grid;
+            grid-template-columns: repeat(8, 40px);
+            gap: 3px;
+            margin: 15px 0;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 2px solid #e8e8e8;
+            border-radius: 8px;
+            padding: 10px;
+            background: #fafafa;
+        }
+
+        .palette-tile {
+            width: 40px;
+            height: 40px;
+            border: 2px solid #d5d5d5;
+            cursor: pointer;
+            position: relative;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .palette-tile:hover {
+            border-color: #3498db;
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+        }
+
+        .palette-tile.selected {
+            border-color: #e74c3c;
+            background-color: #fff5f5;
+            box-shadow: 0 0 0 2px #e74c3c;
+        }
+
+        .palette-tile-id {
+            position: absolute;
+            bottom: 2px;
+            left: 2px;
+            font-size: 8px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 1px 3px;
+            line-height: 1;
+            border-radius: 2px;
+            font-weight: bold;
+        }
+
+        .file-input-section {
+            margin: 15px 0;
+            padding: 15px;
+            border: 2px solid #e8e8e8;
+            border-radius: 8px;
+            background: linear-gradient(145deg, #ffffff, #f8f9fa);
+        }
+
+        .file-input-section h4 {
+            margin-top: 0;
+            color: #495057;
+        }
+
+        .file-input-section label {
+            display: block;
+            margin: 10px 0 5px 0;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .file-input-section input[type="file"] {
+            width: 100%;
+            padding: 8px;
+            border: 2px dashed #bdc3c7;
+            border-radius: 5px;
+            background: #f8f9fa;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .file-input-section input[type="file"]:hover {
+            border-color: #3498db;
+            background: #e3f2fd;
+        }
+
+        .layer-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            border-radius: 0 2px 2px 0;
+        }
+
+        .layer-0 .layer-overlay {
+            background-color: #8B4513;
+            box-shadow: inset -2px 0 0 #654321;
+        }
+
+        /* Terrain - brown */
+        .layer-1 .layer-overlay {
+            background-color: #696969;
+            box-shadow: inset -2px 0 0 #454545;
+        }
+
+        /* Walls - gray */
+        .layer-2 .layer-overlay {
+            background-color: #90EE90;
+            box-shadow: inset -2px 0 0 #6BC66B;
+        }
+
+        /* Decoration - light green */
+        .layer-3 .layer-overlay {
+            background-color: #FFD700;
+            box-shadow: inset -2px 0 0 #DAA520;
+        }
+
+        /* Interactable - gold */
+        .layer-4 .layer-overlay {
+            background-color: #FF69B4;
+            box-shadow: inset -2px 0 0 #FF1493;
+        }
+
+        /* Pickable - pink */
+
+        .loading {
+            color: #7f8c8d;
+            font-style: italic;
+            font-size: 12px;
+            padding: 5px;
+            background: #ecf0f1;
+            border-radius: 4px;
+            margin: 5px 0;
+        }
+
+        /* Button Styling */
+        button {
+            background: linear-gradient(145deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin: 3px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        button:hover {
+            background: linear-gradient(145deg, #2980b9, #21618c);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Input Styling */
+        input[type="number"],
+        input[type="text"] {
+            width: 80px;
+            padding: 8px;
+            border: 2px solid #bdc3c7;
+            border-radius: 5px;
+            font-size: 12px;
+            transition: border-color 0.3s ease;
+        }
+
+        input[type="text"] {
+            width: 200px;
+        }
+
+        input[type="number"]:focus,
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        label {
+            font-weight: 600;
+            color: #2c3e50;
+            margin: 5px 0;
+            display: block;
+        }
+
+        /* Textarea Styling */
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e8e8e8;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            resize: vertical;
+            transition: border-color 0.3s ease;
+            background: #fafafa;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #3498db;
+            background: white;
+        }
+
+        /* Debug Info Styling */
+        #debugInfo {
+            font-size: 10px;
+            background: linear-gradient(145deg, #f8f9fa, #e9ecef);
+            padding: 10px;
+            margin: 10px 0;
+            max-height: 120px;
+            overflow-y: auto;
+            border: 2px solid #e8e8e8;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            line-height: 1.4;
+        }
+
+        /* Button Groups */
+        .button-group {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+            margin: 10px 0;
+        }
+
+        .button-group button {
+            flex: 1;
+            min-width: 120px;
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #bdc3c7;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #95a5a6;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>CRougeLite Map Editor</h1>
+    <div class="container">
+        <div class="controls">
+            <h3>CRougeLite Map Editor</h3>
+
+            <div class="file-input-section">
+                <h4>Load Resources</h4>
+                <label>Mapper File:</label>
+                <input type="file" id="mapperFile" accept="." onchange="loadMapper()">
+
+                <label>Tile Images Folder:</label>
+                <input type="file" id="imageFolder" webkitdirectory directory multiple onchange="loadImages()">
+                <div id="loadingStatus" class="loading"></div>
+            </div>
+
+            <div class="layer-selector">
+                <label>Current Layer:</label>
+                <select id="currentLayer">
+                    <option value="0">Layer 0 - Terrain</option>
+                    <option value="1">Layer 1 - Walls</option>
+                    <option value="2">Layer 2 - Decoration</option>
+                    <option value="3">Layer 3 - Interactables</option>
+                    <option value="4">Layer 4 - Pickables</option>
+                </select>
+            </div>
+
+            <div class="layer-visibility">
+                <h4>Layer Visibility</h4>
+                <div>
+                    <label><input type="checkbox" id="layer0Visible" checked onchange="updateMapDisplay()">
+                        Terrain</label>
+                    <label><input type="checkbox" id="layer1Visible" checked onchange="updateMapDisplay()">
+                        Walls</label>
+                    <label><input type="checkbox" id="layer2Visible" checked onchange="updateMapDisplay()">
+                        Decoration</label>
+                    <label><input type="checkbox" id="layer3Visible" checked onchange="updateMapDisplay()">
+                        Interactables</label>
+                    <label><input type="checkbox" id="layer4Visible" checked onchange="updateMapDisplay()">
+                        Pickables</label>
+                </div>
+                <div class="button-group">
+                    <button onclick="showAllLayers()">Show All</button>
+                    <button onclick="hideAllLayers()">Hide All</button>
+                    <button onclick="showOnlyCurrentLayer()">Show Only Current</button>
+                </div>
+            </div>
+
+            <div>
+                <label>Selected Tile ID:</label>
+                <input type="number" id="selectedTile" value="78" min="-1" max="1023">
+                <button onclick="selectTileById()">Select</button>
+            </div>
+
+            <h4>Tile Palette</h4>
+            <div class="tile-palette" id="tilePalette">
+                <!-- Tiles will be loaded here -->
+            </div>
+            <div class="button-group">
+                <button onclick="clearMap()">Clear Map</button>
+                <button onclick="exportCSV()">Export CSV</button>
+                <button onclick="saveToProject()">Save to Project</button>
+                <button onclick="loadMap()">Load CSV File</button>
+                <button onclick="loadCSVDirect()">Load CSV from Input</button>
+            </div>
+            <h4>Map Size:</h4>
+            <label>Rows: <input type="number" id="mapRows" value="25" onchange="createMap()"></label>
+            <label>Cols: <input type="number" id="mapCols" value="40" onchange="createMap()"></label>
+
+            <h4>Export Settings:</h4>
+            <label>Filename (without .csv): <input type="text" id="exportFilename"
+                    placeholder="Auto-generated if empty"></label>
+
+            <h4>Debug Info</h4>
+            <div class="button-group">
+                <button onclick="showDebugInfo()">Show Debug Info</button>
+                <button onclick="autoFixFilenames()">Auto-Fix Filenames</button>
+                <button onclick="generateMapper()">Generate Mapper from Images</button>
+                <button onclick="clearCache()">Clear Cache</button>
+            </div>
+
+            <div id="debugInfo"></div>
+
+            <h4>CSV Data</h4>
+            <textarea id="csvInput" rows="6" placeholder="Paste CSV data here to load directly..."></textarea>
+            <textarea id="csvOutput" rows="10" placeholder="CSV output will appear here..."></textarea>
+        </div>
+
+        <div class="map-container">
+            <div class="editor" id="mapEditor">
+                <!-- Map grid will be generated here -->
+            </div>
+        </div>
+    </div>
+    <script>
+        let currentLayer = 0;
+        let selectedTile = 78;
+        let mapData = [];
+        let mapRows = 25;
+        let mapCols = 40;
+        let tileMapper = {}; // Maps tile ID to filename
+        let tileImages = {}; // Maps filename to image URL
+        let availableTiles = []; // Array of available tile IDs        // Initialize
+        createMap();
+        loadCachedData();
+
+        document.getElementById('currentLayer').addEventListener('change', (e) => {
+            currentLayer = parseInt(e.target.value);
+            updateMapDisplay();
+        });
+        document.getElementById('selectedTile').addEventListener('change', (e) => {
+            selectedTile = parseInt(e.target.value);
+            highlightSelectedTile();
+        });
+
+        // Cache management functions
+        function saveCachedData() {
+            const cacheData = {
+                tileMapper: tileMapper,
+                tileImages: tileImages,
+                availableTiles: availableTiles,
+                timestamp: Date.now()
+            };
+
+            try {
+                localStorage.setItem('crougelite_mapper_cache', JSON.stringify(cacheData));
+                console.log('Cached mapper and images data successfully');
+            } catch (e) {
+                console.warn('Failed to cache data:', e);
+                // If storage is full, try to clear old data and retry
+                if (e.name === 'QuotaExceededError') {
+                    localStorage.removeItem('crougelite_mapper_cache');
+                    document.getElementById('loadingStatus').textContent = 'Cache full - cleared old data';
+                    setTimeout(() => {
+                        document.getElementById('loadingStatus').textContent = '';
+                    }, 2000);
+                }
+            }
+        }
+
+        function loadCachedData() {
+            try {
+                const cachedData = localStorage.getItem('crougelite_mapper_cache');
+                if (cachedData) {
+                    const data = JSON.parse(cachedData);
+                    const dayInMs = 24 * 60 * 60 * 1000;
+
+                    // Check if cache is less than 7 days old
+                    if (Date.now() - data.timestamp < 7 * dayInMs) {
+                        tileMapper = data.tileMapper || {};
+                        tileImages = data.tileImages || {};
+                        availableTiles = data.availableTiles || [];
+
+                        if (Object.keys(tileMapper).length > 0) {
+                            document.getElementById('loadingStatus').textContent =
+                                `Loaded ${availableTiles.length} tiles from cache`;
+                            updatePalette();
+                            updateMapDisplay();
+
+                            setTimeout(() => {
+                                document.getElementById('loadingStatus').textContent = '';
+                            }, 2000);
+
+                            console.log('Loaded cached data:', {
+                                mapperEntries: Object.keys(tileMapper).length,
+                                imageEntries: Object.keys(tileImages).length,
+                                availableTiles: availableTiles.length
+                            });
+                            return;
+                        }
+                    } else {
+                        // Clear expired cache
+                        localStorage.removeItem('crougelite_mapper_cache');
+                        console.log('Cleared expired cache');
+                    }
+                }
+            } catch (e) {
+                console.warn('Failed to load cached data:', e);
+                localStorage.removeItem('crougelite_mapper_cache');
+            }
+
+            // Fallback to default palette if no cache
+            loadDefaultPalette();
+        }
+
+        function clearCache() {
+            localStorage.removeItem('crougelite_mapper_cache');
+            document.getElementById('loadingStatus').textContent = 'Cache cleared successfully';
+            setTimeout(() => {
+                document.getElementById('loadingStatus').textContent = '';
+            }, 2000);
+            console.log('Cache cleared manually');
+        } function loadMapper() {
+            const file = document.getElementById('mapperFile').files[0];
+            if (!file) return;
+
+            document.getElementById('loadingStatus').textContent = 'Loading mapper...';
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const content = e.target.result;
+                parseMapper(content);
+                updatePalette();
+                saveCachedData(); // Save to cache
+                document.getElementById('loadingStatus').textContent = 'Mapper loaded and cached successfully!';
+                setTimeout(() => {
+                    document.getElementById('loadingStatus').textContent = '';
+                }, 2000);
+            };
+            reader.readAsText(file);
+        }
+
+
+        function parseMapper(content) {
+            tileMapper = {};
+            const lines = content.split('\n');
+
+            console.log('Parsing mapper file...');
+
+            for (const line of lines) {
+                const trimmed = line.trim();
+                if (trimmed && !trimmed.startsWith('#')) {
+                    // Handle both space-separated and comma-separated formats
+                    let parts;
+                    if (trimmed.includes(',')) {
+                        // CSV format: "id,filename" or "id, filename"
+                        parts = trimmed.split(',').map(part => part.trim());
+                    } else {
+                        // Space-separated format: "id filename"
+                        parts = trimmed.split(' ');
+                    }
+
+                    if (parts.length >= 2) {
+                        const id = parseInt(parts[0]);
+                        const filename = parts[1];
+                        if (!isNaN(id) && filename) {
+                            tileMapper[id] = filename;
+                            console.log(`Mapped tile ${id} -> ${filename}`);
+                        }
+                    }
+                }
+            }
+
+            availableTiles = Object.keys(tileMapper).map(id => parseInt(id)).sort((a, b) => a - b);
+            console.log(`Loaded ${availableTiles.length} tiles from mapper:`, availableTiles);
+            console.log('Tile mapper:', tileMapper);
+        } function loadImages() {
+            const files = document.getElementById('imageFolder').files;
+            if (!files.length) return;
+
+            document.getElementById('loadingStatus').textContent = `Loading ${files.length} files...`;
+            tileImages = {};
+
+            let totalImageFiles = 0;
+            let loadedCount = 0;
+
+            // First count image files
+            for (const file of files) {
+                if (file.type.startsWith('image/')) {
+                    totalImageFiles++;
+                }
+            }
+
+            if (totalImageFiles === 0) {
+                document.getElementById('loadingStatus').textContent = 'No image files found in folder!';
+                return;
+            }
+
+            document.getElementById('loadingStatus').textContent = `Loading ${totalImageFiles} images...`;
+
+            for (const file of files) {
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        // Extract filename without path
+                        const filename = file.name;
+                        tileImages[filename] = e.target.result;
+
+                        loadedCount++;
+                        document.getElementById('loadingStatus').textContent =
+                            `Loading images... ${loadedCount}/${totalImageFiles}`;
+
+                        console.log(`Loaded image: ${filename}`);
+                        if (loadedCount === totalImageFiles) {
+                            document.getElementById('loadingStatus').textContent =
+                                `Loaded ${loadedCount} images successfully!`;
+                            console.log('All images loaded. Available images:', Object.keys(tileImages));
+                            console.log('Tile mapper:', tileMapper);
+                            updatePalette();
+                            updateMapDisplay();
+                            saveCachedData(); // Save to cache
+                            setTimeout(() => {
+                                document.getElementById('loadingStatus').textContent = '';
+                            }, 2000);
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            }
+        }
+
+        function updatePalette() {
+            const palette = document.getElementById('tilePalette');
+            palette.innerHTML = '';
+
+            // Add empty tile option
+            const emptyTile = createPaletteTile(-1, null);
+            palette.appendChild(emptyTile);
+
+            // Add available tiles
+            for (const tileId of availableTiles) {
+                const filename = tileMapper[tileId];
+                const imageUrl = tileImages[filename];
+                const tile = createPaletteTile(tileId, imageUrl);
+                palette.appendChild(tile);
+            }
+
+            highlightSelectedTile();
+        } function createPaletteTile(tileId, imageUrl) {
+            const tile = document.createElement('div');
+            tile.className = 'palette-tile';
+            tile.dataset.tile = tileId;
+
+            // Debug logging
+            const filename = tileMapper[tileId];
+            console.log(`Creating palette tile ${tileId}: filename="${filename}", hasImage=${!!imageUrl}`);
+
+            if (imageUrl) {
+                tile.style.backgroundImage = `url(${imageUrl})`;
+                tile.style.backgroundColor = '';
+            } else if (tileId === -1) {
+                tile.style.backgroundColor = '#f0f0f0';
+                tile.innerHTML = '<div class="palette-tile-id">EMPTY</div>';
+            } else {
+                // No image found - show red background and question mark
+                tile.style.backgroundColor = '#ffcccc';
+                tile.innerHTML = '<div class="palette-tile-id">?</div>';
+                console.warn(`No image found for tile ${tileId} with filename "${filename}"`);
+            }
+
+            // Add tile ID label
+            if (tileId !== -1) {
+                const idLabel = document.createElement('div');
+                idLabel.className = 'palette-tile-id';
+                idLabel.textContent = tileId;
+                tile.appendChild(idLabel);
+            }
+
+            tile.addEventListener('click', () => selectPaletteTile(tileId));
+
+            return tile;
+        }
+
+        function selectPaletteTile(tileId) {
+            selectedTile = tileId;
+            document.getElementById('selectedTile').value = tileId;
+            highlightSelectedTile();
+        }
+
+        function selectTileById() {
+            const tileId = parseInt(document.getElementById('selectedTile').value);
+            selectedTile = tileId;
+            highlightSelectedTile();
+        }
+
+        function highlightSelectedTile() {
+            document.querySelectorAll('.palette-tile').forEach(tile => {
+                tile.classList.toggle('selected',
+                    parseInt(tile.dataset.tile) === selectedTile);
+            });
+        }
+
+        function loadDefaultPalette() {
+            // Load some default tiles for immediate use
+            const defaultTiles = [-1, 0, 1, 10, 78, 100, 200];
+            availableTiles = defaultTiles;
+
+            // Create basic mapper
+            tileMapper = {
+                0: 'tile_0_0.png',
+                1: 'tile_0_1.png',
+                10: 'tile_1_0.png',
+                78: 'grass.png',
+                100: 'door.png',
+                200: 'coin.png'
+            };
+
+            updatePalette();
+        } function createMap() {
+            mapRows = parseInt(document.getElementById('mapRows').value);
+            mapCols = parseInt(document.getElementById('mapCols').value);
+            // Initialize map data with tile 78 as default background
+            mapData = [];
+            for (let row = 0; row < mapRows; row++) {
+                mapData[row] = [];
+                for (let col = 0; col < mapCols; col++) {
+                    mapData[row][col] = [78, -1, -1, -1, -1]; // Default to tile 78 on terrain layer
+                }
+            }
+
+            createVisualGrid();
+            updateMapDisplay();
+        } function createVisualGrid() {
+            // Create visual grid
+            const editor = document.getElementById('mapEditor');
+            editor.innerHTML = '';
+            editor.style.width = (mapCols * 26) + 'px';
+
+            for (let row = 0; row < mapRows; row++) {
+                const rowDiv = document.createElement('div');
+                rowDiv.className = 'editor-row';
+
+                for (let col = 0; col < mapCols; col++) {
+                    const tile = document.createElement('div');
+                    tile.className = 'tile empty';
+                    tile.dataset.row = row;
+                    tile.dataset.col = col;
+                    tile.addEventListener('click', placeTile);
+                    tile.addEventListener('mousedown', startDrag);
+                    tile.addEventListener('mouseover', dragPlace);
+
+                    // Add layer indicator
+                    const layerOverlay = document.createElement('div');
+                    layerOverlay.className = 'layer-overlay';
+                    tile.appendChild(layerOverlay);
+
+                    rowDiv.appendChild(tile);
+                }
+
+                editor.appendChild(rowDiv);
+            }
+        }
+
+        let isDragging = false;
+
+        function startDrag(e) {
+            isDragging = true;
+            placeTile(e);
+        }
+
+        function dragPlace(e) {
+            if (isDragging) {
+                placeTile(e);
+            }
+        }
+
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+        });
+
+        function placeTile(e) {
+            const row = parseInt(e.target.dataset.row);
+            const col = parseInt(e.target.dataset.col);
+
+            if (isNaN(row) || isNaN(col)) return;
+
+            mapData[row][col][currentLayer] = selectedTile;
+            updateTileDisplay(e.target, row, col);
+        } function updateTileDisplay(tileElement, row, col) {
+            const layers = mapData[row][col];
+
+            // Get layer visibility settings
+            const layerVisible = [
+                document.getElementById('layer0Visible').checked,
+                document.getElementById('layer1Visible').checked,
+                document.getElementById('layer2Visible').checked,
+                document.getElementById('layer3Visible').checked,
+                document.getElementById('layer4Visible').checked
+            ];
+
+            // Clear previous content
+            tileElement.innerHTML = '<div class="layer-overlay"></div>';
+            tileElement.style.backgroundImage = '';
+            tileElement.style.backgroundColor = '';
+
+            // Find visible layers with tiles
+            const visibleLayers = [];
+            let topVisibleLayer = -1;
+
+            for (let i = 0; i < 5; i++) {
+                if (layers[i] !== -1 && layerVisible[i]) {
+                    visibleLayers.push({
+                        layer: i,
+                        tileId: layers[i],
+                        filename: tileMapper[layers[i]],
+                        imageUrl: tileImages[tileMapper[layers[i]]]
+                    });
+                    topVisibleLayer = i;
+                }
+            }
+
+            if (visibleLayers.length === 0) {
+                tileElement.className = 'tile empty';
+                return;
+            }
+
+            // Set the layer class based on the topmost visible layer
+            tileElement.className = `tile layer-${topVisibleLayer}`;
+
+            if (visibleLayers.length === 1) {
+                // Single layer - simple case
+                const layer = visibleLayers[0];
+                if (layer.imageUrl) {
+                    tileElement.style.backgroundImage = `url(${layer.imageUrl})`;
+                } else {
+                    tileElement.style.backgroundColor = '#ffcccc';
+                }
+
+                // Add tile ID indicator for the visible tile
+                const idLabel = document.createElement('div');
+                idLabel.className = 'tile-id';
+                idLabel.textContent = layer.tileId;
+                tileElement.appendChild(idLabel);
+            } else {
+                // Multiple layers - composite them
+                compositeLayersToTile(tileElement, visibleLayers, row, col);
+            }
+        }
+
+        function compositeLayersToTile(tileElement, visibleLayers, row, col) {
+            // Create a canvas to composite the layers
+            const canvas = document.createElement('canvas');
+            canvas.width = 24;
+            canvas.height = 24;
+            const ctx = canvas.getContext('2d');
+
+            let loadedImages = 0;
+            const totalImages = visibleLayers.length;
+            const images = [];
+
+            // Load all layer images
+            visibleLayers.forEach((layer, index) => {
+                if (layer.imageUrl) {
+                    const img = new Image();
+                    img.onload = () => {
+                        images[index] = img;
+                        loadedImages++;
+
+                        // When all images are loaded, composite them
+                        if (loadedImages === totalImages) {
+                            // Clear canvas
+                            ctx.clearRect(0, 0, 24, 24);
+
+                            // Draw layers from bottom to top
+                            visibleLayers.forEach((layer, idx) => {
+                                if (images[idx]) {
+                                    ctx.drawImage(images[idx], 0, 0, 24, 24);
+                                }
+                            });
+
+                            // Set the composite as background
+                            const compositeDataUrl = canvas.toDataURL('image/png');
+                            tileElement.style.backgroundImage = `url(${compositeDataUrl})`;
+
+                            // Add tile ID indicator for the topmost layer
+                            const topLayer = visibleLayers[visibleLayers.length - 1];
+                            const idLabel = document.createElement('div');
+                            idLabel.className = 'tile-id';
+                            idLabel.textContent = topLayer.tileId;
+                            tileElement.appendChild(idLabel);
+                        }
+                    };
+
+                    img.onerror = () => {
+                        // Handle missing image
+                        loadedImages++;
+                        if (loadedImages === totalImages) {
+                            // Fallback: show red background for missing images
+                            tileElement.style.backgroundColor = '#ffcccc';
+                            const idLabel = document.createElement('div');
+                            idLabel.className = 'tile-id';
+                            idLabel.textContent = '?';
+                            tileElement.appendChild(idLabel);
+                        }
+                    };
+
+                    img.src = layer.imageUrl;
+                } else {
+                    // Handle missing image URL
+                    loadedImages++;
+                    if (loadedImages === totalImages) {
+                        tileElement.style.backgroundColor = '#ffcccc';
+                        const idLabel = document.createElement('div');
+                        idLabel.className = 'tile-id';
+                        idLabel.textContent = '?';
+                        tileElement.appendChild(idLabel);
+                    }
+                }
+            });
+        }
+
+        function updateMapDisplay() {
+            const tiles = document.querySelectorAll('.tile');
+            tiles.forEach(tile => {
+                const row = parseInt(tile.dataset.row);
+                const col = parseInt(tile.dataset.col);
+                if (!isNaN(row) && !isNaN(col)) {
+                    updateTileDisplay(tile, row, col);
+                }
+            });
+        }
+
+        function clearMap() {
+            if (confirm('Clear the entire map?')) {
+                createMap();
+            }
+        } async function exportCSV() {
+            let csv = '';
+            for (let row = 0; row < mapRows; row++) {
+                const rowData = [];
+                for (let col = 0; col < mapCols; col++) {
+                    const layers = mapData[row][col];
+                    // Include all -1 for empty layers, except for last layers
+                    let layersList = [];
+                    let addedLayers = 0;
+                    for (let i = 4; i >= 0; i--) {
+                        if (layers[i] === -1 && addedLayers === 0) continue;
+                        layersList.push(layers[i]);
+                        addedLayers++;
+                    }
+                    const cellData = layersList.reverse();
+                    rowData.push(cellData.join(' '));
+                }
+                csv += rowData.join(',') + '\n';
+            }
+
+            document.getElementById('csvOutput').value = csv;
+
+            // Get custom filename or generate one
+            const customFilename = document.getElementById('exportFilename').value.trim();
+            let filename;
+
+            if (customFilename) {
+                // Use custom filename, ensure it ends with .csv
+                filename = customFilename.endsWith('.csv') ? customFilename : `${customFilename}.csv`;
+            } else {
+                // Generate timestamped filename
+                const now = new Date();
+                const timestamp = now.toISOString().slice(0, 19).replace(/[:-]/g, '').replace('T', '_');
+                filename = `crougelite_map_${mapRows}x${mapCols}_${timestamp}.csv`;
+            }
+
+            // Check if File System Access API is supported
+            if ('showSaveFilePicker' in window) {
+                try {
+                    // Use File System Access API for better file location control
+                    const fileHandle = await window.showSaveFilePicker({
+                        suggestedName: filename,
+                        types: [{
+                            description: 'CSV files',
+                            accept: { 'text/csv': ['.csv'] }
+                        }],
+                        // Suggest the resources/gfx/map-assets directory if possible
+                        startIn: 'downloads'
+                    });
+
+                    const writable = await fileHandle.createWritable();
+                    await writable.write(csv);
+                    await writable.close();
+
+                    document.getElementById('loadingStatus').textContent = `Exported: ${filename} to chosen location`;
+                    setTimeout(() => {
+                        document.getElementById('loadingStatus').textContent = '';
+                    }, 3000);
+                    return;
+                } catch (err) {
+                    if (err.name !== 'AbortError') {
+                        console.error('File save error:', err);
+                        document.getElementById('loadingStatus').textContent = 'Save cancelled or failed, using browser download instead';
+                        setTimeout(() => {
+                            document.getElementById('loadingStatus').textContent = '';
+                        }, 2000);
+                    } else {
+                        // User cancelled, don't fallback
+                        return;
+                    }
+                }
+            }
+
+            // Fallback to traditional download for browsers without File System Access API
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.style.display = 'none';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            // Show success message with filename
+            document.getElementById('loadingStatus').textContent = `Exported: ${filename} (check downloads folder)`;
+            setTimeout(() => {
+                document.getElementById('loadingStatus').textContent = '';
+            }, 3000);
+        } async function saveToProject() {
+            let csv = '';
+            for (let row = 0; row < mapRows; row++) {
+                const rowData = [];
+                for (let col = 0; col < mapCols; col++) {
+                    const layers = mapData[row][col];
+                    // Include all 5 layers, keeping -1 for empty layers
+                    const cellData = layers.slice(); // Copy all layers as-is
+                    rowData.push(cellData.join(' '));
+                }
+                csv += rowData.join(',') + '\n';
+            }
+
+            // Get custom filename or generate one
+            const customFilename = document.getElementById('exportFilename').value.trim();
+            let filename;
+
+            if (customFilename) {
+                filename = customFilename.endsWith('.csv') ? customFilename : `${customFilename}.csv`;
+            } else {
+                filename = 'level_map.csv'; // Default project filename
+            }
+
+            // Check if File System Access API is supported
+            if ('showSaveFilePicker' in window) {
+                try {
+                    // Try to guide user to the project directory
+                    const fileHandle = await window.showSaveFilePicker({
+                        suggestedName: filename,
+                        types: [{
+                            description: 'CSV Map files',
+                            accept: { 'text/csv': ['.csv'] }
+                        }],
+                        startIn: 'documents' // Start in documents, user can navigate to project
+                    });
+
+                    const writable = await fileHandle.createWritable();
+                    await writable.write(csv);
+                    await writable.close();
+
+                    document.getElementById('loadingStatus').textContent = `✅ Saved: ${filename} to project location`;
+                    setTimeout(() => {
+                        document.getElementById('loadingStatus').textContent = '';
+                    }, 4000);
+                    return;
+                } catch (err) {
+                    if (err.name === 'AbortError') {
+                        document.getElementById('loadingStatus').textContent = 'Save cancelled';
+                        setTimeout(() => {
+                            document.getElementById('loadingStatus').textContent = '';
+                        }, 2000);
+                        return;
+                    } else {
+                        console.error('File save error:', err);
+                    }
+                }
+            }
+
+            // Fallback: suggest the user manually save to the project directory
+            document.getElementById('loadingStatus').innerHTML = `
+                ⚠️ Please save the CSV manually to:<br>
+                <strong>src/resources/gfx/map-assets/level_one/</strong>
+            `;
+
+            // Also trigger regular download as backup
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.style.display = 'none';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            setTimeout(() => {
+                document.getElementById('loadingStatus').textContent = '';
+            }, 6000);
+        }
+
+        function loadMap() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.csv';
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                document.getElementById('loadingStatus').textContent = 'Loading CSV file...';
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const csv = e.target.result;
+                    parseCSV(csv);
+                    document.getElementById('loadingStatus').textContent = 'CSV file loaded successfully!';
+                    setTimeout(() => {
+                        document.getElementById('loadingStatus').textContent = '';
+                    }, 2000);
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+
+        function loadCSVDirect() {
+            const csvInput = document.getElementById('csvInput').value.trim();
+            if (!csvInput) {
+                document.getElementById('loadingStatus').textContent = 'Please paste CSV data in the input area first!';
+                setTimeout(() => {
+                    document.getElementById('loadingStatus').textContent = '';
+                }, 2000);
+                return;
+            }
+
+            document.getElementById('loadingStatus').textContent = 'Loading CSV data...';
+            parseCSV(csvInput);
+            document.getElementById('loadingStatus').textContent = 'CSV loaded successfully!';
+            setTimeout(() => {
+                document.getElementById('loadingStatus').textContent = '';
+            }, 2000);
+        } function parseCSV(csv) {
+            const lines = csv.trim().split('\n');
+            mapRows = lines.length;
+            mapCols = lines[0].split(',').length;
+
+            document.getElementById('mapRows').value = mapRows;
+            document.getElementById('mapCols').value = mapCols;
+
+            mapData = [];
+            let layerStats = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0 }; // Count tiles per layer
+
+            for (let row = 0; row < mapRows; row++) {
+                mapData[row] = [];
+                const cols = lines[row].split(',');
+                for (let col = 0; col < mapCols; col++) {
+                    const cellData = cols[col].trim().split(' ').map(id => parseInt(id));
+                    mapData[row][col] = [-1, -1, -1, -1, -1];
+
+                    // Place tiles in layers based on their count
+                    for (let i = 0; i < Math.min(cellData.length, 5); i++) {
+                        if (!isNaN(cellData[i])) {
+                            mapData[row][col][i] = cellData[i];
+                            layerStats[i]++;
+                        }
+                    }
+                }
+            }
+
+            // Log layer statistics
+            console.log('CSV loaded with layer statistics:');
+            for (let layer = 0; layer < 5; layer++) {
+                if (layerStats[layer] > 0) {
+                    console.log(`  Layer ${layer}: ${layerStats[layer]} tiles`);
+                }
+            }
+
+            // Create visual grid without reinitializing mapData
+            createVisualGrid();
+            updateMapDisplay();
+        } function showDebugInfo() {
+            const debugDiv = document.getElementById('debugInfo');
+            let info = '';
+
+            info += `Loaded tiles: ${availableTiles.length}\n`;
+            info += `Loaded images: ${Object.keys(tileImages).length}\n`;
+
+            // Cache info
+            try {
+                const cachedData = localStorage.getItem('crougelite_mapper_cache');
+                if (cachedData) {
+                    const data = JSON.parse(cachedData);
+                    const cacheAge = Math.round((Date.now() - data.timestamp) / (1000 * 60 * 60));
+                    info += `Cache: ${Object.keys(data.tileMapper || {}).length} tiles, ${Object.keys(data.tileImages || {}).length} images (${cacheAge}h old)\n`;
+                } else {
+                    info += `Cache: No cached data\n`;
+                }
+            } catch (e) {
+                info += `Cache: Error reading cache\n`;
+            }
+            info += '\n';
+
+            info += 'Tile Mapper:\n';
+            for (const [id, filename] of Object.entries(tileMapper)) {
+                const hasImage = !!tileImages[filename];
+                info += `  ${id}: "${filename}" ${hasImage ? '✓' : '✗'}\n`;
+            }
+
+            info += '\nAvailable Images (first 20):\n';
+            const imageNames = Object.keys(tileImages);
+            for (let i = 0; i < Math.min(20, imageNames.length); i++) {
+                info += `  "${imageNames[i]}"\n`;
+            }
+            if (imageNames.length > 20) {
+                info += `  ... and ${imageNames.length - 20} more\n`;
+            }
+
+            // Check for potential matches
+            info += '\nPotential filename issues:\n';
+            for (const [id, mapperFilename] of Object.entries(tileMapper)) {
+                if (!tileImages[mapperFilename]) {
+                    // Look for similar filenames
+                    const similar = Object.keys(tileImages).filter(imgName => {
+                        const imgBase = imgName.toLowerCase().replace(/\.(png|jpg|jpeg|gif)$/, '');
+                        const mapperBase = mapperFilename.toLowerCase().replace(/\.(png|jpg|jpeg|gif)$/, '');
+                        return imgBase.includes(mapperBase) || mapperBase.includes(imgBase) ||
+                            imgName.toLowerCase().includes(`tile_${id}_`) ||
+                            imgName.toLowerCase() === `tile_${id}.png`;
+                    });
+                    if (similar.length > 0) {
+                        info += `  Tile ${id} expects "${mapperFilename}" → suggest: ${similar.slice(0, 3).join(', ')}\n`;
+                    }
+                }
+            }
+
+            debugDiv.textContent = info;
+        }
+
+        function autoFixFilenames() {
+            let fixCount = 0;
+            const availableImages = Object.keys(tileImages);
+
+            for (const [id, mapperFilename] of Object.entries(tileMapper)) {
+                if (!tileImages[mapperFilename]) {
+                    let match = null;
+
+                    // Try exact match with .png extension
+                    if (!mapperFilename.includes('.')) {
+                        match = availableImages.find(img => img === `${mapperFilename}.png`);
+                    }
+
+                    // Try to find by tile ID pattern
+                    if (!match) {
+                        match = availableImages.find(img =>
+                            img.toLowerCase() === `tile_${id}.png` ||
+                            img.toLowerCase().includes(`tile_${id}_`)
+                        );
+                    }
+
+                    // Try case insensitive exact match
+                    if (!match) {
+                        match = availableImages.find(img =>
+                            img.toLowerCase() === mapperFilename.toLowerCase()
+                        );
+                    }
+
+                    // Try partial match
+                    if (!match) {
+                        const baseFilename = mapperFilename.toLowerCase().replace(/\.(png|jpg|jpeg|gif)$/, '');
+                        match = availableImages.find(img => {
+                            const imgBase = img.toLowerCase().replace(/\.(png|jpg|jpeg|gif)$/, '');
+                            return imgBase.includes(baseFilename) || baseFilename.includes(imgBase);
+                        });
+                    }
+
+                    if (match) {
+                        console.log(`Auto-fixing: Tile ${id} "${mapperFilename}" → "${match}"`);
+                        tileMapper[id] = match;
+                        fixCount++;
+                    }
+                }
+            }
+
+            if (fixCount > 0) {
+                document.getElementById('loadingStatus').textContent = `Auto-fixed ${fixCount} filename(s)!`;
+                updatePalette();
+                setTimeout(() => {
+                    document.getElementById('loadingStatus').textContent = '';
+                }, 2000);
+            } else {
+                document.getElementById('loadingStatus').textContent = 'No fixes needed or possible.';
+                setTimeout(() => {
+                    document.getElementById('loadingStatus').textContent = '';
+                }, 2000);
+            }
+        }
+
+        function generateMapper() {
+            if (Object.keys(tileImages).length === 0) {
+                document.getElementById('loadingStatus').textContent = 'Please load images first!';
+                setTimeout(() => {
+                    document.getElementById('loadingStatus').textContent = '';
+                }, 2000);
+                return;
+            }
+
+            tileMapper = {};
+            availableTiles = [];
+            let tileId = 0;
+
+            // Sort images to get consistent ordering
+            const sortedImages = Object.keys(tileImages).sort();
+
+            // Prioritize tile_X_Y.png patterns and assign them proper IDs
+            const tilePattern = /^tile_(\d+)_(\d+)\.png$/;
+            const usedIds = new Set();
+
+            // First pass: handle tile_X_Y.png with proper IDs
+            for (const filename of sortedImages) {
+                const match = filename.match(tilePattern);
+                if (match) {
+                    const row = parseInt(match[1]);
+                    const col = parseInt(match[2]);
+                    const calculatedId = row * 10 + col; // tile_1_2.png → ID 12
+
+                    tileMapper[calculatedId] = filename;
+                    availableTiles.push(calculatedId);
+                    usedIds.add(calculatedId);
+                }
+            }
+
+            // Second pass: handle other tile images
+            tileId = 0;
+            for (const filename of sortedImages) {
+                if (!filename.match(tilePattern) && filename.toLowerCase().includes('tile')) {
+                    // Find next available ID
+                    while (usedIds.has(tileId)) {
+                        tileId++;
+                    }
+                    tileMapper[tileId] = filename;
+                    availableTiles.push(tileId);
+                    usedIds.add(tileId);
+                    tileId++;
+                }
+            }
+
+            // Third pass: handle non-tile images (monsters, effects, etc.)
+            tileId = 100; // Start from 100 for non-tile images
+            for (const filename of sortedImages) {
+                if (!filename.toLowerCase().includes('tile')) {
+                    while (usedIds.has(tileId)) {
+                        tileId++;
+                    }
+                    tileMapper[tileId] = filename;
+                    availableTiles.push(tileId);
+                    usedIds.add(tileId);
+                    tileId++;
+                }
+            }
+
+            // Sort available tiles for consistent display
+            availableTiles.sort((a, b) => a - b);
+            document.getElementById('loadingStatus').textContent = `Generated mapper with ${availableTiles.length} tiles!`;
+            updatePalette();
+            saveCachedData(); // Save to cache
+            console.log('Generated tile mapper:', tileMapper);
+
+            setTimeout(() => {
+                document.getElementById('loadingStatus').textContent = '';
+            }, 2000);
+        }
+
+        // Layer visibility control functions
+        function showAllLayers() {
+            for (let i = 0; i < 5; i++) {
+                document.getElementById(`layer${i}Visible`).checked = true;
+            }
+            updateMapDisplay();
+        }
+
+        function hideAllLayers() {
+            for (let i = 0; i < 5; i++) {
+                document.getElementById(`layer${i}Visible`).checked = false;
+            }
+            updateMapDisplay();
+        }
+        function showOnlyCurrentLayer() {
+            // Hide all layers first
+            for (let i = 0; i < 5; i++) {
+                document.getElementById(`layer${i}Visible`).checked = false;
+            }
+            // Show only the current layer
+            document.getElementById(`layer${currentLayer}Visible`).checked = true;
+            updateMapDisplay();
+        }
+    </script>
+</body>
+
+</html>

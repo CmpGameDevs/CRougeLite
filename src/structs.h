@@ -56,7 +56,7 @@ typedef enum {
   INPUT_DOWN = 1 << 1,
   INPUT_LEFT = 1 << 2,
   INPUT_RIGHT = 1 << 3,
-  INPUT_USE = 1 << 4,
+  INPUT_INTERACT = 1 << 4,
   INPUT_INVENTORY_1 = 1 << 5,
   INPUT_INVENTORY_2 = 1 << 6,
   INPUT_INVENTORY_3 = 1 << 7,
@@ -71,6 +71,17 @@ typedef enum {
 } DIRECTIONS;
 
 typedef enum { E_CIVILIAN, E_FARMER, E_KNIGHT, NUM_OF_E_TYPE } E_TYPE;
+
+typedef enum {
+  TILE_TERRAIN,      // Walkable ground tiles
+  TILE_WALL,         // Solid collision tiles  
+  TILE_DECORATION,   // Non-interactive visual elements
+  TILE_INTERACTABLE, // Doors, switches, chests
+  TILE_PICKABLE,     // Keys, coins, consumables
+  TILE_DESTRUCTIBLE, // Breakable objects
+  TILE_HAZARD,       // Damaging tiles (spikes, lava)
+  NUM_TILE_TYPES
+} TileType;
 
 typedef enum {
   // NOTE: those are used for animation as more as you need
@@ -171,6 +182,7 @@ typedef struct {
   int right;
   int shoot;
   int action;
+  int interact;
   int *weapons;
   float mouseWheelMove;
 } Input;
@@ -329,6 +341,11 @@ typedef struct {
 } Enemy;
 
 typedef struct {
+  int tileId;
+  int count;
+} CollectibleItem;
+
+typedef struct {
   // Player Info
   char *name;
   unsigned int ID;
@@ -345,6 +362,7 @@ typedef struct {
   int score;
   int fire;
   int drawDirection; // 1 for right, -1 for left
+  CollectibleItem collectedItems[MAX_COLLECTED_ITEMS];
   bool isMoving;
   DIRECTIONS direction; // to get info on the direction the player is facing.
 } Player;
@@ -391,10 +409,44 @@ typedef struct {
   int opcode;
   DictionaryEntry entry;
 } Dictionary;
+typedef enum {
+  TILE_PROP_NONE       = 0,
+  TILE_PROP_WALKABLE   = 1 << 0,
+  TILE_PROP_SOLID      = 1 << 1,
+  TILE_PROP_COLLECTIBLE = 1 << 2,
+  TILE_PROP_INTERACTIVE = 1 << 3,
+  TILE_PROP_DESTRUCTIBLE = 1 << 4,
+  TILE_PROP_HAZARDOUS   = 1 << 5
+} TileProperties;
+
+typedef enum {
+  INTERACT_TOGGLE,
+  INTERACT_ONCE,
+  INTERACT_CYCLE,
+  INTERACT_CONDITIONAL
+} InteractBehavior;
+
+typedef struct {
+  int tileId;
+  InteractBehavior behavior;
+  int nextStates[MAX_TOGGLE_STATES];
+  int stateCount;
+  int requiredItem;
+  int lootTable[4];
+  int lootCount;
+} InteractableMapping;
+
+typedef struct {
+  char *filename;
+  TileType type;
+  TileProperties properties;
+} TileInfo;
 
 typedef struct {
   unsigned int numOfTiles;
-  char *mapper[MAX_TILES_NUM];
+  TileInfo tileInfo[MAX_TILES_NUM];
+  InteractableMapping interactableMappings[MAX_INTERACTABLE_MAPPINGS];
+  int numInteractableMappings;
   char *path; // Path of the mapper file
 } TilesMapper;
 

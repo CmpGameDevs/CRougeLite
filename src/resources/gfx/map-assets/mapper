@@ -1,100 +1,146 @@
-0 tile_0_0.png
-1 tile_0_1.png
-2 tile_0_2.png
-3 tile_0_3.png
-4 tile_0_4.png
-5 tile_0_5.png
-6 tile_0_6.png
-7 tile_0_7.png
-8 tile_0_8.png
-9 tile_0_9.png
-10 tile_1_0.png
-11 tile_1_1.png
-12 tile_1_2.png
-13 tile_1_3.png
-14 tile_1_4.png
-15 tile_1_5.png
-16 tile_1_6.png
-17 tile_1_7.png
-18 tile_1_8.png
-19 tile_1_9.png
-20 tile_2_0.png
-21 tile_2_1.png
-22 tile_2_2.png
-23 tile_2_3.png
-24 tile_2_4.png
-25 tile_2_5.png
-26 tile_2_6.png
-27 tile_2_7.png
-28 tile_2_8.png
-29 tile_2_9.png
-30 tile_3_0.png
-31 tile_3_1.png
-32 tile_3_2.png
-33 tile_3_3.png
-34 tile_3_4.png
-35 tile_3_5.png
-36 tile_3_6.png
-37 tile_3_7.png
-38 tile_3_8.png
-39 tile_3_9.png
-40 tile_4_0.png
-41 tile_4_1.png
-42 tile_4_2.png
-43 tile_4_3.png
-44 tile_4_4.png
-45 tile_4_5.png
-46 tile_4_6.png
-47 tile_4_7.png
-48 tile_4_8.png
-49 tile_4_9.png
-50 tile_5_0.png
-51 tile_5_1.png
-52 tile_5_2.png
-53 tile_5_3.png
-54 tile_5_4.png
-55 tile_5_5.png
-56 tile_5_6.png
-57 tile_5_7.png
-58 tile_5_8.png
-59 tile_5_9.png
-60 tile_6_0.png
-61 tile_6_1.png
-62 tile_6_2.png
-63 tile_6_3.png
-64 tile_6_4.png
-65 tile_6_5.png
-66 tile_6_6.png
-67 tile_6_7.png
-68 tile_6_8.png
-69 tile_6_9.png
-70 tile_7_0.png
-71 tile_7_1.png
-72 tile_7_2.png
-73 tile_7_3.png
-74 tile_7_4.png
-75 tile_7_5.png
-76 tile_7_6.png
-77 tile_7_7.png
-78 tile_7_8.png
-79 tile_7_9.png
-80 tile_8_0.png
-81 tile_8_1.png
-82 tile_8_2.png
-83 tile_8_3.png
-84 tile_8_4.png
-85 tile_8_5.png
-86 tile_8_6.png
-87 tile_8_7.png
-88 tile_8_8.png
-89 tile_8_9.png
-90 tile_9_0.png
-91 tile_9_1.png
-92 tile_9_2.png
-93 tile_9_3.png
-94 tile_9_4.png
-95 tile_9_5.png
-96 tile_9_6.png
-97 tile_9_7.png
-98 tile_9_8.png
-99 tile_9_9.png
+# Enhanced Mapper Format with Interactable Mappings
+# Tile Format: ID FILENAME TYPE [PROPERTIES]
+# Interactable Format: INTERACTABLE ID BEHAVIOR [NEXT_STATES] [REQUIRED_ITEM] [LOOT]
+#
+# Types: TERRAIN, WALL, DECORATION, INTERACTABLE, PICKABLE, DESTRUCTIBLE, HAZARD
+# Properties: walkable, solid, collectible, interactive, destructible, hazardous
+# Behaviors: TOGGLE, ONCE, CYCLE, CONDITIONAL
+
+# Basic terrain tiles
+6 tile_0_6.png TERRAIN walkable
+7 tile_0_7.png TERRAIN walkable
+8 tile_0_8.png TERRAIN walkable
+9 tile_0_9.png TERRAIN walkable
+11 tile_1_1.png TERRAIN walkable
+12 tile_1_2.png TERRAIN walkable
+13 tile_1_3.png TERRAIN walkable
+14 tile_1_4.png TERRAIN walkable
+16 tile_1_6.png TERRAIN walkable
+17 tile_1_7.png TERRAIN walkable
+18 tile_1_8.png TERRAIN walkable
+19 tile_1_9.png TERRAIN walkable
+21 tile_2_1.png TERRAIN walkable
+22 tile_2_2.png TERRAIN walkable
+23 tile_2_3.png TERRAIN walkable
+24 tile_2_4.png TERRAIN walkable
+26 tile_2_6.png TERRAIN walkable
+27 tile_2_7.png TERRAIN walkable
+28 tile_2_8.png TERRAIN walkable
+29 tile_2_9.png TERRAIN walkable
+31 tile_3_1.png TERRAIN walkable
+32 tile_3_2.png TERRAIN walkable
+33 tile_3_3.png TERRAIN walkable
+34 tile_3_4.png TERRAIN walkable
+60 tile_6_0.png TERRAIN walkable
+61 tile_6_1.png TERRAIN walkable
+62 tile_6_2.png TERRAIN walkable
+63 tile_6_3.png TERRAIN walkable
+70 tile_7_0.png TERRAIN walkable
+71 tile_7_1.png TERRAIN walkable
+72 tile_7_2.png TERRAIN walkable
+73 tile_7_3.png TERRAIN walkable
+78 tile_7_8.png TERRAIN walkable
+79 tile_7_9.png TERRAIN walkable
+
+# Wall tiles
+0 tile_0_0.png WALL solid
+1 tile_0_1.png WALL solid
+2 tile_0_2.png WALL solid
+3 tile_0_3.png WALL solid
+4 tile_0_4.png WALL solid
+5 tile_0_5.png WALL solid
+10 tile_1_0.png WALL solid
+15 tile_1_5.png WALL solid
+20 tile_2_0.png WALL solid
+25 tile_2_5.png WALL solid
+30 tile_3_0.png WALL solid
+35 tile_3_5.png WALL solid
+40 tile_4_0.png WALL solid
+41 tile_4_1.png WALL solid
+42 tile_4_2.png WALL solid
+43 tile_4_3.png WALL solid
+44 tile_4_4.png WALL solid
+45 tile_4_5.png WALL solid
+50 tile_5_0.png WALL solid
+51 tile_5_1.png WALL solid
+52 tile_5_2.png WALL solid
+53 tile_5_3.png WALL solid
+54 tile_5_4.png WALL solid
+55 tile_5_5.png WALL solid
+69 tile_6_9.png WALL solid
+
+# Decoration tiles
+49 tile_4_9.png DECORATION walkable
+59 tile_5_9.png DECORATION walkable
+64 tile_6_4.png DECORATION walkable
+65 tile_6_5.png DECORATION walkable
+68 tile_6_8.png DECORATION walkable
+74 tile_7_4.png DECORATION walkable
+75 tile_7_5.png DECORATION walkable
+76 tile_7_6.png DECORATION walkable
+77 tile_7_7.png DECORATION walkable
+90 tile_9_0.png DECORATION walkable
+91 tile_9_1.png DECORATION walkable
+92 tile_9_2.png DECORATION walkable
+93 tile_9_3.png DECORATION walkable
+94 tile_9_4.png DECORATION walkable
+95 tile_9_5.png DECORATION walkable
+96 tile_9_6.png DECORATION walkable
+
+
+# Interactable tiles - Simple doors
+36 tile_3_6.png INTERACTABLE solid interactive
+37 tile_3_7.png INTERACTABLE solid interactive
+39 tile_3_9.png INTERACTABLE walkable interactive
+46 tile_4_6.png INTERACTABLE solid interactive
+47 tile_4_7.png INTERACTABLE solid interactive
+48 tile_4_8.png INTERACTABLE solid interactive
+56 tile_5_6.png INTERACTABLE solid interactive
+57 tile_5_7.png INTERACTABLE walkable interactive
+58 tile_5_8.png INTERACTABLE walkable interactive
+
+# Interactable tiles - Special doors (require keys)
+66 tile_6_6.png INTERACTABLE solid interactive
+67 tile_6_7.png INTERACTABLE solid interactive
+38 tile_3_8.png INTERACTABLE walkable interactive
+
+# Interactable tiles - Chests
+80 tile_8_0.png INTERACTABLE walkable interactive
+81 tile_8_1.png INTERACTABLE walkable interactive
+82 tile_8_2.png INTERACTABLE walkable interactive
+83 tile_8_3.png INTERACTABLE walkable interactive
+84 tile_8_4.png INTERACTABLE walkable interactive
+85 tile_8_5.png INTERACTABLE walkable interactive
+
+# Pickable items
+86 tile_8_6.png PICKABLE collectible walkable
+87 tile_8_7.png PICKABLE collectible walkable
+88 tile_8_8.png PICKABLE collectible walkable
+89 tile_8_9.png PICKABLE collectible walkable
+97 tile_9_7.png PICKABLE collectible walkable
+98 tile_9_8.png PICKABLE collectible walkable
+99 tile_9_9.png PICKABLE collectible walkable
+
+# Interactable Behavior Mappings
+# Format: INTERACTABLE tile_id behavior [next_states] [required_item] [loot_items]
+
+# Simple doors - toggle freely
+INTERACTABLE 36 TOGGLE 57
+INTERACTABLE 37 TOGGLE 58
+
+# Iron doors - requires silver key
+INTERACTABLE 47 CONDITIONAL -1 88
+INTERACTABLE 48 CONDITIONAL -1 88
+
+# Special Doors - requires gold key
+INTERACTABLE 66 CONDITIONAL 57 99
+INTERACTABLE 67 CONDITIONAL 58 99
+INTERACTABLE 38 CONDITIONAL 39 99
+
+# Simple chest - single use, drops coin
+INTERACTABLE 80 ONCE -1 -1 98,86
+INTERACTABLE 81 ONCE -1 -1 86
+INTERACTABLE 82 ONCE -1 -1 87,86
+INTERACTABLE 83 ONCE -1 88 86,97,86
+INTERACTABLE 84 ONCE -1 88 86,89,97
+INTERACTABLE 85 ONCE -1 -1 89,98

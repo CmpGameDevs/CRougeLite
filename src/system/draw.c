@@ -8,7 +8,18 @@
 #include "map.h"
 #include <raylib.h>
 
-void DrawAtlasSpritePro(char *filename, Rectangle dest, Vector2 origin,
+
+/**
+ * drawAtlasSpritePro - draws a sprite from the atlas with the given parameters.
+ * 
+ * @param filename The name of the sprite file in the atlas.
+ * @param dest The destination rectangle where the sprite will be drawn.
+ * @param origin The origin point for rotation.
+ * @param rotation The rotation angle in radians.
+ * @param tint The color tint to apply to the sprite.
+ * @param flipX Whether to flip the sprite horizontally.
+ */
+void drawAtlasSpritePro(char *filename, Rectangle dest, Vector2 origin,
                         float rotation, Color tint, bool flipX) {
   AtlasImage image = getAtlasImage(filename);
 

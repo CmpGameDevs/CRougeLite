@@ -75,7 +75,7 @@ void drawAnimator(Animator *animator, CTransform *transform, Color tint,
 {
   SpriteAnimation *anim = &animator->animations[animator->currentState];
   Rectangle src = getSrcRect(animator);
-  DrawAtlasSpritePro(anim->frameNames[anim->currentFrame],
+  drawAtlasSpritePro(anim->frameNames[anim->currentFrame],
                      (Rectangle){transform->position.x, transform->position.y,
                                  src.width * transform->scale.x,
                                  src.height * transform->scale.y},
