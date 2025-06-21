@@ -35,6 +35,20 @@
 #define MAX_COL_NUM 60
 #define MAX_CELL_ID 5
 
+// MAP LAYER ORGANIZATION
+#define LAYER_TERRAIN      0  // Ground, floors, basic terrain
+#define LAYER_WALLS        1  // Walls, collision objects, solid structures  
+#define LAYER_DECORATION   2  // Non-interactive decorations
+#define LAYER_INTERACTABLE 3  // Doors, switches, chests
+#define LAYER_PICKABLE     4  // Keys, coins, consumables
+
+// INTERACTABLE CATEGORIES AND MAPPING
+#define MAX_INTERACTABLE_MAPPINGS 100
+#define MAX_TOGGLE_STATES 4
+
+// PLAYER
+#define MAX_COLLECTED_ITEMS 7
+
 // COLLISION
 #define MAX_OBJECTS_PER_CELL 10
 
