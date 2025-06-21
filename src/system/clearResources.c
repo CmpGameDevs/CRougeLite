@@ -21,8 +21,7 @@
 // ***************************
 // Private Function Prototypes
 // ***************************
-static void clearDictionary(Dictionary *dict);
-static void clearDictionaryItem(Dictionary **dict);
+static void clearDictionary(Dictionary **dict);
 
 //========================================================
 // Init Functions
@@ -36,11 +35,10 @@ void clearGameState() {
   clearEnemies();
   clearCombatActions();
 
-  clearDictionary(gameState->characterDictionary);
-  printf("Deleted all directories\n");
-  clearDictionary(gameState->enemyDictionary);
-  clearDictionary(gameState->playerWeaponDictionary);
-  clearDictionary(gameState->enemyWeaponDictionary);
+  clearDictionary(&gameState->characterDictionary);
+  clearDictionary(&gameState->enemyDictionary);
+  clearDictionary(&gameState->playerWeaponDictionary);
+  clearDictionary(&gameState->enemyWeaponDictionary);
   freeResource((void *)gameState);
 }
 
@@ -53,20 +51,7 @@ void freeResource(void *item) {
 // *****************
 // PRIVATE FUNCTIONS
 // *****************
-// FIXME: BROKEN???
-static void clearDictionary(Dictionary *dict) {
-  if (dict == NULL)
-    return;
-
-  while (dict->opcode != -1) {
-    clearDictionaryItem(&dict);
-    dict++;
-  }
-  clearDictionaryItem(&dict);
-  printf("Deleted Dictionary\n");
-}
-
-static void clearDictionaryItem(Dictionary **dict) {
+static void clearDictionary(Dictionary **dict) {
   if (dict == NULL || *dict == NULL)
     return;
 
@@ -79,7 +64,7 @@ void clearMap() {
   TilesMapper *tiles_mapper = &(gameState->map.tilesMapper);
 
   for (int i = 0; i < tiles_mapper->numOfTiles; i++) {
-    free(tiles_mapper->mapper[i]);
-    tiles_mapper->mapper[i] = NULL;
+    free(tiles_mapper->tileInfo[i].filename);
+    tiles_mapper->tileInfo[i].filename = NULL;
   }
 }
