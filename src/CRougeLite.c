@@ -80,6 +80,8 @@ int main(void) {
 
   clearResources();
 
+  printf("Game closed gracefully\n");
+
   return 0;
 }
 
@@ -112,15 +114,13 @@ static void update() {
 }
 
 static void clearResources() {
+  // Clear game state and map
   clearGameState();
-  // clear map
   clearMap();
 
-  // Unload assets and cleaning
+  // Unload assets and cleaning for raylib
   UnloadMusicStream(music);
-
   CloseAudioDevice();
-
   CloseWindow();
 }
 
