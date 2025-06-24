@@ -115,6 +115,21 @@ typedef struct {
   void *second;
 } Pair;
 
+typedef struct {
+  int first;
+  int second;
+} CoordPair;
+typedef struct {
+  double first;      
+  CoordPair second;  
+} pPair;
+
+typedef struct {
+    pPair* data;
+    int size;
+    int capacity;
+} MinHeap;
+
 typedef struct Entity Entity;
 
 typedef struct {
