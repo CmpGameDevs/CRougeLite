@@ -10,5 +10,4 @@ void drawAtlasSpritePro(char *filename, Rectangle dest, Vector2 origin,
                         float rotation, Color tint, bool flipX);
 
 
-
 #endif // DRAW_H

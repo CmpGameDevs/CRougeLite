@@ -206,6 +206,7 @@ GameState *initGameState()
 
     // Initialize Other General Variables
     gameSystemInstance->level = 1;
+    gameSystemInstance->isGameStarted = false;
     gameSystemInstance->isGameOver = false;
     gameSystemInstance->isFinished = false;
     gameSystemInstance->atlasImages = NULL;

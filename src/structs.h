@@ -481,8 +481,10 @@ typedef struct {
   CombatAction *combatActions;
 
   int level;
+  bool isGameStarted;
   bool isGameOver;
   bool isFinished;
+  Texture2D mainMenuBackground;
   Texture2D atlasTexture; // The image atals containaing all the sprites and
                           // animations
   AtlasImage

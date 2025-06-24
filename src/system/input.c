@@ -20,6 +20,16 @@ static int getClickedEnemy(Vector2 mousePos) {
 }
 
 static void mouseEventHandler() {
+  if (IsKeyPressed(KEY_TAB)) {
+    gameState->settings.showDebugMenu ^= 1;
+  }
+
+  if (!gameState->isGameStarted) {
+    bool isGameStarted = IsKeyPressed(KEY_ENTER);
+    gameState->isGameStarted = isGameStarted;
+    return;
+  }
+
   int selected_player = 0;
   Player *player = ((gameState->players) + selected_player);
 
