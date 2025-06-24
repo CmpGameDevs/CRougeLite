@@ -410,6 +410,7 @@ typedef struct {
   bool showTextures;
   bool showTexturesBounds;
   bool showColliders;
+  bool showPaths;
   bool showFPS;
   bool showDebugMenu;
   bool showInventory;

@@ -12,6 +12,7 @@
 #include "draw.h"
 #include <raylib.h>
 #include <string.h>
+#include "A-Star.h"
 
 /**
  * initTilesMapper - initilizes the TilesMapper mapper with NULL,
@@ -355,6 +356,131 @@ void drawMap() {
       } while (idIdx < 5);
     }
   }
+}
+
+/**
+ * drawPath - Draws a path as colored cells
+ *
+ * @param path Array of path coordinates (row, col) -> (y, x)
+ * @param pathLength Length of the path array
+ * @param color Color to draw the path with
+ */
+void drawPath(CoordPair *path, int pathLength, Color color)
+{
+    if (!path || pathLength <= 0) return;
+    
+    GameState *game_system = gameState;
+    Map *map = &(game_system->map);
+    
+    // Make color semi-transparent for better visibility
+    Color cellColor = ColorAlpha(color, 0.4f);
+    
+    // Draw each cell in the path
+    for (int i = 0; i < pathLength; i++)
+    {
+        // Calculate cell position and dimensions
+        float cellX = (path[i].second * map->tileWidth) * map->scale;
+        float cellY = (path[i].first * map->tileHeight) * map->scale;
+        float cellWidth = map->tileWidth * map->scale;
+        float cellHeight = map->tileHeight * map->scale;
+        
+        // Draw filled rectangle with borders
+        DrawRectangle(cellX, cellY, cellWidth, cellHeight, cellColor);
+        
+        // Draw cell border with more solid color
+        DrawRectangleLines(cellX, cellY, cellWidth, cellHeight, color);
+    }
+}
+
+/**
+ * drawEnemyPaths - Draws paths from all enemies to the player's surrounding cells
+ */
+void drawEnemyPaths()
+{
+    GameState *game_system = gameState;
+    if (!game_system || game_system->numOfPlayers <= 0) return;
+    
+    Map *map = &(game_system->map);
+    Player *player = &(game_system->players[0]);
+    
+    // Convert player position to grid coordinates
+    Vector2 playerPos = player->object.transform.position;
+    int colliderWidth = player->object.collider.bounds.width;
+    int colliderHeight = player->object.collider.bounds.height;
+    int playerRow = (int)((playerPos.y + colliderHeight / 2) / (map->tileHeight * map->scale));
+    int playerCol = (int)((playerPos.x + colliderWidth / 2) / (map->tileWidth * map->scale));
+    
+    // Define directions for surrounding cells (8 directions)
+    int dx[] = {-1, 0, 1, 0, -1, -1, 1, 1}; 
+    int dy[] = {0, -1, 0, 1, -1, 1, -1, 1};
+    
+    // Find all walkable cells surrounding the player
+    CoordPair surroundingCells[8]; // Maximum 8 surrounding cells
+    int numSurroundingCells = 0;
+    
+    for (int i = 0; i < 8; i++) {
+        int newRow = playerRow + dy[i];
+        int newCol = playerCol + dx[i];
+        
+        // Check if cell is valid and walkable
+        if (isValid(newRow, newCol, map->numOfRows, map->numOfCols) && isWalkable(newRow, newCol)) {
+            surroundingCells[numSurroundingCells].first = newRow;
+            surroundingCells[numSurroundingCells].second = newCol;
+            numSurroundingCells++;
+        }
+    }
+    
+    // If no surrounding cells are available, use the player's cell
+    if (numSurroundingCells == 0) {
+        surroundingCells[0].first = playerRow;
+        surroundingCells[0].second = playerCol;
+        numSurroundingCells = 1;
+    }
+    
+    Color colors[] = {RED, GREEN, BLUE, PURPLE, ORANGE, PINK};
+    
+    // For each enemy, calculate and draw path to closest surrounding cell
+    for (int i = 0; i < game_system->numOfEnemies; i++)
+    {
+        Enemy *enemy = &(game_system->enemies[i]);
+        Vector2 enemyPos = enemy->object.transform.position;
+        colliderWidth = enemy->object.collider.bounds.width;
+        colliderHeight = enemy->object.collider.bounds.height;
+        
+        // Convert enemy position to grid coordinates
+        int enemyRow = (int)((enemyPos.y + colliderHeight / 2) / (map->tileHeight * map->scale));
+        int enemyCol = (int)((enemyPos.x + colliderWidth / 2) / (map->tileWidth * map->scale));
+        CoordPair enemyCoord = {.first = enemyRow, .second = enemyCol};
+        
+        // Find path to each surrounding cell and keep the shortest one
+        CoordPair *shortestPath = NULL;
+        int shortestPathLength = 0;
+        
+        for (int j = 0; j < numSurroundingCells; j++) {
+            int pathLength = 0;
+            CoordPair *path = aStarSearch(enemyCoord, surroundingCells[j], &pathLength);
+            
+            if (path && (shortestPath == NULL || pathLength < shortestPathLength)) {
+                // Free previous path if it exists
+                if (shortestPath) {
+                    free(shortestPath);
+                }
+                
+                shortestPath = path;
+                shortestPathLength = pathLength;
+            } else if (path) {
+                // Free unused paths
+                free(path);
+            }
+        }
+        
+        if (shortestPath) {
+            // Draw path with a unique color per enemy
+            Color pathColor = colors[i % 6];
+            drawPath(shortestPath, shortestPathLength, pathColor);
+            free(shortestPath);
+        }
+    }
 }
 
 /**

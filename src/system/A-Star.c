@@ -78,9 +78,8 @@ double calculateHValue(int row, int col, CoordPair dest)
  * @param rows Total rows in the grid
  * @param cols Total columns in the grid
  */
-void tracePath(cell **cellDetails, CoordPair dest, int rows, int cols)
+CoordPair *tracePath(cell **cellDetails, CoordPair dest, int rows, int cols, int *pathLength)
 {
-    printf("\nThe Path is ");
     int row = dest.first;
     int col = dest.second;
 
@@ -104,15 +103,17 @@ void tracePath(cell **cellDetails, CoordPair dest, int rows, int cols)
     Path[++top].first = row;
     Path[top].second = col;
 
-    // Print the path from source to destination
-    while (top >= 0)
+    *pathLength = top + 1;
+    CoordPair *result = (CoordPair *)malloc((*pathLength) * sizeof(CoordPair));
+    int index = 0;
+
+    for (int i = 0; i <= top; i++)
     {
-        CoordPair p = Path[top--];
-        printf("-> (%d,%d) ", p.first, p.second);
+        result[i] = Path[top - i];
     }
 
-    // Free allocated memory
     free(Path);
+    return result;
 }
 
 /**
@@ -124,31 +125,32 @@ void tracePath(cell **cellDetails, CoordPair dest, int rows, int cols)
  * @param src Source coordinates
  * @param dest Destination coordinates
  */
-void aStarSearch(int rows, int cols, CoordPair src, CoordPair dest)
+CoordPair *aStarSearch(CoordPair src, CoordPair dest, int *pathLength)
 {
+    GameState *game_system = gameState;
+    Map *map = &(game_system->map);
+    int rows = map->numOfRows;
+    int cols = map->numOfCols;
+    *pathLength = 0;
     // Validate source and destination
     if (isValid(src.first, src.second, rows, cols) == 0)
     {
-        printf("Source is invalid\n");
-        return;
+        return NULL;
     }
 
     if (isValid(dest.first, dest.second, rows, cols) == 0)
     {
-        printf("Destination is invalid\n");
-        return;
+        return NULL;
     }
 
     if (isWalkable(src.first, src.second) == false || isWalkable(dest.first, dest.second) == false)
     {
-        printf("Source or the destination is blocked\n");
-        return;
+        return NULL;
     }
 
     if (isDestination(src.first, src.second, dest) == 1)
     {
-        printf("We are already at the destination\n");
-        return;
+        return NULL;
     }
 
     // Dynamically allocate closedList
@@ -193,8 +195,6 @@ void aStarSearch(int rows, int cols, CoordPair src, CoordPair dest)
     startNode.second.second = j;
     push(&openList, startNode);
 
-    int foundDest = 0;
-
     while (!isEmpty(&openList))
     {
         // Get the cell with minimum f value
@@ -206,7 +206,7 @@ void aStarSearch(int rows, int cols, CoordPair src, CoordPair dest)
         closedList[i][j] = 1;
 
         double gNew, hNew, fNew;
-        for (int x = 0; x < 8; x++)
+        for (int x = 0; x < 4; x++)
         {
             int newRow = i + dx[x];
             int newCol = j + dy[x];
@@ -217,9 +217,7 @@ void aStarSearch(int rows, int cols, CoordPair src, CoordPair dest)
                 {
                     cellDetails[newRow][newCol].parent_i = i;
                     cellDetails[newRow][newCol].parent_j = j;
-                    printf("The destination cell is found\n");
-                    tracePath(cellDetails, dest, rows, cols);
-                    foundDest = 1;
+                    CoordPair* path = tracePath(cellDetails, dest, rows, cols, pathLength);
 
                     // Clean up resources
                     for (int i = 0; i < rows; i++)
@@ -230,7 +228,8 @@ void aStarSearch(int rows, int cols, CoordPair src, CoordPair dest)
                     free(closedList);
                     free(cellDetails);
                     freeHeap(&openList);
-                    return;
+
+                    return path;
                 }
                 else if (closedList[newRow][newCol] == 0 &&
                          isWalkable(newRow, newCol) == true)
@@ -261,10 +260,6 @@ void aStarSearch(int rows, int cols, CoordPair src, CoordPair dest)
         }
     }
 
-    // If destination not found
-    if (foundDest == 0)
-        printf("Failed to find the Destination Cell\n");
-
     // Clean up resources
     for (int i = 0; i < rows; i++)
     {
@@ -274,4 +269,6 @@ void aStarSearch(int rows, int cols, CoordPair src, CoordPair dest)
     free(closedList);
     free(cellDetails);
     freeHeap(&openList);
+
+    return NULL; // No path found
 }

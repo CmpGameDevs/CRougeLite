@@ -38,9 +38,9 @@ static void clearEnemy(Enemy **enemy);
 void setupEnemies()
 {
   const Settings *const settings = &(gameState->settings);
-  initEnemy(E_CIVILIAN, E_SWORD, (Vector2){128, 128});
+  initEnemy(E_CIVILIAN, E_SWORD, (Vector2){200, 978});
 
-  initEnemy(E_FARMER, E_SWORD, (Vector2){GetScreenWidth() - 128 - 64, 128});
+  // initEnemy(E_FARMER, E_SWORD, (Vector2){GetScreenWidth() - 128 - 64, 128});
 }
 
 /**

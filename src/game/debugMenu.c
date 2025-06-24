@@ -35,13 +35,14 @@ void drawDebugMenu() {
       &gameState->settings.showTextures,
       &gameState->settings.showTexturesBounds,
       &gameState->settings.showColliders,
+      &gameState->settings.showPaths,
       &gameState->settings.showFPS,
       &gameState->settings.showInventory,
       &gameState->settings.playMusic,
   };
 
   char *labels[] = {
-      "Show Textures", "Show Texture Bounds", "Show Hitboxes",
+      "Show Textures", "Show Texture Bounds", "Show Hitboxes", "Show Paths",
       "Show FPS",   "Show Inventory",   "Play Music", 
   };
 
