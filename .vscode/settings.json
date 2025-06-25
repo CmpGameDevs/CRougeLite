@@ -34,7 +34,8 @@
     "map": "c",
     "format": "c",
     "ranges": "c",
-    "variant": "c"
+    "variant": "c",
+    "map.h": "c"
   },
   "cmake.configureArgs": ["-DCMAKE_POLICY_VERSION_MINIMUM=3.5"]
 }

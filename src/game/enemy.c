@@ -21,6 +21,8 @@
 
 #include "enemy.h"
 #include "../system/anime.h"
+#include "../system/A-Star.h"
+#include "../system/map.h"
 
 #include <raylib.h>
 #include <raymath.h>
@@ -39,27 +41,83 @@ void setupEnemies()
 {
   const Settings *const settings = &(gameState->settings);
   initEnemy(E_CIVILIAN, E_SWORD, (Vector2){200, 978});
-
-  // initEnemy(E_FARMER, E_SWORD, (Vector2){GetScreenWidth() - 128 - 64, 128});
+  initEnemy(E_FARMER, E_SWORD, (Vector2){1190.46, 356.01});
+  //! This sets the initial path to the player
+  updateEnemyPath(true);
 }
 
 /**
- * drawEnemies - draw enemies on the scene
+ * drawEnemies - draw enemies on the scene with debug path visualization
  */
 void drawEnemies()
 {
   Enemy *enemies = gameState->enemies;
   int enemy_num = gameState->numOfEnemies;
+  GameState *game_system = gameState;
+  Map *map = &(game_system->map);
 
   if (enemies == NULL)
     return;
 
-  while (enemy_num--)
+  // Debug colors
+  Color enemyPosColor = RED;    // Red dot for enemy position
+  Color waypointColor = YELLOW; // Yellow dot for current waypoint
+  Color lineColor = ORANGE;     // Line connecting enemy to waypoint
+  float dotRadius = 5.0f;       // Size of position dots
+
+  for (int i = 0; i < enemy_num; i++)
   {
-    bool flip = (enemies->drawDirection == -1) ? true : false;
-    drawAnimator(&enemies->object.animator, &enemies->object.transform, WHITE,
-                 flip);
-    enemies++;
+    // Draw the enemy sprite
+    bool flip = (enemies[i].drawDirection == -1) ? true : false;
+    drawAnimator(&(enemies[i].object.animator), &(enemies[i].object.transform), WHITE, flip);
+
+    // Only draw debug visuals if debug mode is on
+    if (game_system->settings.showPaths)
+    {
+      // Draw enemy position as a red dot
+      Vector2 enemyPos = enemies[i].object.transform.position;
+      int colliderWidth = enemies[i].object.collider.bounds.width;
+      int colliderHeight = enemies[i].object.collider.bounds.height;
+
+      // Draw at the center of the enemy
+      Vector2 enemyCenterPos = {
+          enemyPos.x + colliderWidth / 2,
+          enemyPos.y + colliderHeight / 2};
+      DrawCircle(enemyCenterPos.x, enemyCenterPos.y, dotRadius, enemyPosColor);
+
+      // Draw current waypoint as a yellow dot if we have a path
+      if (enemies[i].ai.path && enemies[i].ai.currentPathIndex < enemies[i].ai.pathLength)
+      {
+        CoordPair nextStep = enemies[i].ai.path[enemies[i].ai.currentPathIndex];
+        int cellWidth = map->tileWidth * map->scale;
+        int cellHeight = map->tileHeight * map->scale;
+
+        // Calculate waypoint center position
+        Vector2 waypointPos = {
+            nextStep.second * cellWidth + cellWidth / 2,
+            nextStep.first * cellHeight + cellHeight / 2};
+
+        // Draw waypoint dot
+        DrawCircle(waypointPos.x, waypointPos.y, dotRadius, waypointColor);
+
+        // Draw line connecting enemy to waypoint
+        DrawLineEx(enemyCenterPos, waypointPos, 2.0f, lineColor);
+
+        // Draw waypoint index number
+        char indexText[8];
+        sprintf(indexText, "%d", enemies[i].ai.currentPathIndex);
+        DrawText(indexText, waypointPos.x + 10, waypointPos.y - 10, 20, WHITE);
+
+        // Draw distance to waypoint
+        char distanceText[32];
+        float distance = Vector2Distance(enemyCenterPos, waypointPos);
+        sprintf(distanceText, "%.1f", distance);
+        DrawText(distanceText,
+                 (enemyCenterPos.x + waypointPos.x) / 2,
+                 (enemyCenterPos.y + waypointPos.y) / 2,
+                 16, WHITE);
+      }
+    }
   }
 }
 
@@ -71,21 +129,80 @@ void updateEnemies()
   Enemy *enemies = gameState->enemies;
   double speed = enemies->stats.speed;
 
+  updateEnemyPath(false);
+
   Vector2 direction = {0, 0};
-  if (IsKeyDown(KEY_UP))
-    direction.y -= 1;
-  if (IsKeyDown(KEY_DOWN))
-    direction.y += 1;
-  if (IsKeyDown(KEY_LEFT))
-    direction.x -= 1;
-  if (IsKeyDown(KEY_RIGHT))
-    direction.x += 1;
 
   for (int i = 0; i < gameState->numOfEnemies; i++)
   {
     updateAnimator(&enemies[i].object.animator);
+    Vector2 velocity = {0, 0};
+    if (enemies[i].ai.path && enemies[i].ai.currentPathIndex < enemies[i].ai.pathLength)
+    {
+      // Get current target waypoint
+      CoordPair nextStep = enemies[i].ai.path[enemies[i].ai.currentPathIndex];
+      Vector2 enemyPos = enemies[i].object.transform.position;
+      int colliderWidth = enemies[i].object.collider.bounds.width;
+      int colliderHeight = enemies[i].object.collider.bounds.height;
+      int cellWidth = gameState->map.tileWidth * gameState->map.scale;
+      int cellHeight = gameState->map.tileHeight * gameState->map.scale;
 
-    Vector2 velocity = Vector2Scale(Vector2Normalize(direction), speed);
+      // Calculate cell boundaries
+      Rectangle cellBounds = {
+          nextStep.second * cellWidth, // x position
+          nextStep.first * cellHeight, // y position
+          cellWidth,                   // width
+          cellHeight                   // height
+      };
+
+      Vector2 enemyCenterPos = {
+          enemyPos.x + colliderWidth / 2,
+          enemyPos.y + colliderHeight / 2};
+
+      Vector2 nextCellPos = {
+          nextStep.second * cellWidth + cellWidth / 2,
+          nextStep.first * cellHeight + cellHeight / 2};
+      direction = Vector2Subtract(nextCellPos, enemyCenterPos);
+
+      // Debug the distance
+      float distance = Vector2Length(direction);
+
+      bool insideCell =
+          enemyCenterPos.x >= cellBounds.x &&
+          enemyCenterPos.x <= cellBounds.x + cellBounds.width &&
+          enemyCenterPos.y >= cellBounds.y &&
+          enemyCenterPos.y <= cellBounds.y + cellBounds.height;
+
+      // Move to next waypoint if inside the cell
+      if (insideCell)
+      {
+
+        enemies[i].ai.currentPathIndex++;
+        // If we still have waypoints, calculate new direction
+        if (enemies[i].ai.currentPathIndex < enemies[i].ai.pathLength)
+        {
+          nextStep = enemies[i].ai.path[enemies[i].ai.currentPathIndex];
+          nextCellPos = (Vector2){
+              nextStep.second * cellWidth + cellWidth / 2,
+              nextStep.first * cellHeight + cellHeight / 2};
+          direction = Vector2Subtract(nextCellPos, enemyCenterPos);
+        }
+        else
+        {
+          // Path complete
+          free(enemies[i].ai.path);
+          enemies[i].ai.path = NULL;
+          enemies[i].ai.currentPathIndex = 0;
+          enemies[i].ai.pathLength = 0;
+          direction = (Vector2){0, 0};
+        }
+      }
+
+      if (Vector2Length(direction) > 0)
+      {
+        velocity = Vector2Scale(Vector2Normalize(direction), enemies[i].stats.speed);
+      }
+    }
 
     Vector2 position = Vector2Add(enemies[i].object.transform.position, velocity);
 
@@ -127,6 +244,103 @@ void updateEnemies()
       deleteEnemy(&enemy);
       i--;
     }
+  }
+}
+
+/**
+ * updateEnemyPath - update the path of all enemies to the closest
+ **/
+void updateEnemyPath(bool forceUpdate)
+{
+  GameState *game_system = gameState;
+  if (!game_system || game_system->numOfPlayers <= 0 || (game_system->players[0].isMoving == false && !forceUpdate))
+    return;
+
+  Map *map = &(game_system->map);
+  Player *player = &(game_system->players[0]);
+
+  // Convert player position to grid coordinates
+  Vector2 playerPos = player->object.transform.position;
+  int colliderWidth = player->object.collider.bounds.width;
+  int colliderHeight = player->object.collider.bounds.height;
+  int playerRow = (int)((playerPos.y + colliderHeight / 2) / (map->tileHeight * map->scale));
+  int playerCol = (int)((playerPos.x + colliderWidth / 2) / (map->tileWidth * map->scale));
+
+  // Define directions for surrounding cells (8 directions)
+  int dx[] = {-1, 0, 1, 0, -1, -1, 1, 1};
+  int dy[] = {0, -1, 0, 1, -1, 1, -1, 1};
+
+  // Find all walkable cells surrounding the player
+  CoordPair surroundingCells[8];
+  int numSurroundingCells = 0;
+
+  for (int i = 0; i < 8; i++)
+  {
+    int newRow = playerRow + dy[i];
+    int newCol = playerCol + dx[i];
+
+    // Check if cell is valid and walkable
+    if (isValid(newRow, newCol, map->numOfRows, map->numOfCols) && isWalkable(newRow, newCol))
+    {
+      surroundingCells[numSurroundingCells].first = newRow;
+      surroundingCells[numSurroundingCells].second = newCol;
+      numSurroundingCells++;
+    }
+  }
+
+  // If no surrounding cells are available, use the player's cell
+  if (numSurroundingCells == 0)
+  {
+    surroundingCells[0].first = playerRow;
+    surroundingCells[0].second = playerCol;
+    numSurroundingCells = 1;
+  }
+
+  // For each enemy, calculate and draw path to closest surrounding cell
+  for (int i = 0; i < game_system->numOfEnemies; i++)
+  {
+    Enemy *enemy = &(game_system->enemies[i]);
+
+    Vector2 enemyPos = enemy->object.transform.position;
+    colliderWidth = enemy->object.collider.bounds.width;
+    colliderHeight = enemy->object.collider.bounds.height;
+
+    // Convert enemy position to grid coordinates
+    int enemyRow = (int)((enemyPos.y + colliderHeight / 2) / (map->tileHeight * map->scale));
+    int enemyCol = (int)((enemyPos.x + colliderWidth / 2) / (map->tileWidth * map->scale));
+    CoordPair enemyCoord = {.first = enemyRow, .second = enemyCol};
+
+    // Find path to each surrounding cell and keep the shortest one
+    CoordPair *shortestPath = NULL;
+    int shortestPathLength = 0;
+
+    for (int j = 0; j < numSurroundingCells; j++)
+    {
+      int pathLength = 0;
+      CoordPair *path = aStarSearch(enemyCoord, surroundingCells[j], &pathLength);
+
+      if (path && (shortestPath == NULL || pathLength < shortestPathLength))
+      {
+        if (shortestPath)
+        {
+          free(shortestPath);
+        }
+        shortestPath = path;
+        shortestPathLength = pathLength;
+      }
+      else if (path)
+      {
+        free(path);
+      }
+    }
+
+    if (enemy->ai.path)
+    {
+      free(enemy->ai.path);
+    }
+    enemy->ai.path = shortestPath;
+    enemy->ai.pathLength = shortestPathLength;
+    enemy->ai.currentPathIndex = 0;
   }
 }
 
@@ -234,14 +448,30 @@ static Enemy *initEnemy(E_TYPE type, E_WEAPON weapon, Vector2 position)
   enemy->object.transform.position = position;
   enemy->object.collider.bounds.x = position.x;
   enemy->object.collider.bounds.y = position.y;
+  enemy->object.collider.bounds.width = 48;
+  enemy->object.collider.bounds.height = 48;
   enemy->object.transform.scale = (Vector2){4, 4};
   enemy->weapon = initWeapon(weapon, false);
+  enemy->ai = (EnemyAI){
+      .patrolStart = (Vector2){0, 0},
+      .patrolEnd = (Vector2){0, 0},
+      .detectionRange = 200.0f,
+      .attackCooldown = 1.0f,
+      .lastAttackTime = 0.0f,
+      .dodgePercentage = 0.1f,
+      .speed = 100.0f,
+      .state = WALK,
+      .path = NULL,
+      .currentPathIndex = 0,
+      .pathLength = 0,
+  };
+
   return enemy;
 }
 
 /**
  * deleteEnemy - remove the enemy object from the game state
- * 
+ *
  * @param enemy Pointer to a pointer to the enemy object
  */
 static void deleteEnemy(Enemy **enemy)
@@ -259,5 +489,4 @@ static void clearEnemy(Enemy **enemy)
 {
   if (enemy == NULL || *enemy == NULL)
     return;
-
 }

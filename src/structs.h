@@ -340,6 +340,9 @@ typedef struct {
   float dodgePercentage; // Dodge or Parry or Block. Or do these three
                          // separately??
   float speed;
+  CoordPair* path; // Path to follow, if any.
+  int currentPathIndex;
+  int pathLength; // Length of the path array.
   STATE state;
 } EnemyAI;
 

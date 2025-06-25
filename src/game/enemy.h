@@ -40,6 +40,11 @@ void drawEnemies();
  */
 void updateEnemies();
 
+/** 
+  * updateEnemyPath - update the path of all enemies to the closest
+  **/   
+void updateEnemyPath(bool forceUpdate);
+
 /**
  * clearEnemies - free enemies array from heap
  */
