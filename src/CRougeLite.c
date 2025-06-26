@@ -62,6 +62,7 @@ int main(void) {
   SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_VSYNC_HINT);
   InitWindow(settings->screenWidth, settings->screenHeight, "C rougelite game");
 
+  gameState->mainMenuBackground = LoadTexture("./src/resources/gfx/menu.png");
   initAtlas();
   initMap();
 
@@ -101,16 +102,16 @@ static void loadResources() {
 }
 
 static void update() {
-  if (IsKeyPressed(KEY_TAB)) {
-    gameState->settings.showDebugMenu = !gameState->settings.showDebugMenu;
-  }
   updateCamera();
+  if (gameState->settings.playMusic)
+    UpdateMusicStream(music);
+
+  if (!gameState->isGameStarted || gameState->isGameOver) return;
+
   updatePlayers();
   updateEnemies();
   updateCombatActions();
   broadPhaseCollision();
-  if (gameState->settings.playMusic)
-    UpdateMusicStream(music);
 }
 
 static void clearResources() {

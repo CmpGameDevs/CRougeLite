@@ -11,6 +11,7 @@
 // ***************************
 // Private Function Prototypes
 // ***************************
+static void drawBackgroundImage(Texture2D texture);
 static void drawInventory();
 static void drawInteractionUI();
 
@@ -128,6 +129,16 @@ void drawScene() {
 
   ClearBackground(GetColor(0x25131aff));
 
+  if (!gameState->isGameStarted) {
+    drawBackgroundImage(gameState->mainMenuBackground);
+    
+    if (gameState->settings.showDebugMenu) {
+      drawDebugMenu();
+    }
+    EndDrawing();
+    return;
+  }
+
   BeginMode2D(gameState->camera);
   drawMap();
 
@@ -146,7 +157,6 @@ void drawScene() {
   if (gameState->settings.showDebugMenu)
     drawDebugMenu();
 
-  // Draw interaction UI (F prompt and required items)
   drawInteractionUI();
 
   if (gameState->settings.showInventory)
@@ -161,6 +171,21 @@ void drawScene() {
 // *****************
 // PRIVATE FUNCTIONS
 // *****************
+
+/**
+ * drawBackgroundImage - draws a background image for the screen
+ */
+static void drawBackgroundImage(Texture2D texture) {
+  if (texture.id == 0) return;
+
+  int screenWidth = GetScreenWidth();
+  int screenHeight = GetScreenHeight();
+  
+  Rectangle source = {0, 0, (float)texture.width, (float)texture.height};
+  Rectangle dest = {0, 0, (float)screenWidth, (float)screenHeight};
+  
+  DrawTexturePro(texture, source, dest, (Vector2){0, 0}, 0.0f, WHITE);
+}
 
 /**
  * drawInventory - draws the player's inventory at the bottom of the screen.
