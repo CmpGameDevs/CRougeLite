@@ -54,70 +54,15 @@ void drawEnemies()
   Enemy *enemies = gameState->enemies;
   int enemy_num = gameState->numOfEnemies;
   GameState *game_system = gameState;
-  Map *map = &(game_system->map);
 
   if (enemies == NULL)
     return;
-
-  // Debug colors
-  Color enemyPosColor = RED;    // Red dot for enemy position
-  Color waypointColor = YELLOW; // Yellow dot for current waypoint
-  Color lineColor = ORANGE;     // Line connecting enemy to waypoint
-  float dotRadius = 5.0f;       // Size of position dots
 
   for (int i = 0; i < enemy_num; i++)
   {
     // Draw the enemy sprite
     bool flip = (enemies[i].drawDirection == -1) ? true : false;
     drawAnimator(&(enemies[i].object.animator), &(enemies[i].object.transform), WHITE, flip);
-
-    // Only draw debug visuals if debug mode is on
-    if (game_system->settings.showPaths)
-    {
-      // Draw enemy position as a red dot
-      Vector2 enemyPos = enemies[i].object.transform.position;
-      int colliderWidth = enemies[i].object.collider.bounds.width;
-      int colliderHeight = enemies[i].object.collider.bounds.height;
-
-      // Draw at the center of the enemy
-      Vector2 enemyCenterPos = {
-          enemyPos.x + colliderWidth / 2,
-          enemyPos.y + colliderHeight / 2};
-      DrawCircle(enemyCenterPos.x, enemyCenterPos.y, dotRadius, enemyPosColor);
-
-      // Draw current waypoint as a yellow dot if we have a path
-      if (enemies[i].ai.path && enemies[i].ai.currentPathIndex < enemies[i].ai.pathLength)
-      {
-        CoordPair nextStep = enemies[i].ai.path[enemies[i].ai.currentPathIndex];
-        int cellWidth = map->tileWidth * map->scale;
-        int cellHeight = map->tileHeight * map->scale;
-
-        // Calculate waypoint center position
-        Vector2 waypointPos = {
-            nextStep.second * cellWidth + cellWidth / 2,
-            nextStep.first * cellHeight + cellHeight / 2};
-
-        // Draw waypoint dot
-        DrawCircle(waypointPos.x, waypointPos.y, dotRadius, waypointColor);
-
-        // Draw line connecting enemy to waypoint
-        DrawLineEx(enemyCenterPos, waypointPos, 2.0f, lineColor);
-
-        // Draw waypoint index number
-        char indexText[8];
-        sprintf(indexText, "%d", enemies[i].ai.currentPathIndex);
-        DrawText(indexText, waypointPos.x + 10, waypointPos.y - 10, 20, WHITE);
-
-        // Draw distance to waypoint
-        char distanceText[32];
-        float distance = Vector2Distance(enemyCenterPos, waypointPos);
-        sprintf(distanceText, "%.1f", distance);
-        DrawText(distanceText,
-                 (enemyCenterPos.x + waypointPos.x) / 2,
-                 (enemyCenterPos.y + waypointPos.y) / 2,
-                 16, WHITE);
-      }
-    }
   }
 }
 
@@ -127,7 +72,6 @@ void drawEnemies()
 void updateEnemies()
 {
   Enemy *enemies = gameState->enemies;
-  double speed = enemies->stats.speed;
 
   updateEnemyPath(false);
 
@@ -137,8 +81,11 @@ void updateEnemies()
   {
     updateAnimator(&enemies[i].object.animator);
     Vector2 velocity = {0, 0};
-    if (enemies[i].ai.path && enemies[i].ai.currentPathIndex < enemies[i].ai.pathLength)
+    enemies[i].ai.state = IDLE;
+
+    if (enemies[i].ai.path)
     {
+      enemies[i].ai.state = RUN;
       // Get current target waypoint
       CoordPair nextStep = enemies[i].ai.path[enemies[i].ai.currentPathIndex];
       Vector2 enemyPos = enemies[i].object.transform.position;
@@ -200,7 +147,8 @@ void updateEnemies()
 
       if (Vector2Length(direction) > 0)
       {
-        velocity = Vector2Scale(Vector2Normalize(direction), enemies[i].stats.speed);
+        // Normalize direction and scale by speed
+        velocity = Vector2Scale(Vector2Normalize(direction), enemies[i].ai.speed);
       }
     }
 
@@ -219,7 +167,7 @@ void updateEnemies()
     {
       enemies[i].drawDirection = -1;
     }
-    else
+    else if(velocity.x > 0)
     {
       enemies[i].drawDirection = 1;
     }
@@ -263,8 +211,10 @@ void updateEnemyPath(bool forceUpdate)
   Vector2 playerPos = player->object.transform.position;
   int colliderWidth = player->object.collider.bounds.width;
   int colliderHeight = player->object.collider.bounds.height;
-  int playerRow = (int)((playerPos.y + colliderHeight / 2) / (map->tileHeight * map->scale));
-  int playerCol = (int)((playerPos.x + colliderWidth / 2) / (map->tileWidth * map->scale));
+  playerPos.x += colliderWidth / 2;
+  playerPos.y += colliderHeight / 2;
+  int playerRow = (int)((playerPos.y) / (map->tileHeight * map->scale));
+  int playerCol = (int)((playerPos.x) / (map->tileWidth * map->scale));
 
   // Define directions for surrounding cells (8 directions)
   int dx[] = {-1, 0, 1, 0, -1, -1, 1, 1};
@@ -304,10 +254,38 @@ void updateEnemyPath(bool forceUpdate)
     Vector2 enemyPos = enemy->object.transform.position;
     colliderWidth = enemy->object.collider.bounds.width;
     colliderHeight = enemy->object.collider.bounds.height;
+    
+    enemyPos.x += colliderWidth / 2;
+    enemyPos.y += colliderHeight / 2;
+
+    int corners[4][2] = {
+        {enemyPos.x - colliderWidth / 2, enemyPos.y - colliderHeight / 2}, // Top-left
+        {enemyPos.x + colliderWidth / 2, enemyPos.y - colliderHeight / 2}, // Top-right
+        {enemyPos.x - colliderWidth / 2, enemyPos.y + colliderHeight / 2}, // Bottom-left
+        {enemyPos.x + colliderWidth / 2, enemyPos.y + colliderHeight / 2}  // Bottom-right
+    };
+
+    float distance = INT_MAX;
+
+    for(int j = 0; j < 4; j++){
+      // Calculate distance from enemy to player corners
+      int cornerX = corners[j][0];
+      int cornerY = corners[j][1];
+      distance = fmin(distance,Vector2Distance((Vector2){cornerX, cornerY}, playerPos));
+    }
+
+    if (distance > enemy->ai.detectionRange)
+    {
+      free(enemy->ai.path);
+      enemy->ai.path = NULL;
+      enemy->ai.pathLength = 0;
+      enemy->ai.currentPathIndex = 0;
+      continue;
+    }
 
     // Convert enemy position to grid coordinates
-    int enemyRow = (int)((enemyPos.y + colliderHeight / 2) / (map->tileHeight * map->scale));
-    int enemyCol = (int)((enemyPos.x + colliderWidth / 2) / (map->tileWidth * map->scale));
+    int enemyRow = (int)((enemyPos.y) / (map->tileHeight * map->scale));
+    int enemyCol = (int)((enemyPos.x) / (map->tileWidth * map->scale));
     CoordPair enemyCoord = {.first = enemyRow, .second = enemyCol};
 
     // Find path to each surrounding cell and keep the shortest one
@@ -340,7 +318,7 @@ void updateEnemyPath(bool forceUpdate)
     }
     enemy->ai.path = shortestPath;
     enemy->ai.pathLength = shortestPathLength;
-    enemy->ai.currentPathIndex = 0;
+    enemy->ai.currentPathIndex = 1;
   }
 }
 
@@ -459,8 +437,8 @@ static Enemy *initEnemy(E_TYPE type, E_WEAPON weapon, Vector2 position)
       .attackCooldown = 1.0f,
       .lastAttackTime = 0.0f,
       .dodgePercentage = 0.1f,
-      .speed = 100.0f,
-      .state = WALK,
+      .speed = 2.5f,
+      .state = IDLE,
       .path = NULL,
       .currentPathIndex = 0,
       .pathLength = 0,
