@@ -35,7 +35,9 @@
     "format": "c",
     "ranges": "c",
     "variant": "c",
-    "map.h": "c"
+    "map.h": "c",
+    "stdio.h": "c",
+    "stdlib.h": "c"
   },
   "cmake.configureArgs": ["-DCMAKE_POLICY_VERSION_MINIMUM=3.5"]
 }

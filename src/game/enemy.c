@@ -23,6 +23,7 @@
 #include "../system/anime.h"
 #include "../system/A-Star.h"
 #include "../system/map.h"
+#include "../system/midpoint.h"
 
 #include <raylib.h>
 #include <raymath.h>
@@ -42,8 +43,6 @@ void setupEnemies()
   const Settings *const settings = &(gameState->settings);
   initEnemy(E_CIVILIAN, E_SWORD, (Vector2){200, 978});
   initEnemy(E_FARMER, E_SWORD, (Vector2){1190.46, 356.01});
-  //! This sets the initial path to the player
-  updateEnemyPath(true);
 }
 
 /**
@@ -73,7 +72,7 @@ void updateEnemies()
 {
   Enemy *enemies = gameState->enemies;
 
-  updateEnemyPath(false);
+  updateEnemyPath();
 
   Vector2 direction = {0, 0};
 
@@ -167,7 +166,7 @@ void updateEnemies()
     {
       enemies[i].drawDirection = -1;
     }
-    else if(velocity.x > 0)
+    else if (velocity.x > 0)
     {
       enemies[i].drawDirection = 1;
     }
@@ -198,10 +197,10 @@ void updateEnemies()
 /**
  * updateEnemyPath - update the path of all enemies to the closest
  **/
-void updateEnemyPath(bool forceUpdate)
+void updateEnemyPath()
 {
   GameState *game_system = gameState;
-  if (!game_system || game_system->numOfPlayers <= 0 || (game_system->players[0].isMoving == false && !forceUpdate))
+  if (!game_system || game_system->numOfPlayers <= 0 || game_system->players[0].isMoving == false)
     return;
 
   Map *map = &(game_system->map);
@@ -216,11 +215,17 @@ void updateEnemyPath(bool forceUpdate)
   int playerRow = (int)((playerPos.y) / (map->tileHeight * map->scale));
   int playerCol = (int)((playerPos.x) / (map->tileWidth * map->scale));
 
-  // Define directions for surrounding cells (8 directions)
+  //--------------------------------------------------------
   int dx[] = {-1, 0, 1, 0, -1, -1, 1, 1};
   int dy[] = {0, -1, 0, 1, -1, 1, -1, 1};
 
-  // Find all walkable cells surrounding the player
+  int playerCorners[4][2] = {
+      {playerPos.x - colliderWidth / 2, playerPos.y - colliderHeight / 2}, // Top-left
+      {playerPos.x + colliderWidth / 2, playerPos.y - colliderHeight / 2}, // Top-right
+      {playerPos.x - colliderWidth / 2, playerPos.y + colliderHeight / 2}, // Bottom-left
+      {playerPos.x + colliderWidth / 2, playerPos.y + colliderHeight / 2}  // Bottom-right
+  };
+
   CoordPair surroundingCells[8];
   int numSurroundingCells = 0;
 
@@ -245,48 +250,48 @@ void updateEnemyPath(bool forceUpdate)
     surroundingCells[0].second = playerCol;
     numSurroundingCells = 1;
   }
+  //--------------------------------------------------------
 
   // For each enemy, calculate and draw path to closest surrounding cell
   for (int i = 0; i < game_system->numOfEnemies; i++)
   {
+
     Enemy *enemy = &(game_system->enemies[i]);
 
     Vector2 enemyPos = enemy->object.transform.position;
     colliderWidth = enemy->object.collider.bounds.width;
     colliderHeight = enemy->object.collider.bounds.height;
-    
+
     enemyPos.x += colliderWidth / 2;
     enemyPos.y += colliderHeight / 2;
 
-    int corners[4][2] = {
-        {enemyPos.x - colliderWidth / 2, enemyPos.y - colliderHeight / 2}, // Top-left
-        {enemyPos.x + colliderWidth / 2, enemyPos.y - colliderHeight / 2}, // Top-right
-        {enemyPos.x - colliderWidth / 2, enemyPos.y + colliderHeight / 2}, // Bottom-left
-        {enemyPos.x + colliderWidth / 2, enemyPos.y + colliderHeight / 2}  // Bottom-right
-    };
+    int enemyRow = (int)((enemyPos.y) / (map->tileHeight * map->scale));
+    int enemyCol = (int)((enemyPos.x) / (map->tileWidth * map->scale));
+    CoordPair enemyCoord = {.first = enemyRow, .second = enemyCol};
+
+    //---------------------------Distance Check & line of sight---------------------------
 
     float distance = INT_MAX;
 
-    for(int j = 0; j < 4; j++){
-      // Calculate distance from enemy to player corners
-      int cornerX = corners[j][0];
-      int cornerY = corners[j][1];
-      distance = fmin(distance,Vector2Distance((Vector2){cornerX, cornerY}, playerPos));
+    for (int j = 0; j < 4; j++)
+    {
+      int cornerX = playerCorners[j][0];
+      int cornerY = playerCorners[j][1];
+      distance = fmin(distance, Vector2Distance(enemyPos, (Vector2){cornerX, cornerY}));
     }
 
-    if (distance > enemy->ai.detectionRange)
+    if (distance > enemy->ai.detectionRange || !lineOfSight((Vector2){enemyRow, enemyCol}, (Vector2){playerRow, playerCol}))
     {
-      free(enemy->ai.path);
+      if (enemy->ai.path)
+      {
+        free(enemy->ai.path);
+      }
       enemy->ai.path = NULL;
       enemy->ai.pathLength = 0;
       enemy->ai.currentPathIndex = 0;
       continue;
     }
-
-    // Convert enemy position to grid coordinates
-    int enemyRow = (int)((enemyPos.y) / (map->tileHeight * map->scale));
-    int enemyCol = (int)((enemyPos.x) / (map->tileWidth * map->scale));
-    CoordPair enemyCoord = {.first = enemyRow, .second = enemyCol};
+    //---------------------------------------------------------------------------------
 
     // Find path to each surrounding cell and keep the shortest one
     CoordPair *shortestPath = NULL;
@@ -433,7 +438,7 @@ static Enemy *initEnemy(E_TYPE type, E_WEAPON weapon, Vector2 position)
   enemy->ai = (EnemyAI){
       .patrolStart = (Vector2){0, 0},
       .patrolEnd = (Vector2){0, 0},
-      .detectionRange = 200.0f,
+      .detectionRange = 300.0f,
       .attackCooldown = 1.0f,
       .lastAttackTime = 0.0f,
       .dodgePercentage = 0.1f,

@@ -43,7 +43,7 @@ void updateEnemies();
 /** 
   * updateEnemyPath - update the path of all enemies to the closest
   **/   
-void updateEnemyPath(bool forceUpdate);
+void updateEnemyPath();
 
 /**
  * clearEnemies - free enemies array from heap
