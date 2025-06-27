@@ -47,6 +47,20 @@ void parseLevelFile();
 void drawMap();
 
 /**
+ * drawPath - Draws a path as colored cells
+ *
+ * @param path Array of path coordinates (row, col) -> (y, x)
+ * @param pathLength Length of the path array
+ * @param color Color to draw the path with
+ */
+void drawPath(CoordPair *path, int pathLength, Color color);
+
+/**
+ * drawEnemyPaths - Draws paths from all enemies to the player
+ */
+void drawEnemyPaths();
+
+/**
  * getTileType - gets the type of a tile based on its ID.
  * 
  * @param tileId The ID of the tile to get the type for

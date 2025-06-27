@@ -30,18 +30,19 @@ void drawDebugMenu() {
   GuiSetStyle(DEFAULT, CHECK_PADDING, CHECKBOX_PADDING);
 
   // NOTE: this must match the len of the arrays
-  const int numCheckboxes = 6;
+  const int numCheckboxes = 7;
   bool *checkboxes[] = {
       &gameState->settings.showTextures,
       &gameState->settings.showTexturesBounds,
       &gameState->settings.showColliders,
+      &gameState->settings.showPaths,
       &gameState->settings.showFPS,
       &gameState->settings.showInventory,
       &gameState->settings.playMusic,
   };
 
   char *labels[] = {
-      "Show Textures", "Show Texture Bounds", "Show Hitboxes",
+      "Show Textures", "Show Texture Bounds", "Show Hitboxes", "Show Paths",
       "Show FPS",   "Show Inventory",   "Play Music", 
   };
 

@@ -147,6 +147,10 @@ void drawScene() {
 
   drawCombatActions();
 
+  if (gameState->settings.showPaths) {
+    drawEnemyPaths();
+  }
+
   Vector2 cur = GetMousePosition();
   Vector2 worldPos = GetScreenToWorld2D(cur, gameState->camera);
   DrawCircle(worldPos.x, worldPos.y, 5, RED);
