@@ -1,5 +1,6 @@
 {
   "files.associations": {
+    "*.ejs": "html",
     "*.scss": "postcss",
     "*.sass": "bat",
     "*.dot": "dot",
@@ -19,6 +20,24 @@
     "typeinfo": "c",
     "utility": "c",
     "cmath": "c",
-    "random": "c"
-  }
+    "random": "c",
+    "deque": "c",
+    "list": "c",
+    "string": "c",
+    "unordered_map": "c",
+    "unordered_set": "c",
+    "vector": "c",
+    "structs.h": "c",
+    "string_view": "c",
+    "regex": "c",
+    "chrono": "c",
+    "map": "c",
+    "format": "c",
+    "ranges": "c",
+    "variant": "c",
+    "map.h": "c",
+    "stdio.h": "c",
+    "stdlib.h": "c"
+  },
+  "cmake.configureArgs": ["-DCMAKE_POLICY_VERSION_MINIMUM=3.5"]
 }

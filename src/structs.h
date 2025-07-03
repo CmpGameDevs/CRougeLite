@@ -115,6 +115,21 @@ typedef struct {
   void *second;
 } Pair;
 
+typedef struct {
+  int first;
+  int second;
+} CoordPair;
+typedef struct {
+  double first;      
+  CoordPair second;  
+} pPair;
+
+typedef struct {
+    pPair* data;
+    int size;
+    int capacity;
+} MinHeap;
+
 typedef struct Entity Entity;
 
 typedef struct {
@@ -325,6 +340,9 @@ typedef struct {
   float dodgePercentage; // Dodge or Parry or Block. Or do these three
                          // separately??
   float speed;
+  CoordPair* path; // Path to follow, if any.
+  int currentPathIndex;
+  int pathLength; // Length of the path array.
   STATE state;
 } EnemyAI;
 
@@ -395,6 +413,7 @@ typedef struct {
   bool showTextures;
   bool showTexturesBounds;
   bool showColliders;
+  bool showPaths;
   bool showFPS;
   bool showDebugMenu;
   bool showInventory;
