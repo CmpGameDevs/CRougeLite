@@ -40,7 +40,7 @@ static unsigned int actionID = 0;
 static void checkHitObject(CombatAction *action);
 static float calculateDamageTaken(float damage, Defense defense);
 static void applyBulletDamage(BulletInfo *bulletInfo, Stats *stats);
-static void damageEntity(CombatAction *action, Stats *stats);
+static void damageEntity(CombatAction *action, Stats *stats, GameObject *object);
 static void resolveTwoCombatActionsCollision(CombatAction *a, CombatAction *b);
 static void drawBullet(CombatAction **combatAction);
 static void drawSlash(CombatAction **combatAction);
@@ -236,13 +236,13 @@ void resolveCombatActionCollision(CombatAction *action, Entity *entity)
     if (isFriendly)
       return;
     printf("Player #%d took", entity->ID);
-    damageEntity(action, &(entity->entity.player->stats));
+    damageEntity(action, &(entity->entity.player->stats), &(entity->entity.player->object));
     break;
   case ENTITY_ENEMY:
     if (!isFriendly)
       return;
     printf("Enemy #%d took", entity->ID);
-    damageEntity(action, &(entity->entity.enemy->stats));
+    damageEntity(action, &(entity->entity.enemy->stats), &(entity->entity.enemy->object));
     // TODO: add score to the player (maybe each enemy has its own score).
     break;
   case ENTITY_E_COMBAT_ACTION:
@@ -370,8 +370,9 @@ static void applyBulletDamage(BulletInfo *bulletInfo, Stats *stats)
  *
  * @param action Pointer to the combat action
  * @param stats Pointer to the entity's stats
+ * @param object Pointer to the entity's game object
  */
-static void damageEntity(CombatAction *action, Stats *stats)
+static void damageEntity(CombatAction *action, Stats *stats, GameObject *object)
 {
   // Calculate Damage Taken
   CombatActionType type = action->type;
@@ -385,6 +386,14 @@ static void damageEntity(CombatAction *action, Stats *stats)
   default:
     break;
   }
+
+  // Apply damage animation if applicable
+  if (object == NULL) return;
+  int health = stats->health.currentHealth;
+  if (health > 0)
+    setState(&(object->animator), TAKE_DAMAGE);
+  else
+    setState(&(object->animator), DIE);
 }
 
 /**

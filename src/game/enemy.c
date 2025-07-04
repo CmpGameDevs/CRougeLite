@@ -32,8 +32,9 @@
 // Private Function Prototypes
 // ***************************
 static Enemy *initEnemy(E_TYPE type, E_WEAPON weapon, Vector2 position);
-static void deleteEnemy(Enemy **enemy);
-static void clearEnemy(Enemy **enemy);
+static void deleteEnemy(int index);
+static void animationController(Enemy *enemy);
+static void updateStateMachine(Enemy *enemy, Vector2 *velocity, Vector2 *direction);
 
 /**
  * setupEnemies - initialize all enemies manually to the game state
@@ -42,6 +43,7 @@ void setupEnemies()
 {
   const Settings *const settings = &(gameState->settings);
   initEnemy(E_CIVILIAN, E_SWORD, (Vector2){200, 978});
+  initEnemy(E_SLIME, E_SWORD, (Vector2){210, 840});
   initEnemy(E_FARMER, E_SWORD, (Vector2){1190.46, 356.01});
 }
 
@@ -78,79 +80,19 @@ void updateEnemies()
 
   for (int i = 0; i < gameState->numOfEnemies; i++)
   {
-    updateAnimator(&enemies[i].object.animator);
-    Vector2 velocity = {0, 0};
-    enemies[i].ai.state = IDLE;
-
-    if (enemies[i].ai.path)
+    if (enemies[i].stats.health.currentHealth <= 0 && enemies[i].object.animator.isFinished)
     {
-      enemies[i].ai.state = RUN;
-      // Get current target waypoint
-      CoordPair nextStep = enemies[i].ai.path[enemies[i].ai.currentPathIndex];
-      Vector2 enemyPos = enemies[i].object.transform.position;
-      int colliderWidth = enemies[i].object.collider.bounds.width;
-      int colliderHeight = enemies[i].object.collider.bounds.height;
-      int cellWidth = gameState->map.tileWidth * gameState->map.scale;
-      int cellHeight = gameState->map.tileHeight * gameState->map.scale;
-
-      // Calculate cell boundaries
-      Rectangle cellBounds = {
-          nextStep.second * cellWidth, // x position
-          nextStep.first * cellHeight, // y position
-          cellWidth,                   // width
-          cellHeight                   // height
-      };
-
-      Vector2 enemyCenterPos = {
-          enemyPos.x + colliderWidth / 2,
-          enemyPos.y + colliderHeight / 2};
-
-      Vector2 nextCellPos = {
-          nextStep.second * cellWidth + cellWidth / 2,
-          nextStep.first * cellHeight + cellHeight / 2};
-      direction = Vector2Subtract(nextCellPos, enemyCenterPos);
-
-      // Debug the distance
-      float distance = Vector2Length(direction);
-
-      bool insideCell =
-          enemyCenterPos.x >= cellBounds.x &&
-          enemyCenterPos.x <= cellBounds.x + cellBounds.width &&
-          enemyCenterPos.y >= cellBounds.y &&
-          enemyCenterPos.y <= cellBounds.y + cellBounds.height;
-
-      // Move to next waypoint if inside the cell
-      if (insideCell)
-      {
-
-        enemies[i].ai.currentPathIndex++;
-        // If we still have waypoints, calculate new direction
-        if (enemies[i].ai.currentPathIndex < enemies[i].ai.pathLength)
-        {
-          nextStep = enemies[i].ai.path[enemies[i].ai.currentPathIndex];
-          nextCellPos = (Vector2){
-              nextStep.second * cellWidth + cellWidth / 2,
-              nextStep.first * cellHeight + cellHeight / 2};
-          direction = Vector2Subtract(nextCellPos, enemyCenterPos);
-        }
-        else
-        {
-          // Path complete
-          free(enemies[i].ai.path);
-          enemies[i].ai.path = NULL;
-          enemies[i].ai.currentPathIndex = 0;
-          enemies[i].ai.pathLength = 0;
-          direction = (Vector2){0, 0};
-        }
-      }
-
-      if (Vector2Length(direction) > 0)
-      {
-        // Normalize direction and scale by speed
-        velocity = Vector2Scale(Vector2Normalize(direction), enemies[i].ai.speed);
-      }
+      printf("Killed Enemy %s, which is %d of %d\n", enemies[i].name, i + 1, gameState->numOfEnemies);
+      deleteEnemy(i);
+      i--;
     }
+  }
 
+  for (int i = 0; i < gameState->numOfEnemies; i++)
+  {
+    Vector2 velocity = {0, 0};
+
+    updateStateMachine(&enemies[i], &velocity, &direction);
     Vector2 position = Vector2Add(enemies[i].object.transform.position, velocity);
 
     if (Vector2Length(velocity) > 0)
@@ -181,16 +123,9 @@ void updateEnemies()
     enemies[i].object.collider.bounds.x = position.x;
     enemies[i].object.collider.bounds.y = position.y;
 
-    // FIXME: replace with sprite size
+    animationController(&enemies[i]);
 
-    // Remove Enemy when it dies
-    if (enemies[i].stats.health.currentHealth <= 0)
-    {
-      printf("Killed Enemy\n");
-      Enemy *enemy = enemies + i;
-      deleteEnemy(&enemy);
-      i--;
-    }
+    // FIXME: replace with sprite size
   }
 }
 
@@ -258,6 +193,10 @@ void updateEnemyPath()
 
     Enemy *enemy = &(game_system->enemies[i]);
 
+    // Skip dead enemies
+    if (enemy->stats.health.currentHealth <= 0)
+      continue;
+
     Vector2 enemyPos = enemy->object.transform.position;
     colliderWidth = enemy->object.collider.bounds.width;
     colliderHeight = enemy->object.collider.bounds.height;
@@ -280,15 +219,10 @@ void updateEnemyPath()
       distance = fmin(distance, Vector2Distance(enemyPos, (Vector2){cornerX, cornerY}));
     }
 
-    if (distance > enemy->ai.detectionRange || !lineOfSight((Vector2){enemyRow, enemyCol}, (Vector2){playerRow, playerCol}))
+    enemy->ai.inLineOfSight = lineOfSight((Vector2){enemyRow, enemyCol}, (Vector2){playerRow, playerCol});
+    if (distance > enemy->ai.detectionRange || !enemy->ai.inLineOfSight)
     {
-      if (enemy->ai.path)
-      {
-        free(enemy->ai.path);
-      }
-      enemy->ai.path = NULL;
-      enemy->ai.pathLength = 0;
-      enemy->ai.currentPathIndex = 0;
+      // Proceeds to last known path or stay idle
       continue;
     }
     //---------------------------------------------------------------------------------
@@ -332,17 +266,13 @@ void updateEnemyPath()
  */
 void clearEnemies()
 {
-  int enemyNum = gameState->numOfEnemies;
-  Enemy *enemies = gameState->enemies;
-
-  // FIXME: this is probably buged
   printf("Deleting Enemies\n");
-  while (enemyNum--)
+  while (gameState->numOfEnemies > 0)
   {
-    clearEnemy(&enemies);
-    enemies--;
+    deleteEnemy(0);
   }
   free(gameState->enemies);
+  gameState->enemies = NULL;
   printf("Deleted all Enemies\n");
 }
 
@@ -387,6 +317,20 @@ static Enemy *initEnemy(E_TYPE type, E_WEAPON weapon, Vector2 position)
       .currentState = IDLE,
   };
 
+  enemy->ai = (EnemyAI){
+      .patrolStart = (Vector2){0, 0},
+      .patrolEnd = (Vector2){0, 0},
+      .detectionRange = 300.0f,
+      .attackCooldown = 1.0f,
+      .lastAttackTime = 0.0f,
+      .dodgePercentage = 0.1f,
+      .state = IDLE,
+      .path = NULL,
+      .currentPathIndex = 0,
+      .pathLength = 0,
+      .minDistanceToAttack = 0,
+  };
+
   switch (type)
   {
   case E_CIVILIAN:
@@ -407,7 +351,6 @@ static Enemy *initEnemy(E_TYPE type, E_WEAPON weapon, Vector2 position)
     };
     break;
   case E_FARMER:
-  default:
     enemy->object.animator.animations[IDLE] = (SpriteAnimation){
         .frameNames =
             {
@@ -424,6 +367,55 @@ static Enemy *initEnemy(E_TYPE type, E_WEAPON weapon, Vector2 position)
         .frameCount = 0,
     };
     break;
+  case E_SLIME:
+  default:
+    enemy->ai.detectionRange = 500.0f;
+    enemy->ai.minDistanceToAttack = 3;
+    enemy->object.animator.animations[IDLE] = (SpriteAnimation){
+      .frameNames =
+          {
+              "slime_1_0",
+              "slime_1_1",
+              "slime_1_2",
+              "slime_1_3",
+          },
+      .numOfFrames = 4,
+      .fps = 8,
+      .isLooping = true,
+      .isFinished = false,
+      .currentFrame = 0,
+      .frameCount = 0,
+    };
+    enemy->object.animator.animations[TAKE_DAMAGE] = (SpriteAnimation){
+      .frameNames =
+          {
+              "slime_2_0",
+              "slime_2_1",
+              "slime_2_2",
+              "slime_2_3",
+          },
+      .numOfFrames = 4,
+      .fps = 8,
+      .isLooping = false,
+      .isFinished = false,
+      .currentFrame = 0,
+      .frameCount = 0,
+    };
+    enemy->object.animator.animations[DIE] = (SpriteAnimation){
+      .frameNames =
+          {
+              "slime_0_2",
+              "slime_0_1",
+              "slime_0_0",
+          },
+      .numOfFrames = 3,
+      .fps = 8,
+      .isLooping = false,
+      .isFinished = false,
+      .currentFrame = 0,
+      .frameCount = 0,
+    };
+    break;
   }
 
   enemy->ID = ID++;
@@ -431,45 +423,128 @@ static Enemy *initEnemy(E_TYPE type, E_WEAPON weapon, Vector2 position)
   enemy->object.transform.position = position;
   enemy->object.collider.bounds.x = position.x;
   enemy->object.collider.bounds.y = position.y;
-  enemy->object.collider.bounds.width = 48;
-  enemy->object.collider.bounds.height = 48;
   enemy->object.transform.scale = (Vector2){4, 4};
+  enemy->object.rigidBody.type = BODY_GHOST;
   enemy->weapon = initWeapon(weapon, false);
-  enemy->ai = (EnemyAI){
-      .patrolStart = (Vector2){0, 0},
-      .patrolEnd = (Vector2){0, 0},
-      .detectionRange = 300.0f,
-      .attackCooldown = 1.0f,
-      .lastAttackTime = 0.0f,
-      .dodgePercentage = 0.1f,
-      .speed = 2.5f,
-      .state = IDLE,
-      .path = NULL,
-      .currentPathIndex = 0,
-      .pathLength = 0,
-  };
 
   return enemy;
 }
 
 /**
- * deleteEnemy - remove the enemy object from the game state
- *
- * @param enemy Pointer to a pointer to the enemy object
+ * updateStateMachine - update the enemy state machine
+ * 
+ * @param enemy Pointer to the enemy object
+ * @param velocity Pointer to the velocity vector
+ * @param direction Pointer to the direction vector
  */
-static void deleteEnemy(Enemy **enemy)
+static void updateStateMachine(Enemy *enemy, Vector2 *velocity, Vector2 *direction)
 {
-  Enemy *enemies = gameState->enemies;
-  *enemy = (enemies + --(gameState->numOfEnemies));
-  // TODO: rework clearEnemy and call it
-  //  clearEnemy(enemy);
+  EnemyAI *ai = &(enemy->ai);
+  ai->state = IDLE;
+
+  if (ai->path && enemy->stats.health.currentHealth > 0)
+  {
+    ai->state = RUN;
+    // Get current target waypoint
+    CoordPair nextStep = ai->path[ai->currentPathIndex];
+    Vector2 enemyPos = enemy->object.transform.position;
+    int colliderWidth = enemy->object.collider.bounds.width;
+    int colliderHeight = enemy->object.collider.bounds.height;
+    int cellWidth = gameState->map.tileWidth * gameState->map.scale;
+    int cellHeight = gameState->map.tileHeight * gameState->map.scale;
+
+    // Calculate cell boundaries
+    Rectangle cellBounds = {
+        nextStep.second * cellWidth, // x position
+        nextStep.first * cellHeight, // y position
+        cellWidth,                   // width
+        cellHeight                   // height
+    };
+
+    Vector2 enemyCenterPos = {
+        enemyPos.x + colliderWidth / 2,
+        enemyPos.y + colliderHeight / 2};
+
+    Vector2 nextCellPos = {
+        nextStep.second * cellWidth + cellWidth / 2,
+        nextStep.first * cellHeight + cellHeight / 2};
+    *direction = Vector2Subtract(nextCellPos, enemyCenterPos);
+
+    // Debug the distance
+    float distance = Vector2Length(*direction);
+
+    bool insideCell =
+        enemyCenterPos.x >= cellBounds.x &&
+        enemyCenterPos.x <= cellBounds.x + cellBounds.width &&
+        enemyCenterPos.y >= cellBounds.y &&
+        enemyCenterPos.y <= cellBounds.y + cellBounds.height;
+
+    // Move to next waypoint if inside the cell
+    if (insideCell)
+    {
+
+      ai->currentPathIndex++;
+      // If we still have waypoints, calculate new direction
+      if (ai->currentPathIndex < ai->pathLength - ai->inLineOfSight * ai->minDistanceToAttack)
+      {
+        nextStep = ai->path[ai->currentPathIndex];
+        nextCellPos = (Vector2){
+            nextStep.second * cellWidth + cellWidth / 2,
+            nextStep.first * cellHeight + cellHeight / 2};
+        *direction = Vector2Subtract(nextCellPos, enemyCenterPos);
+      }
+      else
+      {
+        // Path complete
+        free(ai->path);
+        ai->path = NULL;
+        ai->currentPathIndex = 0;
+        ai->pathLength = 0;
+        *direction = (Vector2){0, 0};
+      }
+    }
+
+    if (Vector2Length(*direction) > 0)
+    {
+      // Normalize direction and scale by speed
+      *velocity = Vector2Scale(Vector2Normalize(*direction), enemy->stats.speed);
+    }
+  }
+
+
 }
 
 /**
- * clearEnemy - free the enemy object from the memory
+ * animationController - controls the animation state of the enemy
  */
-static void clearEnemy(Enemy **enemy)
+static void animationController(Enemy *enemy)
 {
-  if (enemy == NULL || *enemy == NULL)
-    return;
+  Animator *animator = &(enemy->object.animator);
+
+  if (animator->isFinished == true)
+    setState(animator, IDLE);
+
+  updateAnimator(animator);
+}
+
+/**
+ * deleteEnemy - remove the enemy object from the game state
+ *
+ * @param index Index of the enemy in the array
+ */
+static void deleteEnemy(int index)
+{
+  Enemy *enemy = &gameState->enemies[index];
+  
+  // Free the AI path if it exists
+  if (enemy->ai.path) {
+    free(enemy->ai.path);
+    enemy->ai.path = NULL;
+  }
+
+  // Note: enemy->name is NOT freed here because it points to string literals 
+  // from the enemy dictionary (e.g., "Civilian", "Farmer", "Slime")
+  // These are stored in read-only memory and should never be freed
+  
+  gameState->enemies[index] = gameState->enemies[--(gameState->numOfEnemies)];
 }

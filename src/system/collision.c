@@ -322,6 +322,8 @@ static bool checkAABBCollision(const Rectangle a, const Rectangle b)
  */
 static void resolveAABBCollision(GameObject *a, GameObject *b)
 {
+  if (!a || !b) return;
+  if (a->rigidBody.type == BODY_GHOST || b->rigidBody.type == BODY_GHOST) return;
   a->collider.isColliding = true;
   b->collider.isColliding = true;
   Rectangle *boundsA = &(a->collider.bounds);

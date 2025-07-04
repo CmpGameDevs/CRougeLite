@@ -53,8 +53,8 @@ static void initEnemyDictionary()
   dict[NUM_OF_E_TYPE].opcode = -1;
   // Add in asc order
   // Because we fetch the info using binary search.
-  dict[0].opcode = E_CIVILIAN;
-  dict[0].entry.enemy = (Enemy){
+  dict[E_CIVILIAN].opcode = E_CIVILIAN;
+  dict[E_CIVILIAN].entry.enemy = (Enemy){
       .name = "Civilian",
       .object =
           {
@@ -69,16 +69,15 @@ static void initEnemyDictionary()
       .ai = {.detectionRange = 100,
              .attackCooldown = 3,
              .dodgePercentage = 0,
-             .speed = 2,
              .state = IDLE},
       .stats = {.health = {.maxHealth = 100, .currentHealth = 100},
                 .attack = {.power = 1.0f, .cooldown = 5, .speed = 1.0f},
                 .defense = {.value = 3, .nearHitValue = 6, .constant = 50},
-                .speed = 5},
+                .speed = 3},
   };
 
-  dict[1].opcode = E_FARMER;
-  dict[1].entry.enemy = (Enemy){
+  dict[E_FARMER].opcode = E_FARMER;
+  dict[E_FARMER].entry.enemy = (Enemy){
       .name = "Farmer",
       .object =
           {
@@ -93,15 +92,37 @@ static void initEnemyDictionary()
       .ai = {.detectionRange = 100,
              .attackCooldown = 3,
              .dodgePercentage = 0,
-             .speed = 2,
              .state = IDLE},
       .stats = {.health = {.maxHealth = 100, .currentHealth = 100},
                 .attack = {.power = 1.0f, .cooldown = 5, .speed = 1.0f},
                 .defense = {.value = 3, .nearHitValue = 6, .constant = 45},
-                .speed = 5},
+                .speed = 3},
   };
 
-  dict[2].opcode = E_KNIGHT;
+  dict[E_KNIGHT].opcode = E_KNIGHT;
+
+  dict[E_SLIME].opcode = E_SLIME;
+  dict[E_SLIME].entry.enemy = (Enemy){
+      .name = "Slime",
+      .object =
+          {
+              .rigidBody = {.velocity = (Vector2){5, 5},
+                            .acceleration = (Vector2){0, 0},
+                            .drag = 1.0,
+                            .type = BODY_DYNAMIC},
+              .collider = {.bounds = {0, 0, 64, 64}},
+              .spriteRenderer = {},
+              .animator = {},
+          },
+      .ai = {.detectionRange = 100,
+             .attackCooldown = 3,
+             .dodgePercentage = 0,
+             .state = IDLE},
+      .stats = {.health = {.maxHealth = 150, .currentHealth = 150},
+                .attack = {.power = 1.0f, .cooldown = 5, .speed = 1.0f},
+                .defense = {.value = 3, .nearHitValue = 6, .constant = 15},
+                .speed = 1.5},
+  };
 
   gameState->enemyDictionary = dict;
 }

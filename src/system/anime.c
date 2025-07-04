@@ -26,7 +26,7 @@ Rectangle getSrcRect(Animator *animator)
 
 void setState(Animator *animator, int state)
 {
-  if (animator->currentState == state)
+  if (animator->currentState == state || animator->animations[state].numOfFrames == 0)
     return;
 
   animator->currentState = state;
