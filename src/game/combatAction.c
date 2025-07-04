@@ -382,6 +382,7 @@ static void damageEntity(CombatAction *action, Stats *stats, GameObject *object)
     BulletInfo *bulletInfo = &(action->action.bullet.bulletInfo);
     applyBulletDamage(bulletInfo, stats);
     printf("Bullet #%d taken %.2f damage, remaining health: %f\n", action->ID, bulletInfo->bulletDamage, bulletInfo->bulletHealth);
+    stats->health.lastUpdateTime = GetTime();
     break;
   default:
     break;

@@ -172,6 +172,82 @@ void drawScene() {
   EndDrawing();
 }
 
+/**
+ * drawHealthBar - draws a health bar above an entity if damaged recently
+ * 
+ * @param position The world position to draw the health bar above
+ * @param currentHealth The current health of the entity
+ * @param maxHealth The maximum health of the entity
+ * @param lastUpdateTime The time when the entity last took damage
+ */
+void drawHealthBar(Vector2 position, float currentHealth, float maxHealth, float lastUpdateTime) {
+  double currentTime = GetTime();
+  double timeSinceLastDamage = currentTime - lastUpdateTime;
+  
+  // Only show health bar if damaged within last 3 seconds
+  if (timeSinceLastDamage > 3.0 || maxHealth == currentHealth || maxHealth <= 0) {
+    return;
+  }
+  
+  const int barWidth = 48;
+  const int barHeight = 8;
+  const int barOffsetY = -12.5;
+  const int segmentWidth = 4;
+  const int segmentSpacing = 1;
+
+  float healthPercentage = currentHealth / maxHealth;
+  healthPercentage = fmax(0.0f, fmin(1.0f, healthPercentage));
+  
+  Vector2 barPosition = {
+    position.x - barWidth / 2,
+    position.y + barOffsetY
+  };
+  
+  Rectangle backgroundPanel = {
+    barPosition.x - 3,
+    barPosition.y - 3,
+    barWidth + 6,
+    barHeight + 6
+  };
+  DrawRectangleRec(backgroundPanel, (Color){0, 0, 0, 160});
+  DrawRectangleLines(backgroundPanel.x, backgroundPanel.y, backgroundPanel.width, backgroundPanel.height, (Color){100, 100, 100, 200});
+  
+  // NOTE: This draws the health bar into segments for a blocky feel
+  int totalSegments = (barWidth - segmentSpacing) / (segmentWidth + segmentSpacing);
+  int filledSegments = (int)ceil(totalSegments * healthPercentage);
+  
+  for (int i = 0; i < totalSegments; i++) {
+    int segmentX = barPosition.x + i * (segmentWidth + segmentSpacing);
+    int segmentY = barPosition.y + 1;
+    
+    Rectangle segment = {
+      segmentX,
+      segmentY,
+      segmentWidth,
+      barHeight - 2
+    };
+    
+    Color segmentColor;
+    if (i < filledSegments) {
+      if (healthPercentage > 0.6f) {
+        segmentColor = (Color){60, 180, 60, 255}; // Green
+      } else if (healthPercentage > 0.3f) {
+        segmentColor = (Color){220, 180, 40, 255}; // Yellow
+      } else {
+        segmentColor = (Color){200, 60, 60, 255}; // Red
+      }
+    } else {
+      segmentColor = (Color){40, 40, 40, 200};
+    }
+
+    DrawRectangleRec(segment, segmentColor);
+    
+    if (i < filledSegments) {
+      DrawRectangleLines(segment.x, segment.y, segment.width, segment.height, (Color){255, 255, 255, 100});
+    }
+  }
+}
+
 // *****************
 // PRIVATE FUNCTIONS
 // *****************

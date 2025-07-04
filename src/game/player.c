@@ -20,6 +20,7 @@
 
 #include "player.h"
 #include "../system/collision.h"
+#include "../system/draw.h"
 
 #include "../system/anime.h"
 #include <raylib.h>
@@ -109,12 +110,21 @@ void drawPlayers()
   Player *players = gameState->players;
   int player_num = gameState->numOfPlayers;
 
-  while (player_num--)
+  for (int i = 0; i < player_num; i++)
   {
-    bool flip = (players->drawDirection == -1) ? true : false;
-    drawAnimator(&(players->object.animator), &(players->object.transform),
+    bool flip = (players[i].drawDirection == -1) ? true : false;
+    drawAnimator(&(players[i].object.animator), &(players[i].object.transform),
                  WHITE, flip);
-    players++;
+    
+    // Draw health bar if the player was damaged recently
+    Vector2 playerCenter = {
+      players[i].object.transform.position.x + players[i].object.collider.bounds.width / 2,
+      players[i].object.transform.position.y
+    };
+    drawHealthBar(playerCenter, 
+                  players[i].stats.health.currentHealth, 
+                  players[i].stats.health.maxHealth, 
+                  players[i].stats.health.lastUpdateTime);
   }
 }
 

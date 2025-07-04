@@ -217,6 +217,7 @@ typedef struct {
 typedef struct {
   float currentHealth;
   float maxHealth;
+  double lastUpdateTime;
 } Health;
 
 // IDK if those affect the other structs or not (like leveling up)

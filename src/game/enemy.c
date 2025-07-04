@@ -23,6 +23,7 @@
 #include "../system/anime.h"
 #include "../system/A-Star.h"
 #include "../system/map.h"
+#include "../system/draw.h"
 #include "../system/midpoint.h"
 
 #include <raylib.h>
@@ -64,6 +65,16 @@ void drawEnemies()
     // Draw the enemy sprite
     bool flip = (enemies[i].drawDirection == -1) ? true : false;
     drawAnimator(&(enemies[i].object.animator), &(enemies[i].object.transform), WHITE, flip);
+    
+    // Draw health bar if the enemy was damaged recently
+    Vector2 enemyCenter = {
+      enemies[i].object.transform.position.x + enemies[i].object.collider.bounds.width / 2,
+      enemies[i].object.transform.position.y
+    };
+    drawHealthBar(enemyCenter, 
+                  enemies[i].stats.health.currentHealth, 
+                  enemies[i].stats.health.maxHealth, 
+                  enemies[i].stats.health.lastUpdateTime);
   }
 }
 

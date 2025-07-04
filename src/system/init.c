@@ -154,9 +154,9 @@ static void initPlayerWeaponDictionary()
             .critChance = 0.05,
             .object = {.collider = {.bounds = {0, 0, 32, 32}}}
             },
-          30,
-          30,
-          1}};
+          .maxAmmo = 1000,
+          .ammo = 1000,
+          .numBullets = 1}};
 
   dict[1].opcode = P_MISSILE_LAUNCHER;
   dict[1].entry.weapon = (Weapon){
@@ -170,9 +170,9 @@ static void initPlayerWeaponDictionary()
             .critChance = 0.05,
             .object = {.collider = {.bounds = {0, 0, 16, 16}}}
             },
-          30,
-          30,
-          4}};
+          .maxAmmo = 1000,
+          .ammo = 1000,
+          .numBullets = 4}};
 
   gameState->playerWeaponDictionary = dict;
 }
