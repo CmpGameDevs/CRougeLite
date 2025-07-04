@@ -253,8 +253,9 @@ typedef struct {
   float bulletRange;
   float bulletHealth;
   bool isTracking;
+  bool isFriendly;
   int pathCode;
-  int enemyID;
+  int targetID;
   float critMultiplier;
   float critChance;
   GameObject object;
@@ -421,6 +422,7 @@ typedef struct {
   bool showDebugMenu;
   bool showInventory;
   float zoom;
+  float sfxVolume;
 } Settings;
 
 typedef union {

@@ -90,6 +90,16 @@ static void loadResources() {
   // load global assets
   Settings settings = gameState->settings;
   InitAudioDevice();
+  
+  // Initialize sound system
+  initSoundSystem();
+  loadSoundEffect("src/resources/sfx/weapons/mage_fireball/big-fire-ball-attack.wav", "big_fireball");
+  loadSoundEffect("src/resources/sfx/weapons/mage_fireball/burn.wav", "fireball");
+  loadSoundEffect("src/resources/sfx/environment/pickups/item.wav", "pickup");
+  loadSoundEffect("src/resources/sfx/enemies/death/slime_death.wav", "slime_death");
+  loadSoundEffect("src/resources/sfx/player/impactGeneric_light_003.ogg", "missing_item");
+  loadSoundEffect("src/resources/sfx/UI/switch2.ogg", "interact");
+
   music = LoadMusicStream("./src/"
                           "./resources/ambient.ogg");
   // NOTE: All paths must start from the src dir
@@ -105,6 +115,10 @@ static void update() {
   updateCamera();
   if (gameState->settings.playMusic)
     UpdateMusicStream(music);
+  if (gameState->settings.sfx_on)
+    setSoundVolume(gameState->settings.sfxVolume);
+  else
+    setSoundVolume(0.0f);
 
   if (!gameState->isGameStarted || gameState->isGameOver) return;
 
@@ -118,6 +132,9 @@ static void clearResources() {
   // Clear game state and map
   clearGameState();
   clearMap();
+
+  // Clear sound system
+  clearSoundSystem();
 
   // Unload assets and cleaning for raylib
   UnloadMusicStream(music);

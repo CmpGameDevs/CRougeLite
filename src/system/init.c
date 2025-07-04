@@ -115,7 +115,7 @@ static void initEnemyDictionary()
               .animator = {},
           },
       .ai = {.detectionRange = 100,
-             .attackCooldown = 3,
+             .attackCooldown = 4,
              .dodgePercentage = 0,
              .state = IDLE},
       .stats = {.health = {.maxHealth = 150, .currentHealth = 150},
@@ -271,7 +271,7 @@ void initSettings()
   gameState->settings.screenWidth = SCREEN_WIDTH;
   gameState->settings.screenHeight = SCREEN_HEIGHT;
   gameState->settings.musicVolume = 50;
-  gameState->settings.soundVolume = 50;
+  gameState->settings.sfxVolume = 0.5f;
   gameState->settings.playMusic = true;
   gameState->settings.sfx_on = true;
   gameState->settings.showTextures = true;

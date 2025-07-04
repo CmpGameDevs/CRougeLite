@@ -70,6 +70,7 @@ CombatAction *initBullet(int ID, BulletInfo bulletInfo, Vector2 pathInfo,
   // Init bullet
   Bullet bullet;
   GameObject *object = &(bulletInfo.object);
+  bulletInfo.isFriendly = isFriendly;
   src.x -= object->collider.bounds.width / 2;
   src.y -= object->collider.bounds.height / 2;
   bullet.playerID = ID;
@@ -78,11 +79,23 @@ CombatAction *initBullet(int ID, BulletInfo bulletInfo, Vector2 pathInfo,
   object->collider.bounds.y = src.y;
   object->transform =
       (CTransform){src, 0, pathInfo.x, pathInfo.y, isFriendly ? (Vector2){3, 3} : (Vector2){2, 2}};
-  if (bulletInfo.isTracking && bulletInfo.enemyID >= 0)
-    bullet.dest =
-        gameState->enemies[bulletInfo.enemyID].object.transform.position;
-  else
+
+  if (bulletInfo.isTracking && bulletInfo.targetID >= 0) {
+    GameObject *targetObject = NULL;
+    if (isFriendly) {
+      targetObject = &(gameState->enemies[bulletInfo.targetID].object);
+    }
+    else {
+      targetObject = &(gameState->players[bulletInfo.targetID].object);
+    }
+    bullet.dest = (Vector2){
+        targetObject->collider.bounds.x +
+            targetObject->collider.bounds.width / 2,
+        targetObject->collider.bounds.y +
+            targetObject->collider.bounds.height / 2};
+  } else {
     bullet.dest = dest;
+  }
 
   object->rigidBody.type = BODY_DYNAMIC;
   object->animator = (Animator){
@@ -412,8 +425,8 @@ static void damageEntity(CombatAction *action, Stats *stats, GameObject *object)
 
   // Apply damage animation if applicable
   if (object == NULL) return;
-  int health = stats->health.currentHealth;
-  if (health > 0)
+  float health = stats->health.currentHealth;
+  if (health > 0.0f)
     setState(&(object->animator), TAKE_DAMAGE);
   else
     setState(&(object->animator), DIE);
@@ -443,12 +456,25 @@ static void drawBullet(CombatAction **combatActions)
 
   Vector2 rotated = RotatePoint(*pos, bullet->startPosition, -combatAction->angle * DEG2RAD);
 
-  if (bullet->bulletInfo.isTracking && bullet->bulletInfo.enemyID >= 0)
+  if (bullet->bulletInfo.isTracking && bullet->bulletInfo.targetID >= 0)
   {
-    Vector2 enemyPos = gameState->enemies[bullet->bulletInfo.enemyID].object.transform.position;
-    if (!Vector2Equals(bullet->dest, enemyPos))
+    GameObject *targetObject = NULL;
+    if (bullet->bulletInfo.isFriendly)
     {
-      bullet->dest = enemyPos;
+      targetObject = &(gameState->enemies[bullet->bulletInfo.targetID].object);
+    }
+    else
+    {
+      targetObject = &(gameState->players[bullet->bulletInfo.targetID].object);
+    }
+    Vector2 targetPos = (Vector2){
+        targetObject->collider.bounds.x +
+            targetObject->collider.bounds.width / 2,
+        targetObject->collider.bounds.y +
+            targetObject->collider.bounds.height / 2};
+    if (!Vector2Equals(bullet->dest, targetPos))
+    {
+      bullet->dest = targetPos;
       bullet->startPosition = RotatePoint((Vector2){rotated.x, bullet->startPosition.y}, bullet->startPosition, combatAction->angle * DEG2RAD);
       rotated.x = bullet->startPosition.x;
       combatAction->angle =

@@ -27,6 +27,7 @@
 #include "defs.h"
 #include "structs.h"
 
+#include "system/sound.h"
 
 
 #endif // COMMON_H
