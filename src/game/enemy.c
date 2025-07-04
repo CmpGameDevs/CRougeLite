@@ -381,7 +381,7 @@ static Enemy *initEnemy(E_TYPE type, E_WEAPON weapon, Vector2 position)
   case E_SLIME:
   default:
     enemy->ai.detectionRange = 500.0f;
-    enemy->ai.minDistanceToAttack = 3;
+    enemy->ai.minDistanceToAttack = 4;
     enemy->object.animator.animations[IDLE] = (SpriteAnimation){
         .frameNames =
             {
@@ -491,7 +491,7 @@ static void updateStateMachine(Enemy *enemy, Vector2 *velocity, Vector2 *directi
       {
         ai->currentPathIndex++;
         // If we still have waypoints, calculate new direction
-        int randomPaddedDistance = GetRandomValue(0, 3) + ai->minDistanceToAttack;
+        int randomPaddedDistance = GetRandomValue(0, 3 * ai->minDistanceToAttack != 0) + ai->minDistanceToAttack;
         if (ai->currentPathIndex < ai->pathLength - (ai->inLineOfSight != NULL) * randomPaddedDistance)
         {
           nextStep = ai->path[ai->currentPathIndex];
@@ -530,10 +530,11 @@ static void updateStateMachine(Enemy *enemy, Vector2 *velocity, Vector2 *directi
           ai->inLineOfSight->object.collider.bounds.y + ai->inLineOfSight->object.collider.bounds.height / 2};
       
       float distanceToTarget = Vector2Distance(enemyPos, targetPos);
-      float maxAttackRange = (ai->minDistanceToAttack + 2) * (gameState->map.tileWidth * gameState->map.scale);
+      int randomPaddedDistance = GetRandomValue(0, 3) + ai->minDistanceToAttack;
+      float maxAttackRange = (randomPaddedDistance + 2) * (gameState->map.tileWidth * gameState->map.scale);
       
       // If target is too far, switch back to RUN state to chase
-      if (distanceToTarget > maxAttackRange) {
+      if (distanceToTarget > maxAttackRange || (ai->minDistanceToAttack == 0 && distanceToTarget != 0)) {
         ai->state = RUN;
         break;
       }

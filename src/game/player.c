@@ -163,7 +163,8 @@ void drawPlayers()
  */
 void updatePlayers()
 {
-  
+  bool allPlayersDead = true;
+
   for (int i = 0; i < gameState->numOfPlayers; i++)
   {
     Player *player = gameState->players + i;
@@ -172,6 +173,8 @@ void updatePlayers()
 
     if (player->stats.health.currentHealth <= 0 && player->object.animator.isFinished)
       continue;
+
+    allPlayersDead = false;
 
     int playerInput = handlePlayerInput(player);
     handlePlayerMovement(player, playerInput);
@@ -189,6 +192,12 @@ void updatePlayers()
     animationController(player);
     // NOTE:: this is the call that forwards the animation
     updateAnimator(&(player->object.animator));
+  }
+
+  if (allPlayersDead)
+  {
+    gameState->isGameOver = true;
+    printf("All players are dead. Game Over!\n");
   }
 }
 
