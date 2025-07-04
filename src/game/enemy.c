@@ -381,7 +381,7 @@ static Enemy *initEnemy(E_TYPE type, E_WEAPON weapon, Vector2 position)
   case E_SLIME:
   default:
     enemy->ai.detectionRange = 500.0f;
-    enemy->ai.minDistanceToAttack = 4;
+    enemy->ai.minDistanceToAttack = 6;
     enemy->object.animator.animations[IDLE] = (SpriteAnimation){
         .frameNames =
             {
@@ -548,8 +548,13 @@ static void updateStateMachine(Enemy *enemy, Vector2 *velocity, Vector2 *directi
       float deltaTime = GetFrameTime();
       Vector2 srcPos = enemyPos;
       Vector2 destPos = targetPos;
-
+      
       if (weapon->type == RANGED_WEAPON) {
+        if (weapon->weapon.ranged.bulletInfo.isTracking) {
+          weapon->weapon.ranged.bulletInfo.targetID = ai->inLineOfSight->ID;
+        } else {
+          weapon->weapon.ranged.bulletInfo.targetID = -1;
+        }
         updateRangedWeapon(weapon, true, enemy->ID, srcPos, destPos,
                        deltaTime, false);
       } else if (weapon->type == MELEE_WEAPON) {

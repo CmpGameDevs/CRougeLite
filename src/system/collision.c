@@ -536,6 +536,7 @@ static bool resolveTileCollision(Entity *entity, int row, int col, int layer) {
     case ENTITY_PLAYER:
       Player *player = entity->entity.player;
       if (isTileCollectible(tileId) && addToInventory(player, tileId)) {
+        playSoundEffect("pickup");
         removePickable(row, col);
         return true;
       }

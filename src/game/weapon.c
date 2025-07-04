@@ -66,6 +66,7 @@ void updateRangedWeapon(Weapon *weapon, bool isFired, int ID, Vector2 src, Vecto
   if (isFired && (*ammo - numBullets > 0 && *reloadTime <= 0.0f || !isFriendly))
   {
     initRangedWeaponShoot(ID, weapon->weapon.ranged, src, dest, isFriendly);
+    playSoundEffect(isFriendly ? "big_fireball" : "fireball");
 
     *ammo -= numBullets;
     *reloadTime = cooldown;

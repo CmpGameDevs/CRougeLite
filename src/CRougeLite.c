@@ -90,6 +90,14 @@ static void loadResources() {
   // load global assets
   Settings settings = gameState->settings;
   InitAudioDevice();
+  
+  // Initialize sound system
+  initSoundSystem();
+  loadSoundEffect("src/resources/sfx/weapons/mage_fireball/big-fire-ball-attack.wav", "big_fireball");
+  loadSoundEffect("src/resources/sfx/weapons/mage_fireball/burn.wav", "fireball");
+  loadSoundEffect("src/resources/sfx/environment/pickups/item.wav", "pickup");
+  setSoundVolume(0.5f);
+
   music = LoadMusicStream("./src/"
                           "./resources/ambient.ogg");
   // NOTE: All paths must start from the src dir
@@ -118,6 +126,9 @@ static void clearResources() {
   // Clear game state and map
   clearGameState();
   clearMap();
+
+  // Clear sound system
+  clearSoundSystem();
 
   // Unload assets and cleaning for raylib
   UnloadMusicStream(music);

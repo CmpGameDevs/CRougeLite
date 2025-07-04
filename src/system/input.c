@@ -58,7 +58,7 @@ static void mouseEventHandler() {
       (player->inventory.weapons + player->inventory.currentWeapon);
   if (weapon->type == RANGED_WEAPON) {
     if (weapon->weapon.ranged.bulletInfo.isTracking) {
-      weapon->weapon.ranged.bulletInfo.enemyID = getClickedEnemy(mousePos);
+      weapon->weapon.ranged.bulletInfo.targetID = getClickedEnemy(mousePos);
     }
     updateRangedWeapon(weapon, player->fire, player->ID, srcPos, mousePos,
                        deltaTime, true);

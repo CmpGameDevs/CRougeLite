@@ -115,7 +115,7 @@ static void initEnemyDictionary()
               .animator = {},
           },
       .ai = {.detectionRange = 100,
-             .attackCooldown = 3,
+             .attackCooldown = 4,
              .dodgePercentage = 0,
              .state = IDLE},
       .stats = {.health = {.maxHealth = 150, .currentHealth = 150},
