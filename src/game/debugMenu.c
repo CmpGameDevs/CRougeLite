@@ -43,15 +43,17 @@ void drawDebugMenu() {
 
   char *labels[] = {
       "Show Textures", "Show Texture Bounds", "Show Hitboxes", "Show Paths",
-      "Show FPS",   "Show Inventory",   "Play Music", 
+      "Show FPS",   "Show Inventory",   "Play Music",
   };
 
-  const int numSliders = 1;
+  const int numSliders = 2;
   float *sliders[] = {
-      &gameState->settings.zoom,
+    &gameState->settings.zoom,
+    &gameState->settings.sfxVolume,
   };
   char *sliderLabels[] = {
       "Zoom",
+      "SFX Volume",
   };
 
   for (int i = 0; i < numCheckboxes; i++) {

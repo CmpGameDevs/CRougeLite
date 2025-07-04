@@ -420,7 +420,7 @@ static int handlePlayerInput(Player *player)
   if (IsKeyDown(input.right))
     bitmask |= INPUT_RIGHT;
   if (player->interactableTileIndex != -1 &&
-      IsKeyDown(input.interact))
+      IsKeyPressed(input.interact))
     bitmask |= INPUT_INTERACT;
 
   for (int i = 0; i < player->inventory.currentNumOfWeapons; i++)
@@ -591,6 +591,9 @@ static void handlePlayerInteraction(Player *player, int playerInput)
   if (canInteractWith(tileId, player->collectedItems)) {
     toggleInteractable(row, col, player->collectedItems);
     useFromInventory(player, requiredItem);
+    playSoundEffect("interact");
+  } else {
+    playSoundEffect("missing_item");
   }
 
 }

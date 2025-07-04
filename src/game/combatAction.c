@@ -425,8 +425,8 @@ static void damageEntity(CombatAction *action, Stats *stats, GameObject *object)
 
   // Apply damage animation if applicable
   if (object == NULL) return;
-  int health = stats->health.currentHealth;
-  if (health > 0)
+  float health = stats->health.currentHealth;
+  if (health > 0.0f)
     setState(&(object->animator), TAKE_DAMAGE);
   else
     setState(&(object->animator), DIE);

@@ -422,6 +422,7 @@ typedef struct {
   bool showDebugMenu;
   bool showInventory;
   float zoom;
+  float sfxVolume;
 } Settings;
 
 typedef union {

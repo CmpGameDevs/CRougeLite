@@ -271,7 +271,7 @@ void initSettings()
   gameState->settings.screenWidth = SCREEN_WIDTH;
   gameState->settings.screenHeight = SCREEN_HEIGHT;
   gameState->settings.musicVolume = 50;
-  gameState->settings.soundVolume = 50;
+  gameState->settings.sfxVolume = 0.5f;
   gameState->settings.playMusic = true;
   gameState->settings.sfx_on = true;
   gameState->settings.showTextures = true;

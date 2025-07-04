@@ -98,10 +98,9 @@ Sound* getSoundByName(const char* name) {
 
 void playSoundEffect(const char* name) {
     Sound* sound = getSoundByName(name);
-    float pitch = 1.0f + (GetRandomValue(-10, 10) / 100.0f); // Random pitch between 0.9 and 1.1
-    SetSoundPitch(*sound, pitch);
-
     if (sound != NULL) {
+        float pitch = 1.0f + (GetRandomValue(-10, 10) / 100.0f); // Random pitch between 0.9 and 1.1
+        SetSoundPitch(*sound, pitch);
         PlaySound(*sound);
     } else {
         printf("Warning: Sound '%s' not found\n", name);

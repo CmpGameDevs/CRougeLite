@@ -26,6 +26,7 @@
 #include "../system/draw.h"
 #include "../system/midpoint.h"
 
+#include <ctype.h>
 #include <raylib.h>
 #include <raymath.h>
 
@@ -93,6 +94,16 @@ void updateEnemies()
     if (enemies[i].stats.health.currentHealth <= 0 && enemies[i].object.animator.isFinished)
     {
       printf("Killed Enemy %s, which is %d of %d\n", enemies[i].name, i + 1, gameState->numOfEnemies);
+      
+      char *enemyName = strdup(enemies[i].name);
+      for (char *c = enemyName; *c; c++) *c = tolower(*c);
+      char *soundName = malloc(strlen(enemyName) + 6);
+      sprintf(soundName, "%s_death", enemyName);
+
+      playSoundEffect(soundName);
+      free(enemyName);
+      free(soundName);
+      
       deleteEnemy(i);
       i--;
     }
