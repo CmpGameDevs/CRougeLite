@@ -40,7 +40,7 @@ typedef enum { ACTION_NONE, ACTION_BULLET, ACTION_SLASH } CombatActionType;
 
 typedef enum { RANGED_WEAPON, MELEE_WEAPON, NUM_OF_WEAPON_TYPES } WeaponType;
 
-typedef enum { E_SWORD, NUM_OF_E_WEAPON } E_WEAPON;
+typedef enum { E_SWORD, E_FIRE_BALL, NUM_OF_E_WEAPON } E_WEAPON;
 
 typedef enum { CAT, WEREWOLF, PYROMANIAC, KNIGHT, NUM_OF_P_TYPE } P_TYPE;
 
@@ -70,7 +70,7 @@ typedef enum {
   RIGHT,
 } DIRECTIONS;
 
-typedef enum { E_CIVILIAN, E_FARMER, E_KNIGHT, NUM_OF_E_TYPE } E_TYPE;
+typedef enum { E_CIVILIAN, E_FARMER, E_KNIGHT, E_SLIME, NUM_OF_E_TYPE } E_TYPE;
 
 typedef enum {
   TILE_TERRAIN,      // Walkable ground tiles
@@ -91,8 +91,7 @@ typedef enum {
   WALK,
   RUN,
   DODGE,
-  ATTACK1,
-  ATTACK2,
+  ATTACK,
   TAKE_DAMAGE,
   DIE,
 } STATE;
@@ -130,6 +129,7 @@ typedef struct {
     int capacity;
 } MinHeap;
 
+typedef struct Player Player;
 typedef struct Entity Entity;
 
 typedef struct {
@@ -217,6 +217,7 @@ typedef struct {
 typedef struct {
   float currentHealth;
   float maxHealth;
+  double lastUpdateTime;
 } Health;
 
 // IDK if those affect the other structs or not (like leveling up)
@@ -343,6 +344,8 @@ typedef struct {
   CoordPair* path; // Path to follow, if any.
   int currentPathIndex;
   int pathLength; // Length of the path array.
+  int minDistanceToAttack;
+  Player* inLineOfSight; // If the enemy can see the player.
   STATE state;
 } EnemyAI;
 
@@ -363,7 +366,7 @@ typedef struct {
   int count;
 } CollectibleItem;
 
-typedef struct {
+typedef struct Player {
   // Player Info
   char *name;
   unsigned int ID;

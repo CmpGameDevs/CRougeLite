@@ -21,7 +21,7 @@ static void initCharacterDictionary()
       .type = CAT,
       .stats = {.health = {.maxHealth = 100, .currentHealth = 100},
                 .attack = {.power = 1.0f, .cooldown = 5, .speed = 1.0f},
-                .defense = {.value = 3, .nearHitValue = 6},
+                .defense = {.value = 3, .nearHitValue = 6, .constant = 10},
                 .speed = 5},
       .object = {
           .rigidBody = {.velocity = (Vector2){0, 0},
@@ -53,8 +53,8 @@ static void initEnemyDictionary()
   dict[NUM_OF_E_TYPE].opcode = -1;
   // Add in asc order
   // Because we fetch the info using binary search.
-  dict[0].opcode = E_CIVILIAN;
-  dict[0].entry.enemy = (Enemy){
+  dict[E_CIVILIAN].opcode = E_CIVILIAN;
+  dict[E_CIVILIAN].entry.enemy = (Enemy){
       .name = "Civilian",
       .object =
           {
@@ -69,16 +69,15 @@ static void initEnemyDictionary()
       .ai = {.detectionRange = 100,
              .attackCooldown = 3,
              .dodgePercentage = 0,
-             .speed = 2,
              .state = IDLE},
       .stats = {.health = {.maxHealth = 100, .currentHealth = 100},
                 .attack = {.power = 1.0f, .cooldown = 5, .speed = 1.0f},
                 .defense = {.value = 3, .nearHitValue = 6, .constant = 50},
-                .speed = 5},
+                .speed = 3},
   };
 
-  dict[1].opcode = E_FARMER;
-  dict[1].entry.enemy = (Enemy){
+  dict[E_FARMER].opcode = E_FARMER;
+  dict[E_FARMER].entry.enemy = (Enemy){
       .name = "Farmer",
       .object =
           {
@@ -93,15 +92,37 @@ static void initEnemyDictionary()
       .ai = {.detectionRange = 100,
              .attackCooldown = 3,
              .dodgePercentage = 0,
-             .speed = 2,
              .state = IDLE},
       .stats = {.health = {.maxHealth = 100, .currentHealth = 100},
                 .attack = {.power = 1.0f, .cooldown = 5, .speed = 1.0f},
                 .defense = {.value = 3, .nearHitValue = 6, .constant = 45},
-                .speed = 5},
+                .speed = 3},
   };
 
-  dict[2].opcode = E_KNIGHT;
+  dict[E_KNIGHT].opcode = E_KNIGHT;
+
+  dict[E_SLIME].opcode = E_SLIME;
+  dict[E_SLIME].entry.enemy = (Enemy){
+      .name = "Slime",
+      .object =
+          {
+              .rigidBody = {.velocity = (Vector2){5, 5},
+                            .acceleration = (Vector2){0, 0},
+                            .drag = 1.0,
+                            .type = BODY_DYNAMIC},
+              .collider = {.bounds = {0, 0, 64, 64}},
+              .spriteRenderer = {},
+              .animator = {},
+          },
+      .ai = {.detectionRange = 100,
+             .attackCooldown = 3,
+             .dodgePercentage = 0,
+             .state = IDLE},
+      .stats = {.health = {.maxHealth = 150, .currentHealth = 150},
+                .attack = {.power = 1.0f, .cooldown = 5, .speed = 1.0f},
+                .defense = {.value = 3, .nearHitValue = 6, .constant = 15},
+                .speed = 1.5},
+  };
 
   gameState->enemyDictionary = dict;
 }
@@ -126,16 +147,16 @@ static void initPlayerWeaponDictionary()
       .type = RANGED_WEAPON,
       .weapon.ranged = {
           .stats = {10, 0.5, 0, .weaponSprite = {}},
-          .bulletInfo = {.bulletSpeed = 3, .bulletDamage = 10, 
+          .bulletInfo = {.bulletSpeed = 4, .bulletDamage = 15, 
             .bulletRange = 600, .bulletHealth = 20, 
             .isTracking = false,
             .critMultiplier = 1.05,
             .critChance = 0.05,
-            .object = {.collider = {.bounds = {0, 0, 32, 32}}}
+            .object = {.collider = {.bounds = {0, 0, 28, 28}}}
             },
-          30,
-          30,
-          1}};
+          .maxAmmo = 1000,
+          .ammo = 1000,
+          .numBullets = 1}};
 
   dict[1].opcode = P_MISSILE_LAUNCHER;
   dict[1].entry.weapon = (Weapon){
@@ -149,9 +170,9 @@ static void initPlayerWeaponDictionary()
             .critChance = 0.05,
             .object = {.collider = {.bounds = {0, 0, 16, 16}}}
             },
-          30,
-          30,
-          4}};
+          .maxAmmo = 1000,
+          .ammo = 1000,
+          .numBullets = 4}};
 
   gameState->playerWeaponDictionary = dict;
 }
@@ -173,10 +194,25 @@ static void initEnemyWeaponDictionary()
   dict[0].opcode = E_SWORD;
   dict[0].entry.weapon = (Weapon){
       .type = MELEE_WEAPON,
-
       .weapon.melee = {
           .stats = {10, 0.5, 0, .weaponSprite = {}},
           .slashInfo = {3, 10, true, .object = {}}}};
+
+  dict[1].opcode = E_FIRE_BALL;
+  dict[1].entry.weapon = (Weapon){
+      .type = RANGED_WEAPON,
+      .weapon.ranged = {
+          .stats = {10, 0.5, 0, .weaponSprite = {}},
+          .bulletInfo = {.bulletSpeed = 4.5, .bulletDamage = 10, 
+            .bulletRange = 600, .bulletHealth = 10, 
+            .isTracking = false,
+            .critMultiplier = 1.05,
+            .critChance = 0.05,
+            .object = {.collider = {.bounds = {0, 0, 21, 21}}}
+            },
+          .maxAmmo = 1000,
+          .ammo = 1000,
+          .numBullets = 1}};
 
   gameState->enemyWeaponDictionary = dict;
 }

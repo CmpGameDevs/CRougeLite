@@ -34,14 +34,15 @@
  * @param pathInfo Path code for different path types
  * @param src Spawn position of bullet
  * @param dest The mouse click position
+ * @param isFriendly Is the object shot by players or not
  *
  * @return Pointer to the combat action object
  *
- * @details Initialize a bullet object and link it to the player
+ * @details Initialize a bullet object and link it to the player or enemy
  * by `ID`, its information is provided by the fired weapon.
  *
  */
-CombatAction *initBullet(int ID, BulletInfo bulletInfo, Vector2 pathInfo, Vector2 src, Vector2 dest);
+CombatAction *initBullet(int ID, BulletInfo bulletInfo, Vector2 pathInfo, Vector2 src, Vector2 dest, bool isFriendly);
 
 /**
  *  initRangedWeaponShoot - initialize a ranged weapon shoot object

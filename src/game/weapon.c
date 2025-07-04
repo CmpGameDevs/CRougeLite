@@ -54,7 +54,7 @@ WeaponsInventory initInventory()
   return inventory;
 }
 
-void updateRangedWeapon(Weapon *weapon, bool isFired, int ID, Vector2 src, Vector2 dest, float deltaTime)
+void updateRangedWeapon(Weapon *weapon, bool isFired, int ID, Vector2 src, Vector2 dest, float deltaTime, bool isFriendly)
 {
   float *reloadTime = &(weapon->weapon.ranged.stats.lastUseTime);
 
@@ -63,9 +63,9 @@ void updateRangedWeapon(Weapon *weapon, bool isFired, int ID, Vector2 src, Vecto
   int *ammo = &(weapon->weapon.ranged.ammo);
 
   int numBullets = weapon->weapon.ranged.numBullets;
-  if (isFired && *ammo - numBullets > 0 && *reloadTime <= 0.0f)
+  if (isFired && (*ammo - numBullets > 0 && *reloadTime <= 0.0f || !isFriendly))
   {
-    initRangedWeaponShoot(ID, weapon->weapon.ranged, src, dest, true);
+    initRangedWeaponShoot(ID, weapon->weapon.ranged, src, dest, isFriendly);
 
     *ammo -= numBullets;
     *reloadTime = cooldown;

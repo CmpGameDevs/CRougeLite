@@ -20,6 +20,7 @@
 
 #include "player.h"
 #include "../system/collision.h"
+#include "../system/draw.h"
 
 #include "../system/anime.h"
 #include <raylib.h>
@@ -95,6 +96,36 @@ void setupPlayers()
       .isLooping = false,
       .isFinished = false,
   };
+  player->object.animator.animations[TAKE_DAMAGE] = (SpriteAnimation){
+      .frameNames =
+          {
+              "Meow-Knight_Take_Damage_1_0",
+              "Meow-Knight_Take_Damage_2_0",
+          },
+      .numOfFrames = 2,
+      .fps = 10,
+      .currentFrame = 0,
+      .frameCount = 0,
+      .isLooping = false,
+      .isFinished = false,
+  };
+  player->object.animator.animations[DIE] = (SpriteAnimation){
+      .frameNames =
+          {
+              "Meow-Knight_Death_0_0",
+              "Meow-Knight_Death_1_0",
+              "Meow-Knight_Death_2_0",
+              "Meow-Knight_Death_3_0",
+              "Meow-Knight_Death_4_0",
+              "Meow-Knight_Death_5_0",
+          },
+      .numOfFrames = 6,
+      .fps = 8,
+      .currentFrame = 0,
+      .frameCount = 0,
+      .isLooping = false,
+      .isFinished = false,
+  };
 
   player->object.transform.scale = (Vector2){4, 4};
 
@@ -109,12 +140,21 @@ void drawPlayers()
   Player *players = gameState->players;
   int player_num = gameState->numOfPlayers;
 
-  while (player_num--)
+  for (int i = 0; i < player_num; i++)
   {
-    bool flip = (players->drawDirection == -1) ? true : false;
-    drawAnimator(&(players->object.animator), &(players->object.transform),
+    bool flip = (players[i].drawDirection == -1) ? true : false;
+    drawAnimator(&(players[i].object.animator), &(players[i].object.transform),
                  WHITE, flip);
-    players++;
+    
+    // Draw health bar if the player was damaged recently
+    Vector2 playerCenter = {
+      players[i].object.transform.position.x + players[i].object.collider.bounds.width / 2,
+      players[i].object.transform.position.y
+    };
+    drawHealthBar(playerCenter, 
+                  players[i].stats.health.currentHealth, 
+                  players[i].stats.health.maxHealth, 
+                  players[i].stats.health.lastUpdateTime);
   }
 }
 
@@ -123,26 +163,42 @@ void drawPlayers()
  */
 void updatePlayers()
 {
-  Player *player = gameState->players;
-  Input input = player->input;
-  double speed = player->stats.speed;
+  bool allPlayersDead = true;
 
-  int playerInput = handlePlayerInput(player);
-  handlePlayerMovement(player, playerInput);
-
-  if (playerInput)
+  for (int i = 0; i < gameState->numOfPlayers; i++)
   {
-    // Swapping between weapons
-    handlePlayerInventory(player, playerInput);
+    Player *player = gameState->players + i;
+    Input input = player->input;
+    double speed = player->stats.speed;
 
-    // Interact with the map
-    handlePlayerInteraction(player, playerInput);
+    if (player->stats.health.currentHealth <= 0 && player->object.animator.isFinished)
+      continue;
+
+    allPlayersDead = false;
+
+    int playerInput = handlePlayerInput(player);
+    handlePlayerMovement(player, playerInput);
+
+    if (playerInput)
+    {
+      // Swapping between weapons
+      handlePlayerInventory(player, playerInput);
+
+      // Interact with the map
+      handlePlayerInteraction(player, playerInput);
+    }
+
+    // NOTE: animation controller is the state machine
+    animationController(player);
+    // NOTE:: this is the call that forwards the animation
+    updateAnimator(&(player->object.animator));
   }
 
-  // NOTE: animation controller is the state machine
-  animationController(player);
-  // NOTE:: this is the call that forwards the animation
-  updateAnimator(&(player->object.animator));
+  if (allPlayersDead)
+  {
+    gameState->isGameOver = true;
+    printf("All players are dead. Game Over!\n");
+  }
 }
 
 /**

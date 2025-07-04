@@ -40,7 +40,7 @@ static unsigned int actionID = 0;
 static void checkHitObject(CombatAction *action);
 static float calculateDamageTaken(float damage, Defense defense);
 static void applyBulletDamage(BulletInfo *bulletInfo, Stats *stats);
-static void damageEntity(CombatAction *action, Stats *stats);
+static void damageEntity(CombatAction *action, Stats *stats, GameObject *object);
 static void resolveTwoCombatActionsCollision(CombatAction *a, CombatAction *b);
 static void drawBullet(CombatAction **combatAction);
 static void drawSlash(CombatAction **combatAction);
@@ -54,27 +54,30 @@ static void clearCombatAction(CombatAction **combatAction);
  * @param pathInfo Path code for different path types
  * @param src Spawn position of bullet
  * @param dest The mouse click position
- *
+ * @param isFriendly Is the object shot by players or not
+ * 
  * @return Pointer to the combat action object
  *
- * @details Initialize a bullet object and link it to the player
+ * @details Initialize a bullet object and link it to the player or enemy
  * by `ID`, its information is provided by the fired weapon.
  *
  */
 CombatAction *initBullet(int ID, BulletInfo bulletInfo, Vector2 pathInfo,
-                         Vector2 src, Vector2 dest)
+                         Vector2 src, Vector2 dest, bool isFriendly)
 {
   if (gameState->numOfCombatActions == DEFAULT_MAX_COMBAT_ACTIONS)
     return NULL;
   // Init bullet
   Bullet bullet;
   GameObject *object = &(bulletInfo.object);
+  src.x -= object->collider.bounds.width / 2;
+  src.y -= object->collider.bounds.height / 2;
   bullet.playerID = ID;
   bullet.startPosition = src;
   object->collider.bounds.x = src.x;
   object->collider.bounds.y = src.y;
   object->transform =
-      (CTransform){src, 0, pathInfo.x, pathInfo.y, (Vector2){3, 3}};
+      (CTransform){src, 0, pathInfo.x, pathInfo.y, isFriendly ? (Vector2){3, 3} : (Vector2){2, 2}};
   if (bulletInfo.isTracking && bulletInfo.enemyID >= 0)
     bullet.dest =
         gameState->enemies[bulletInfo.enemyID].object.transform.position;
@@ -86,23 +89,42 @@ CombatAction *initBullet(int ID, BulletInfo bulletInfo, Vector2 pathInfo,
       .isFinished = false,
       .currentState = IDLE,
   };
-  object->animator.animations[IDLE] = (SpriteAnimation){
-      .frameNames =
-          {
-              "fire_1_0_0",
-              "fire_1_0_1",
-              "fire_1_0_2",
-              "fire_1_0_3",
-              "fire_1_0_4",
-              "fire_1_0_5",
-          },
-      .numOfFrames = 6,
-      .fps = 16,
-      .isLooping = true,
-      .isFinished = false,
-      .currentFrame = 0,
-      .frameCount = 0,
-  };
+
+  if (isFriendly) {
+    object->animator.animations[IDLE] = (SpriteAnimation){
+        .frameNames =
+            {
+                "fire_1_0_0",
+                "fire_1_0_1",
+                "fire_1_0_2",
+                "fire_1_0_3",
+                "fire_1_0_4",
+                "fire_1_0_5",
+            },
+        .numOfFrames = 6,
+        .fps = 16,
+        .isLooping = true,
+        .isFinished = false,
+        .currentFrame = 0,
+        .frameCount = 0,
+    };
+  } else {
+    object->animator.animations[IDLE] = (SpriteAnimation){
+        .frameNames =
+            {
+                "fire_2_0_0",
+                "fire_2_0_1",
+                "fire_2_0_2",
+                "fire_2_0_3",
+            },
+        .numOfFrames = 4,
+        .fps = 8,
+        .isLooping = true,
+        .isFinished = false,
+        .currentFrame = 0,
+        .frameCount = 0,
+    };
+  }
 
   bullet.bulletInfo = bulletInfo;
 
@@ -148,7 +170,7 @@ void initRangedWeaponShoot(int ID, RangedWeapon weapon, Vector2 src,
   CombatAction *action;
   while (numOfBullets--)
   {
-    action = initBullet(ID, weapon.bulletInfo, freq_amp[numOfBullets], src, dest);
+    action = initBullet(ID, weapon.bulletInfo, freq_amp[numOfBullets], src, dest, isFriendly);
     action->isFriendly = isFriendly;
   }
 }
@@ -236,13 +258,13 @@ void resolveCombatActionCollision(CombatAction *action, Entity *entity)
     if (isFriendly)
       return;
     printf("Player #%d took", entity->ID);
-    damageEntity(action, &(entity->entity.player->stats));
+    damageEntity(action, &(entity->entity.player->stats), &(entity->entity.player->object));
     break;
   case ENTITY_ENEMY:
     if (!isFriendly)
       return;
     printf("Enemy #%d took", entity->ID);
-    damageEntity(action, &(entity->entity.enemy->stats));
+    damageEntity(action, &(entity->entity.enemy->stats), &(entity->entity.enemy->object));
     // TODO: add score to the player (maybe each enemy has its own score).
     break;
   case ENTITY_E_COMBAT_ACTION:
@@ -370,8 +392,9 @@ static void applyBulletDamage(BulletInfo *bulletInfo, Stats *stats)
  *
  * @param action Pointer to the combat action
  * @param stats Pointer to the entity's stats
+ * @param object Pointer to the entity's game object
  */
-static void damageEntity(CombatAction *action, Stats *stats)
+static void damageEntity(CombatAction *action, Stats *stats, GameObject *object)
 {
   // Calculate Damage Taken
   CombatActionType type = action->type;
@@ -381,10 +404,19 @@ static void damageEntity(CombatAction *action, Stats *stats)
     BulletInfo *bulletInfo = &(action->action.bullet.bulletInfo);
     applyBulletDamage(bulletInfo, stats);
     printf("Bullet #%d taken %.2f damage, remaining health: %f\n", action->ID, bulletInfo->bulletDamage, bulletInfo->bulletHealth);
+    stats->health.lastUpdateTime = GetTime();
     break;
   default:
     break;
   }
+
+  // Apply damage animation if applicable
+  if (object == NULL) return;
+  int health = stats->health.currentHealth;
+  if (health > 0)
+    setState(&(object->animator), TAKE_DAMAGE);
+  else
+    setState(&(object->animator), DIE);
 }
 
 /**

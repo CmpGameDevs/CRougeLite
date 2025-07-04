@@ -26,7 +26,7 @@ Rectangle getSrcRect(Animator *animator)
 
 void setState(Animator *animator, int state)
 {
-  if (animator->currentState == state)
+  if (animator->currentState == state || animator->animations[state].numOfFrames == 0)
     return;
 
   animator->currentState = state;
@@ -57,7 +57,7 @@ void updateAnimator(Animator *animator)
 
   if (anim->currentFrame >= anim->numOfFrames)
   {
-    anim->currentFrame = 0;
+    anim->currentFrame--;
     anim->frameCount = 0;
     anim->isFinished = true;
   }
