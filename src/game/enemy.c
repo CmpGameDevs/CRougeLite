@@ -43,8 +43,8 @@ static void updateStateMachine(Enemy *enemy, Vector2 *velocity, Vector2 *directi
 void setupEnemies()
 {
   const Settings *const settings = &(gameState->settings);
-  initEnemy(E_CIVILIAN, E_SWORD, (Vector2){200, 978});
-  initEnemy(E_SLIME, E_SWORD, (Vector2){210, 840});
+  initEnemy(E_SLIME, E_FIRE_BALL, (Vector2){200, 978});
+  initEnemy(E_SLIME, E_FIRE_BALL, (Vector2){210, 840});
   initEnemy(E_FARMER, E_SWORD, (Vector2){1190.46, 356.01});
 }
 
@@ -65,15 +65,14 @@ void drawEnemies()
     // Draw the enemy sprite
     bool flip = (enemies[i].drawDirection == -1) ? true : false;
     drawAnimator(&(enemies[i].object.animator), &(enemies[i].object.transform), WHITE, flip);
-    
+
     // Draw health bar if the enemy was damaged recently
     Vector2 enemyCenter = {
-      enemies[i].object.transform.position.x + enemies[i].object.collider.bounds.width / 2,
-      enemies[i].object.transform.position.y
-    };
-    drawHealthBar(enemyCenter, 
-                  enemies[i].stats.health.currentHealth, 
-                  enemies[i].stats.health.maxHealth, 
+        enemies[i].object.transform.position.x + enemies[i].object.collider.bounds.width / 2,
+        enemies[i].object.transform.position.y};
+    drawHealthBar(enemyCenter,
+                  enemies[i].stats.health.currentHealth,
+                  enemies[i].stats.health.maxHealth,
                   enemies[i].stats.health.lastUpdateTime);
   }
 }
@@ -230,13 +229,14 @@ void updateEnemyPath()
       distance = fmin(distance, Vector2Distance(enemyPos, (Vector2){cornerX, cornerY}));
     }
 
-    enemy->ai.inLineOfSight = lineOfSight((Vector2){enemyRow, enemyCol}, (Vector2){playerRow, playerCol});
-    if (distance > enemy->ai.detectionRange || !enemy->ai.inLineOfSight)
+    if (distance > enemy->ai.detectionRange || !lineOfSight((Vector2){enemyRow, enemyCol}, (Vector2){playerRow, playerCol}))
     {
       // Proceeds to last known path or stay idle
+      enemy->ai.inLineOfSight = NULL;
       continue;
     }
     //---------------------------------------------------------------------------------
+    enemy->ai.inLineOfSight = player;
 
     // Find path to each surrounding cell and keep the shortest one
     CoordPair *shortestPath = NULL;
@@ -383,48 +383,48 @@ static Enemy *initEnemy(E_TYPE type, E_WEAPON weapon, Vector2 position)
     enemy->ai.detectionRange = 500.0f;
     enemy->ai.minDistanceToAttack = 3;
     enemy->object.animator.animations[IDLE] = (SpriteAnimation){
-      .frameNames =
-          {
-              "slime_1_0",
-              "slime_1_1",
-              "slime_1_2",
-              "slime_1_3",
-          },
-      .numOfFrames = 4,
-      .fps = 8,
-      .isLooping = true,
-      .isFinished = false,
-      .currentFrame = 0,
-      .frameCount = 0,
+        .frameNames =
+            {
+                "slime_1_0",
+                "slime_1_1",
+                "slime_1_2",
+                "slime_1_3",
+            },
+        .numOfFrames = 4,
+        .fps = 8,
+        .isLooping = true,
+        .isFinished = false,
+        .currentFrame = 0,
+        .frameCount = 0,
     };
     enemy->object.animator.animations[TAKE_DAMAGE] = (SpriteAnimation){
-      .frameNames =
-          {
-              "slime_2_0",
-              "slime_2_1",
-              "slime_2_2",
-              "slime_2_3",
-          },
-      .numOfFrames = 4,
-      .fps = 8,
-      .isLooping = false,
-      .isFinished = false,
-      .currentFrame = 0,
-      .frameCount = 0,
+        .frameNames =
+            {
+                "slime_2_0",
+                "slime_2_1",
+                "slime_2_2",
+                "slime_2_3",
+            },
+        .numOfFrames = 4,
+        .fps = 8,
+        .isLooping = false,
+        .isFinished = false,
+        .currentFrame = 0,
+        .frameCount = 0,
     };
     enemy->object.animator.animations[DIE] = (SpriteAnimation){
-      .frameNames =
-          {
-              "slime_0_2",
-              "slime_0_1",
-              "slime_0_0",
-          },
-      .numOfFrames = 3,
-      .fps = 8,
-      .isLooping = false,
-      .isFinished = false,
-      .currentFrame = 0,
-      .frameCount = 0,
+        .frameNames =
+            {
+                "slime_0_2",
+                "slime_0_1",
+                "slime_0_0",
+            },
+        .numOfFrames = 3,
+        .fps = 8,
+        .isLooping = false,
+        .isFinished = false,
+        .currentFrame = 0,
+        .frameCount = 0,
     };
     break;
   }
@@ -443,7 +443,7 @@ static Enemy *initEnemy(E_TYPE type, E_WEAPON weapon, Vector2 position)
 
 /**
  * updateStateMachine - update the enemy state machine
- * 
+ *
  * @param enemy Pointer to the enemy object
  * @param velocity Pointer to the velocity vector
  * @param direction Pointer to the direction vector
@@ -451,78 +451,118 @@ static Enemy *initEnemy(E_TYPE type, E_WEAPON weapon, Vector2 position)
 static void updateStateMachine(Enemy *enemy, Vector2 *velocity, Vector2 *direction)
 {
   EnemyAI *ai = &(enemy->ai);
-  ai->state = IDLE;
-
-  if (ai->path && enemy->stats.health.currentHealth > 0)
+  switch (ai->state)
   {
-    ai->state = RUN;
-    // Get current target waypoint
-    CoordPair nextStep = ai->path[ai->currentPathIndex];
-    Vector2 enemyPos = enemy->object.transform.position;
-    int colliderWidth = enemy->object.collider.bounds.width;
-    int colliderHeight = enemy->object.collider.bounds.height;
-    int cellWidth = gameState->map.tileWidth * gameState->map.scale;
-    int cellHeight = gameState->map.tileHeight * gameState->map.scale;
-
-    // Calculate cell boundaries
-    Rectangle cellBounds = {
-        nextStep.second * cellWidth, // x position
-        nextStep.first * cellHeight, // y position
-        cellWidth,                   // width
-        cellHeight                   // height
-    };
-
-    Vector2 enemyCenterPos = {
-        enemyPos.x + colliderWidth / 2,
-        enemyPos.y + colliderHeight / 2};
-
-    Vector2 nextCellPos = {
-        nextStep.second * cellWidth + cellWidth / 2,
-        nextStep.first * cellHeight + cellHeight / 2};
-    *direction = Vector2Subtract(nextCellPos, enemyCenterPos);
-
-    // Debug the distance
-    float distance = Vector2Length(*direction);
-
-    bool insideCell =
-        enemyCenterPos.x >= cellBounds.x &&
-        enemyCenterPos.x <= cellBounds.x + cellBounds.width &&
-        enemyCenterPos.y >= cellBounds.y &&
-        enemyCenterPos.y <= cellBounds.y + cellBounds.height;
-
-    // Move to next waypoint if inside the cell
-    if (insideCell)
+  case RUN:
+    if (ai->path && enemy->stats.health.currentHealth > 0)
     {
+      CoordPair nextStep = ai->path[ai->currentPathIndex];
+      Vector2 enemyPos = enemy->object.transform.position;
+      int colliderWidth = enemy->object.collider.bounds.width;
+      int colliderHeight = enemy->object.collider.bounds.height;
+      int cellWidth = gameState->map.tileWidth * gameState->map.scale;
+      int cellHeight = gameState->map.tileHeight * gameState->map.scale;
 
-      ai->currentPathIndex++;
-      // If we still have waypoints, calculate new direction
-      if (ai->currentPathIndex < ai->pathLength - ai->inLineOfSight * ai->minDistanceToAttack)
-      {
-        nextStep = ai->path[ai->currentPathIndex];
-        nextCellPos = (Vector2){
-            nextStep.second * cellWidth + cellWidth / 2,
-            nextStep.first * cellHeight + cellHeight / 2};
-        *direction = Vector2Subtract(nextCellPos, enemyCenterPos);
-      }
-      else
-      {
-        // Path complete
-        free(ai->path);
-        ai->path = NULL;
-        ai->currentPathIndex = 0;
-        ai->pathLength = 0;
-        *direction = (Vector2){0, 0};
-      }
-    }
+      Rectangle cellBounds = {
+          nextStep.second * cellWidth, // x position
+          nextStep.first * cellHeight, // y position
+          cellWidth,                   // width
+          cellHeight                   // height
+      };
 
-    if (Vector2Length(*direction) > 0)
-    {
+      Vector2 enemyCenterPos = {
+          enemyPos.x + colliderWidth / 2,
+          enemyPos.y + colliderHeight / 2};
+
+      Vector2 nextCellPos = {
+          nextStep.second * cellWidth + cellWidth / 2,
+          nextStep.first * cellHeight + cellHeight / 2};
+      *direction = Vector2Subtract(nextCellPos, enemyCenterPos);
+
+      float distance = Vector2Length(*direction);
+
+      bool insideCell =
+          enemyCenterPos.x >= cellBounds.x &&
+          enemyCenterPos.x <= cellBounds.x + cellBounds.width &&
+          enemyCenterPos.y >= cellBounds.y &&
+          enemyCenterPos.y <= cellBounds.y + cellBounds.height;
+
+      if (insideCell)
+      {
+        ai->currentPathIndex++;
+        // If we still have waypoints, calculate new direction
+        int randomPaddedDistance = GetRandomValue(0, 3) + ai->minDistanceToAttack;
+        if (ai->currentPathIndex < ai->pathLength - (ai->inLineOfSight != NULL) * randomPaddedDistance)
+        {
+          nextStep = ai->path[ai->currentPathIndex];
+          nextCellPos = (Vector2){
+              nextStep.second * cellWidth + cellWidth / 2,
+              nextStep.first * cellHeight + cellHeight / 2};
+          *direction = Vector2Subtract(nextCellPos, enemyCenterPos);
+        }
+        else
+        {
+          // Path complete
+          free(ai->path);
+          ai->path = NULL;
+          ai->currentPathIndex = 0;
+          ai->pathLength = 0;
+          *direction = (Vector2){0, 0};
+          ai->state = ai->inLineOfSight != NULL ? ATTACK : IDLE;
+        }
+      }
+
       // Normalize direction and scale by speed
-      *velocity = Vector2Scale(Vector2Normalize(*direction), enemy->stats.speed);
+      if (Vector2Length(*direction) > 0) *velocity = Vector2Scale(Vector2Normalize(*direction), enemy->stats.speed);
+    } else {
+      ai->state = IDLE; // No path available, go idle
     }
+    break;
+  case ATTACK:
+    if (ai->inLineOfSight)
+    {
+      // Check if target is still within reasonable attack range
+      Vector2 enemyPos = {
+          enemy->object.collider.bounds.x + enemy->object.collider.bounds.width / 2,
+          enemy->object.collider.bounds.y + enemy->object.collider.bounds.height / 2};
+      Vector2 targetPos = {
+          ai->inLineOfSight->object.collider.bounds.x + ai->inLineOfSight->object.collider.bounds.width / 2,
+          ai->inLineOfSight->object.collider.bounds.y + ai->inLineOfSight->object.collider.bounds.height / 2};
+      
+      float distanceToTarget = Vector2Distance(enemyPos, targetPos);
+      float maxAttackRange = (ai->minDistanceToAttack + 2) * (gameState->map.tileWidth * gameState->map.scale);
+      
+      // If target is too far, switch back to RUN state to chase
+      if (distanceToTarget > maxAttackRange) {
+        ai->state = RUN;
+        break;
+      }
+      
+      if (ai->lastAttackTime + ai->attackCooldown >= GetTime()) break;
+
+      ai->lastAttackTime = GetTime();
+      setState(&(enemy->object.animator), ATTACK);
+
+      Weapon *weapon = &(enemy->weapon);
+      float deltaTime = GetFrameTime();
+      Vector2 srcPos = enemyPos;
+      Vector2 destPos = targetPos;
+
+      if (weapon->type == RANGED_WEAPON) {
+        updateRangedWeapon(weapon, true, enemy->ID, srcPos, destPos,
+                       deltaTime, false);
+      } else if (weapon->type == MELEE_WEAPON) {
+        updateMeleeWeapon(weapon, true, enemy->ID, srcPos, destPos,
+                        deltaTime);
+      }
+    } else {
+      ai->state = IDLE;
+    }
+    break;
+  case IDLE:
+  default:
+    if (ai->inLineOfSight && ai->inLineOfSight->stats.health.currentHealth > 0) ai->state = RUN;
   }
-
-
 }
 
 /**
@@ -546,16 +586,17 @@ static void animationController(Enemy *enemy)
 static void deleteEnemy(int index)
 {
   Enemy *enemy = &gameState->enemies[index];
-  
+
   // Free the AI path if it exists
-  if (enemy->ai.path) {
+  if (enemy->ai.path)
+  {
     free(enemy->ai.path);
     enemy->ai.path = NULL;
   }
 
-  // Note: enemy->name is NOT freed here because it points to string literals 
+  // Note: enemy->name is NOT freed here because it points to string literals
   // from the enemy dictionary (e.g., "Civilian", "Farmer", "Slime")
   // These are stored in read-only memory and should never be freed
-  
+
   gameState->enemies[index] = gameState->enemies[--(gameState->numOfEnemies)];
 }

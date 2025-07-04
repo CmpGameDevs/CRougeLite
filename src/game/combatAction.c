@@ -54,27 +54,30 @@ static void clearCombatAction(CombatAction **combatAction);
  * @param pathInfo Path code for different path types
  * @param src Spawn position of bullet
  * @param dest The mouse click position
- *
+ * @param isFriendly Is the object shot by players or not
+ * 
  * @return Pointer to the combat action object
  *
- * @details Initialize a bullet object and link it to the player
+ * @details Initialize a bullet object and link it to the player or enemy
  * by `ID`, its information is provided by the fired weapon.
  *
  */
 CombatAction *initBullet(int ID, BulletInfo bulletInfo, Vector2 pathInfo,
-                         Vector2 src, Vector2 dest)
+                         Vector2 src, Vector2 dest, bool isFriendly)
 {
   if (gameState->numOfCombatActions == DEFAULT_MAX_COMBAT_ACTIONS)
     return NULL;
   // Init bullet
   Bullet bullet;
   GameObject *object = &(bulletInfo.object);
+  src.x -= object->collider.bounds.width / 2;
+  src.y -= object->collider.bounds.height / 2;
   bullet.playerID = ID;
   bullet.startPosition = src;
   object->collider.bounds.x = src.x;
   object->collider.bounds.y = src.y;
   object->transform =
-      (CTransform){src, 0, pathInfo.x, pathInfo.y, (Vector2){3, 3}};
+      (CTransform){src, 0, pathInfo.x, pathInfo.y, isFriendly ? (Vector2){3, 3} : (Vector2){2, 2}};
   if (bulletInfo.isTracking && bulletInfo.enemyID >= 0)
     bullet.dest =
         gameState->enemies[bulletInfo.enemyID].object.transform.position;
@@ -86,23 +89,42 @@ CombatAction *initBullet(int ID, BulletInfo bulletInfo, Vector2 pathInfo,
       .isFinished = false,
       .currentState = IDLE,
   };
-  object->animator.animations[IDLE] = (SpriteAnimation){
-      .frameNames =
-          {
-              "fire_1_0_0",
-              "fire_1_0_1",
-              "fire_1_0_2",
-              "fire_1_0_3",
-              "fire_1_0_4",
-              "fire_1_0_5",
-          },
-      .numOfFrames = 6,
-      .fps = 16,
-      .isLooping = true,
-      .isFinished = false,
-      .currentFrame = 0,
-      .frameCount = 0,
-  };
+
+  if (isFriendly) {
+    object->animator.animations[IDLE] = (SpriteAnimation){
+        .frameNames =
+            {
+                "fire_1_0_0",
+                "fire_1_0_1",
+                "fire_1_0_2",
+                "fire_1_0_3",
+                "fire_1_0_4",
+                "fire_1_0_5",
+            },
+        .numOfFrames = 6,
+        .fps = 16,
+        .isLooping = true,
+        .isFinished = false,
+        .currentFrame = 0,
+        .frameCount = 0,
+    };
+  } else {
+    object->animator.animations[IDLE] = (SpriteAnimation){
+        .frameNames =
+            {
+                "fire_2_0_0",
+                "fire_2_0_1",
+                "fire_2_0_2",
+                "fire_2_0_3",
+            },
+        .numOfFrames = 4,
+        .fps = 8,
+        .isLooping = true,
+        .isFinished = false,
+        .currentFrame = 0,
+        .frameCount = 0,
+    };
+  }
 
   bullet.bulletInfo = bulletInfo;
 
@@ -148,7 +170,7 @@ void initRangedWeaponShoot(int ID, RangedWeapon weapon, Vector2 src,
   CombatAction *action;
   while (numOfBullets--)
   {
-    action = initBullet(ID, weapon.bulletInfo, freq_amp[numOfBullets], src, dest);
+    action = initBullet(ID, weapon.bulletInfo, freq_amp[numOfBullets], src, dest, isFriendly);
     action->isFriendly = isFriendly;
   }
 }

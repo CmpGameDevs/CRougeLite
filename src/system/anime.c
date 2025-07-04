@@ -57,7 +57,7 @@ void updateAnimator(Animator *animator)
 
   if (anim->currentFrame >= anim->numOfFrames)
   {
-    anim->currentFrame = 0;
+    anim->currentFrame--;
     anim->frameCount = 0;
     anim->isFinished = true;
   }

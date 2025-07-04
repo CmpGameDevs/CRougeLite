@@ -153,8 +153,7 @@ typedef enum
   WALK,
   RUN,
   DODGE,
-  ATTACK1,
-  ATTACK2,
+  ATTACK,
   TAKE_DAMAGE,
   DIE,
   // NOTE: add more as you wish here

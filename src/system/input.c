@@ -33,9 +33,9 @@ static void mouseEventHandler() {
   int selected_player = 0;
   Player *player = ((gameState->players) + selected_player);
 
-  Vector2 srcPos = {(double)player->object.transform.position.x +
+  Vector2 srcPos = {(double)player->object.collider.bounds.x +
                         player->object.collider.bounds.width / 2,
-                    (double)player->object.transform.position.y +
+                    (double)player->object.collider.bounds.y +
                         player->object.collider.bounds.height / 2};
 
   Vector2 mousePos = GetMousePosition();
@@ -43,6 +43,8 @@ static void mouseEventHandler() {
 
   mousePos.x -= 16;
   mousePos.y -= 16;
+
+  if (player->stats.health.currentHealth <= 0) return;
 
   if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
     player->fire = 1;
@@ -59,7 +61,7 @@ static void mouseEventHandler() {
       weapon->weapon.ranged.bulletInfo.enemyID = getClickedEnemy(mousePos);
     }
     updateRangedWeapon(weapon, player->fire, player->ID, srcPos, mousePos,
-                       deltaTime);
+                       deltaTime, true);
   } else if (weapon->type == MELEE_WEAPON) {
     updateMeleeWeapon(weapon, player->fire, player->ID, srcPos, mousePos,
                       deltaTime);
