@@ -66,7 +66,7 @@ static void initEnemyDictionary()
               .spriteRenderer = {},
               .animator = {0},
           },
-      .ai = {.detectionRange = 200,
+      .ai = {.detectionRange = 400,
              .attackCooldown = 3,
              .dodgePercentage = 0,
              .state = IDLE},
