@@ -46,7 +46,11 @@ void setupEnemies()
   const Settings *const settings = &(gameState->settings);
   initEnemy(E_SLIME, E_FIRE_BALL, (Vector2){200, 978});
   initEnemy(E_SLIME, E_FIRE_BALL, (Vector2){210, 840});
-  initEnemy(E_FARMER, E_SWORD, (Vector2){1190.46, 356.01});
+  initEnemy(E_SLIME, E_FIRE_BALL, (Vector2){1857.76, 410});
+  initEnemy(E_SLIME, E_FIRE_BALL, (Vector2){1857.76, 675});
+  initEnemy(E_FARMER, E_SWORD, (Vector2){975.22, 1268.8});
+  initEnemy(E_CIVILIAN, E_SWORD, (Vector2){1315.141, 141});
+  initEnemy(E_CIVILIAN, E_SWORD, (Vector2){1473, 135});
 }
 
 /**

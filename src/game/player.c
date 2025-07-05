@@ -48,8 +48,7 @@ static void playRandomFootstep(void);
 void setupPlayers()
 {
   Player *player =
-      initPlayer("Marcus", CAT, P_FIRE_BALL,
-                 (Vector2){GetScreenWidth() / 2.0, GetScreenHeight() / 2.0});
+      initPlayer("Marcus", CAT, P_FIRE_BALL, (Vector2){808, 375});
 
   player->object.animator = (Animator){
       .isFinished = false,
