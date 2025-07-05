@@ -73,6 +73,8 @@
             white-space: nowrap;
             display: inline-block;
             min-width: fit-content;
+            transform-origin: top left;
+            transition: transform 0.2s ease;
         }
 
         .editor-row {
@@ -80,6 +82,10 @@
             height: 26px;
             line-height: 0;
             white-space: nowrap;
+        }
+
+        .editor-row.no-gaps {
+            height: 24px;
         }
 
         .tile {
@@ -94,6 +100,11 @@
             position: relative;
             vertical-align: top;
             transition: all 0.1s ease;
+        }
+
+        .tile.no-gaps {
+            border: none;
+            margin: 0;
         }
 
         .tile:hover {
@@ -117,6 +128,24 @@
             line-height: 1;
             border-radius: 2px 0 0 0;
             font-weight: bold;
+        }
+
+        .tile.dragging {
+            opacity: 0.7;
+            transform: scale(1.1);
+            border-color: #e74c3c;
+            box-shadow: 0 4px 12px rgba(231, 76, 60, 0.4);
+        }
+
+        .tile.drop-target {
+            background-color: #d5f4e6 !important;
+            border-color: #27ae60;
+            animation: pulse 0.5s infinite alternate;
+        }
+
+        @keyframes pulse {
+            from { transform: scale(1); }
+            to { transform: scale(1.05); }
         }
 
         .controls {
@@ -506,6 +535,39 @@
                     <button onclick="hideAllLayers()">Hide All</button>
                     <button onclick="showOnlyCurrentLayer()">Show Only Current</button>
                 </div>
+                
+                <h4>Display Options</h4>
+                <label><input type="checkbox" id="showTileNumbers" checked>
+                    Show Tile IDs</label>
+                <label><input type="checkbox" id="showTileTypes" checked>
+                    Show Tile Types (layer overlays)</label>
+                <label><input type="checkbox" id="showCellGaps" checked>
+                    Show Cell Gaps</label>
+                
+                <h4>Zoom Control</h4>
+                <div style="display: flex; align-items: center; gap: 10px; margin: 10px 0;">
+                    <button onclick="zoomOut()" style="padding: 5px 10px; font-size: 12px;">−</button>
+                    <span id="zoomLevel" style="font-weight: bold; min-width: 60px; text-align: center;">100%</span>
+                    <button onclick="zoomIn()" style="padding: 5px 10px; font-size: 12px;">+</button>
+                    <button onclick="resetZoom()" style="padding: 5px 8px; font-size: 10px;">Reset</button>
+                </div>
+                
+                <h4>Controls Help</h4>
+                <div style="font-size: 11px; color: #666; margin: 10px 0; padding: 8px; background: #f9f9f9; border-radius: 4px;">
+                    <strong>Left Click:</strong> Place selected tile<br>
+                    <strong>Right Click:</strong> Clear tile in current layer<br>
+                    <strong>Ctrl + Middle Click:</strong> Pick tile from map (eyedropper)<br>
+                    <strong>Ctrl + Drag:</strong> Move tile to another cell<br>
+                    <strong>Drag:</strong> Paint multiple tiles<br><br>
+                    <strong>Auto-Save:</strong> Your map is automatically saved to browser storage after changes and restored when you reload the page.<br><br>
+                    <strong>Zoom Controls:</strong><br>
+                    • Use +/− buttons or Ctrl + mouse wheel<br>
+                    • Keyboard: Ctrl + '+' (zoom in), Ctrl + '−' (zoom out), Ctrl + '0' (reset)<br><br>
+                    <strong>Display Options:</strong><br>
+                    • Tile IDs: Toggle tile ID numbers in bottom-right corner<br>
+                    • Tile Types: Toggle colored layer indicators on left edge<br>
+                    • Cell Gaps: Toggle borders between cells
+                </div>
             </div>
 
             <div>
@@ -539,6 +601,8 @@
                 <button onclick="autoFixFilenames()">Auto-Fix Filenames</button>
                 <button onclick="generateMapper()">Generate Mapper from Images</button>
                 <button onclick="clearCache()">Clear Cache</button>
+                <button onclick="clearAutoSavedMap()">Clear Auto-Save</button>
+                <button onclick="refreshDisplayOptions()">Refresh Display</button>
             </div>
 
             <div id="debugInfo"></div>
@@ -562,18 +626,36 @@
         let mapCols = 40;
         let tileMapper = {}; // Maps tile ID to filename
         let tileImages = {}; // Maps filename to image URL
-        let availableTiles = []; // Array of available tile IDs        // Initialize
+        let availableTiles = []; // Array of available tile IDs
+        
+        // Zoom functionality
+        let zoomLevel = 1.0;
+        const zoomMin = 0.25;
+        const zoomMax = 4.0;
+        const zoomStep = 0.25;
+        
+        // Auto-save functionality
+        let autoSaveTimeout = null;
+        const AUTO_SAVE_DELAY = 2000; // 2 seconds after last change        // Initialize
         createMap();
         loadCachedData();
+        loadAutoSavedMap(); // Load any auto-saved map data
 
         document.getElementById('currentLayer').addEventListener('change', (e) => {
             currentLayer = parseInt(e.target.value);
             updateMapDisplay();
+            scheduleAutoSave(); // Auto-save layer change
         });
         document.getElementById('selectedTile').addEventListener('change', (e) => {
             selectedTile = parseInt(e.target.value);
             highlightSelectedTile();
+            scheduleAutoSave(); // Auto-save tile selection
         });
+
+        // Add proper event listeners for display options
+        document.getElementById('showTileNumbers').addEventListener('change', updateMapDisplay);
+        document.getElementById('showTileTypes').addEventListener('change', updateMapDisplay);
+        document.getElementById('showCellGaps').addEventListener('change', updateCellGaps);
 
         // Cache management functions
         function saveCachedData() {
@@ -652,6 +734,111 @@
                 document.getElementById('loadingStatus').textContent = '';
             }, 2000);
             console.log('Cache cleared manually');
+        }
+
+        // Auto-save map functionality
+        function saveMapToStorage() {
+            try {
+                const mapState = {
+                    mapData: mapData,
+                    mapRows: mapRows,
+                    mapCols: mapCols,
+                    currentLayer: currentLayer,
+                    selectedTile: selectedTile,
+                    timestamp: Date.now(),
+                    version: '1.0'
+                };
+                
+                localStorage.setItem('crougelite_autosave_map', JSON.stringify(mapState));
+                console.log('Map auto-saved successfully');
+                
+                // Show brief save indicator
+                const statusElement = document.getElementById('loadingStatus');
+                const originalText = statusElement.textContent;
+                statusElement.textContent = '💾 Auto-saved';
+                statusElement.style.color = '#27ae60';
+                setTimeout(() => {
+                    statusElement.textContent = originalText;
+                    statusElement.style.color = '';
+                }, 1000);
+                
+            } catch (e) {
+                console.warn('Failed to auto-save map:', e);
+            }
+        }
+
+        function loadAutoSavedMap() {
+            try {
+                const savedMap = localStorage.getItem('crougelite_autosave_map');
+                if (savedMap) {
+                    const mapState = JSON.parse(savedMap);
+                    
+                    // Check if the saved map is less than 30 days old
+                    const dayInMs = 24 * 60 * 60 * 1000;
+                    if (Date.now() - mapState.timestamp < 30 * dayInMs) {
+                        // Load the saved map data
+                        mapData = mapState.mapData || [];
+                        mapRows = mapState.mapRows || 25;
+                        mapCols = mapState.mapCols || 40;
+                        currentLayer = mapState.currentLayer || 0;
+                        selectedTile = mapState.selectedTile || 78;
+                        
+                        // Update UI elements
+                        document.getElementById('mapRows').value = mapRows;
+                        document.getElementById('mapCols').value = mapCols;
+                        document.getElementById('currentLayer').value = currentLayer;
+                        document.getElementById('selectedTile').value = selectedTile;
+                        
+                        // Recreate the visual grid and update display
+                        createVisualGrid();
+                        updateMapDisplay();
+                        highlightSelectedTile();
+                        
+                        // Ensure display options are properly applied
+                        setTimeout(() => {
+                            refreshDisplayOptions();
+                        }, 200);
+                        
+                        const saveAge = Math.round((Date.now() - mapState.timestamp) / (1000 * 60));
+                        document.getElementById('loadingStatus').textContent = 
+                            `📁 Auto-loaded saved map (${saveAge} min ago)`;
+                        setTimeout(() => {
+                            document.getElementById('loadingStatus').textContent = '';
+                        }, 3000);
+                        
+                        console.log('Auto-loaded saved map from', new Date(mapState.timestamp));
+                        return true;
+                    } else {
+                        // Remove expired auto-save
+                        localStorage.removeItem('crougelite_autosave_map');
+                        console.log('Removed expired auto-save');
+                    }
+                }
+            } catch (e) {
+                console.warn('Failed to load auto-saved map:', e);
+                localStorage.removeItem('crougelite_autosave_map');
+            }
+            return false;
+        }
+
+        function clearAutoSavedMap() {
+            localStorage.removeItem('crougelite_autosave_map');
+            document.getElementById('loadingStatus').textContent = 'Auto-saved map cleared';
+            setTimeout(() => {
+                document.getElementById('loadingStatus').textContent = '';
+            }, 2000);
+        }
+
+        function scheduleAutoSave() {
+            // Clear existing timeout
+            if (autoSaveTimeout) {
+                clearTimeout(autoSaveTimeout);
+            }
+            
+            // Schedule new auto-save
+            autoSaveTimeout = setTimeout(() => {
+                saveMapToStorage();
+            }, AUTO_SAVE_DELAY);
         } function loadMapper() {
             const file = document.getElementById('mapperFile').files[0];
             if (!file) return;
@@ -848,7 +1035,7 @@
             };
 
             updatePalette();
-        } function createMap() {
+        }        function createMap() {
             mapRows = parseInt(document.getElementById('mapRows').value);
             mapCols = parseInt(document.getElementById('mapCols').value);
             // Initialize map data with tile 78 as default background
@@ -862,7 +1049,8 @@
 
             createVisualGrid();
             updateMapDisplay();
-        } function createVisualGrid() {
+            scheduleAutoSave(); // Auto-save after map creation/resize
+        }function createVisualGrid() {
             // Create visual grid
             const editor = document.getElementById('mapEditor');
             editor.innerHTML = '';
@@ -877,9 +1065,14 @@
                     tile.className = 'tile empty';
                     tile.dataset.row = row;
                     tile.dataset.col = col;
+                    
+                    // Event handlers
                     tile.addEventListener('click', placeTile);
+                    tile.addEventListener('contextmenu', clearTile);
                     tile.addEventListener('mousedown', startDrag);
                     tile.addEventListener('mouseover', dragPlace);
+                    tile.addEventListener('dragover', handleDragOver);
+                    tile.addEventListener('drop', handleDrop);
 
                     // Add layer indicator
                     const layerOverlay = document.createElement('div');
@@ -891,23 +1084,192 @@
 
                 editor.appendChild(rowDiv);
             }
+            
+            // Apply initial gap setting
+            updateCellGaps();
+            
+            // Ensure display options are applied
+            setTimeout(() => {
+                updateMapDisplay();
+                updateCellGaps();
+            }, 100);
         }
 
         let isDragging = false;
+        let dragSource = null;
+        let draggedTile = null;
 
         function startDrag(e) {
-            isDragging = true;
-            placeTile(e);
-        }
+            if (e.button === 2) return; // Ignore right-click for dragging
+            
+            const row = parseInt(e.target.dataset.row);
+            const col = parseInt(e.target.dataset.col);
+            
+            if (isNaN(row) || isNaN(col)) return;
 
-        function dragPlace(e) {
-            if (isDragging) {
+            // Check for Ctrl + middle click (eyedropper tool)
+            if (e.ctrlKey && e.button === 1) {
+                selectTileFromMap(e);
+                return;
+            }
+
+            // Check if we're starting a cell move operation (Ctrl+left click)
+            if (e.ctrlKey && e.button === 0) {
+                // Start drag-to-move operation
+                dragSource = { row, col };
+                draggedTile = { ...mapData[row][col] }; // Copy the tile data
+                e.target.classList.add('dragging');
+                e.target.draggable = true;
+                
+                // Don't place a tile when starting drag
+                return;
+            }
+            
+            // Normal painting operation
+            if (e.button === 0) { // Only left click
+                isDragging = true;
                 placeTile(e);
             }
         }
 
-        document.addEventListener('mouseup', () => {
+        function dragPlace(e) {
+            if (isDragging && !e.ctrlKey) {
+                placeTile(e);
+            } else if (dragSource && e.ctrlKey) {
+                // Highlight potential drop target
+                document.querySelectorAll('.tile').forEach(tile => {
+                    tile.classList.remove('drop-target');
+                });
+                
+                if (e.target.classList.contains('tile')) {
+                    e.target.classList.add('drop-target');
+                }
+            }
+        }
+
+        function handleDragOver(e) {
+            if (dragSource) {
+                e.preventDefault(); // Allow drop
+                e.target.classList.add('drop-target');
+            }
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            
+            if (!dragSource || !draggedTile) return;
+            
+            const targetRow = parseInt(e.target.dataset.row);
+            const targetCol = parseInt(e.target.dataset.col);
+            
+            if (isNaN(targetRow) || isNaN(targetCol)) return;
+            
+            // Don't move to the same position
+            if (targetRow === dragSource.row && targetCol === dragSource.col) {
+                cleanupDrag();
+                return;
+            }
+            
+            // Move the tile data to the target position
+            mapData[targetRow][targetCol][currentLayer] = draggedTile[currentLayer];
+            
+            // Clear the source position
+            mapData[dragSource.row][dragSource.col][currentLayer] = -1;
+            
+            // Update display
+            updateMapDisplay();
+            scheduleAutoSave(); // Auto-save after tile move
+            
+            cleanupDrag();
+        }
+
+        function cleanupDrag() {
+            // Clean up drag state
+            document.querySelectorAll('.tile').forEach(tile => {
+                tile.classList.remove('dragging', 'drop-target');
+                tile.draggable = false;
+            });
+            
+            dragSource = null;
+            draggedTile = null;
+        }
+
+        function clearTile(e) {
+            e.preventDefault(); // Prevent context menu
+            
+            const row = parseInt(e.target.dataset.row);
+            const col = parseInt(e.target.dataset.col);
+
+            if (isNaN(row) || isNaN(col)) return;
+
+            // Clear the tile in the current layer
+            mapData[row][col][currentLayer] = -1;
+            updateTileDisplay(e.target, row, col);
+            scheduleAutoSave(); // Auto-save after tile clearing
+        }
+
+        function selectTileFromMap(e) {
+            // Only respond to middle mouse button (button 1)
+            if (e.button !== 1) return;
+            
+            e.preventDefault(); // Prevent any default middle-click behavior
+            
+            const row = parseInt(e.target.dataset.row);
+            const col = parseInt(e.target.dataset.col);
+
+            if (isNaN(row) || isNaN(col)) return;
+
+            // Get the tile ID from the current layer at this position
+            const tileId = mapData[row][col][currentLayer];
+            
+            // If the current layer is empty (-1), try to find a tile from visible layers
+            let selectedTileId = tileId;
+            if (tileId === -1) {
+                // Check visible layers from top to bottom to find a tile
+                const layerVisible = [
+                    document.getElementById('layer0Visible').checked,
+                    document.getElementById('layer1Visible').checked,
+                    document.getElementById('layer2Visible').checked,
+                    document.getElementById('layer3Visible').checked,
+                    document.getElementById('layer4Visible').checked
+                ];
+                
+                for (let i = 4; i >= 0; i--) {
+                    if (mapData[row][col][i] !== -1 && layerVisible[i]) {
+                        selectedTileId = mapData[row][col][i];
+                        break;
+                    }
+                }
+            }
+            
+            // Only select if we found a valid tile
+            if (selectedTileId !== -1) {
+                selectedTile = selectedTileId;
+                document.getElementById('selectedTile').value = selectedTileId;
+                highlightSelectedTile();
+                
+                // Visual feedback - briefly highlight the tile
+                e.target.style.boxShadow = '0 0 10px #e74c3c';
+                setTimeout(() => {
+                    e.target.style.boxShadow = '';
+                }, 200);
+            }
+        }
+
+        document.addEventListener('mouseup', (e) => {
             isDragging = false;
+            
+            if (dragSource && !e.ctrlKey) {
+                // If we were dragging but released without Ctrl, cancel the drag
+                cleanupDrag();
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            if (e.key === 'Control' && dragSource) {
+                // If Ctrl is released during drag, cancel it
+                cleanupDrag();
+            }
         });
 
         function placeTile(e) {
@@ -918,7 +1280,8 @@
 
             mapData[row][col][currentLayer] = selectedTile;
             updateTileDisplay(e.target, row, col);
-        } function updateTileDisplay(tileElement, row, col) {
+            scheduleAutoSave(); // Auto-save after tile placement
+        }        function updateTileDisplay(tileElement, row, col) {
             const layers = mapData[row][col];
 
             // Get layer visibility settings
@@ -930,8 +1293,20 @@
                 document.getElementById('layer4Visible').checked
             ];
 
+            // Get tile ID visibility setting
+            const showTileNumbers = document.getElementById('showTileNumbers').checked;
+            const showTileTypes = document.getElementById('showTileTypes').checked;
+
             // Clear previous content
-            tileElement.innerHTML = '<div class="layer-overlay"></div>';
+            tileElement.innerHTML = '';
+            
+            // Add layer indicator if tile types should be shown
+            if (showTileTypes) {
+                const layerOverlay = document.createElement('div');
+                layerOverlay.className = 'layer-overlay';
+                tileElement.appendChild(layerOverlay);
+            }
+            
             tileElement.style.backgroundImage = '';
             tileElement.style.backgroundColor = '';
 
@@ -953,11 +1328,20 @@
 
             if (visibleLayers.length === 0) {
                 tileElement.className = 'tile empty';
+                // Preserve no-gaps class if needed
+                if (!document.getElementById('showCellGaps').checked) {
+                    tileElement.classList.add('no-gaps');
+                }
                 return;
             }
 
             // Set the layer class based on the topmost visible layer
             tileElement.className = `tile layer-${topVisibleLayer}`;
+            
+            // Preserve no-gaps class if needed
+            if (!document.getElementById('showCellGaps').checked) {
+                tileElement.classList.add('no-gaps');
+            }
 
             if (visibleLayers.length === 1) {
                 // Single layer - simple case
@@ -968,18 +1352,20 @@
                     tileElement.style.backgroundColor = '#ffcccc';
                 }
 
-                // Add tile ID indicator for the visible tile
-                const idLabel = document.createElement('div');
-                idLabel.className = 'tile-id';
-                idLabel.textContent = layer.tileId;
-                tileElement.appendChild(idLabel);
+                // Add tile ID indicator for the visible tile (only if enabled)
+                if (showTileNumbers) {
+                    const idLabel = document.createElement('div');
+                    idLabel.className = 'tile-id';
+                    idLabel.textContent = layer.tileId;
+                    tileElement.appendChild(idLabel);
+                }
             } else {
                 // Multiple layers - composite them
-                compositeLayersToTile(tileElement, visibleLayers, row, col);
+                compositeLayersToTile(tileElement, visibleLayers, row, col, showTileNumbers);
             }
         }
 
-        function compositeLayersToTile(tileElement, visibleLayers, row, col) {
+        function compositeLayersToTile(tileElement, visibleLayers, row, col, showTileNumbers) {
             // Create a canvas to composite the layers
             const canvas = document.createElement('canvas');
             canvas.width = 24;
@@ -1014,12 +1400,14 @@
                             const compositeDataUrl = canvas.toDataURL('image/png');
                             tileElement.style.backgroundImage = `url(${compositeDataUrl})`;
 
-                            // Add tile ID indicator for the topmost layer
-                            const topLayer = visibleLayers[visibleLayers.length - 1];
-                            const idLabel = document.createElement('div');
-                            idLabel.className = 'tile-id';
-                            idLabel.textContent = topLayer.tileId;
-                            tileElement.appendChild(idLabel);
+                            // Add tile ID indicator for the topmost layer (only if enabled)
+                            if (showTileNumbers) {
+                                const topLayer = visibleLayers[visibleLayers.length - 1];
+                                const idLabel = document.createElement('div');
+                                idLabel.className = 'tile-id';
+                                idLabel.textContent = topLayer.tileId;
+                                tileElement.appendChild(idLabel);
+                            }
                         }
                     };
 
@@ -1029,10 +1417,12 @@
                         if (loadedImages === totalImages) {
                             // Fallback: show red background for missing images
                             tileElement.style.backgroundColor = '#ffcccc';
-                            const idLabel = document.createElement('div');
-                            idLabel.className = 'tile-id';
-                            idLabel.textContent = '?';
-                            tileElement.appendChild(idLabel);
+                            if (showTileNumbers) {
+                                const idLabel = document.createElement('div');
+                                idLabel.className = 'tile-id';
+                                idLabel.textContent = '?';
+                                tileElement.appendChild(idLabel);
+                            }
                         }
                     };
 
@@ -1042,10 +1432,12 @@
                     loadedImages++;
                     if (loadedImages === totalImages) {
                         tileElement.style.backgroundColor = '#ffcccc';
-                        const idLabel = document.createElement('div');
-                        idLabel.className = 'tile-id';
-                        idLabel.textContent = '?';
-                        tileElement.appendChild(idLabel);
+                        if (showTileNumbers) {
+                            const idLabel = document.createElement('div');
+                            idLabel.className = 'tile-id';
+                            idLabel.textContent = '?';
+                            tileElement.appendChild(idLabel);
+                        }
                     }
                 }
             });
@@ -1062,9 +1454,40 @@
             });
         }
 
+        function refreshDisplayOptions() {
+            updateMapDisplay();
+            updateCellGaps();
+            console.log('Display options refreshed');
+        }
+
+        function updateCellGaps() {
+            const showGaps = document.getElementById('showCellGaps').checked;
+            const tiles = document.querySelectorAll('.tile');
+            const rows = document.querySelectorAll('.editor-row');
+            
+            tiles.forEach(tile => {
+                if (showGaps) {
+                    tile.classList.remove('no-gaps');
+                } else {
+                    tile.classList.add('no-gaps');
+                }
+            });
+            
+            rows.forEach(row => {
+                if (showGaps) {
+                    row.classList.remove('no-gaps');
+                } else {
+                    row.classList.add('no-gaps');
+                }
+            });
+            
+            console.log(`Cell gaps ${showGaps ? 'enabled' : 'disabled'} for ${tiles.length} tiles and ${rows.length} rows`);
+        }
+
         function clearMap() {
-            if (confirm('Clear the entire map?')) {
+            if (confirm('Clear the entire map? This will also clear the auto-saved data.')) {
                 createMap();
+                clearAutoSavedMap(); // Clear auto-save when intentionally clearing map
             }
         } async function exportCSV() {
             let csv = '';
@@ -1315,6 +1738,7 @@
             // Create visual grid without reinitializing mapData
             createVisualGrid();
             updateMapDisplay();
+            scheduleAutoSave(); // Auto-save after CSV load
         } function showDebugInfo() {
             const debugDiv = document.getElementById('debugInfo');
             let info = '';
@@ -1530,6 +1954,60 @@
             document.getElementById(`layer${currentLayer}Visible`).checked = true;
             updateMapDisplay();
         }
+
+        // Zoom functionality
+        function applyZoom() {
+            const editor = document.getElementById('mapEditor');
+            editor.style.transform = `scale(${zoomLevel})`;
+            document.getElementById('zoomLevel').textContent = Math.round(zoomLevel * 100) + '%';
+        }
+
+        function zoomIn() {
+            if (zoomLevel < zoomMax) {
+                zoomLevel = Math.min(zoomLevel + zoomStep, zoomMax);
+                applyZoom();
+            }
+        }
+
+        function zoomOut() {
+            if (zoomLevel > zoomMin) {
+                zoomLevel = Math.max(zoomLevel - zoomStep, zoomMin);
+                applyZoom();
+            }
+        }
+
+        function resetZoom() {
+            zoomLevel = 1.0;
+            applyZoom();
+        }
+
+        // Add keyboard shortcuts for zoom
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey || e.metaKey) {
+                if (e.key === '=' || e.key === '+') {
+                    e.preventDefault();
+                    zoomIn();
+                } else if (e.key === '-') {
+                    e.preventDefault();
+                    zoomOut();
+                } else if (e.key === '0') {
+                    e.preventDefault();
+                    resetZoom();
+                }
+            }
+        });
+
+        // Add mouse wheel zoom
+        document.getElementById('mapEditor').addEventListener('wheel', (e) => {
+            if (e.ctrlKey) {
+                e.preventDefault();
+                if (e.deltaY < 0) {
+                    zoomIn();
+                } else {
+                    zoomOut();
+                }
+            }
+        });
     </script>
 </body>
 

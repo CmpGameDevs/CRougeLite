@@ -27,7 +27,7 @@
 Weapon initWeapon(int opcode, bool isPlayer);
 WeaponsInventory initInventory();
 void updateRangedWeapon(Weapon *weapon, bool isFired, int ID, Vector2 src, Vector2 dest, float deltaTime, bool isFriendly);
-void updateMeleeWeapon(Weapon *weapon, bool isFired, int ID, Vector2 src, Vector2 dest, float deltaTime);
+void updateMeleeWeapon(Weapon *weapon, bool isFired, int ID, Vector2 src, Vector2 dest, float deltaTime, bool isFriendly);
 void clearInventory(WeaponsInventory *inventory);
 
 #endif // INPUT_H

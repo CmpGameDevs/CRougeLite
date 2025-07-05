@@ -47,7 +47,7 @@ Weapon initWeapon(int opcode, bool isPlayer)
 WeaponsInventory initInventory()
 {
   WeaponsInventory inventory;
-  inventory.MAX_NUM_OF_WEAPONS = 2;
+  inventory.MAX_NUM_OF_WEAPONS = 3;
   inventory.weapons = malloc(sizeof(Weapon) * inventory.MAX_NUM_OF_WEAPONS);
   inventory.currentNumOfWeapons = 0;
   inventory.currentWeapon = 0;
@@ -76,15 +76,16 @@ void updateRangedWeapon(Weapon *weapon, bool isFired, int ID, Vector2 src, Vecto
     *reloadTime -= deltaTime;
 }
 
-void updateMeleeWeapon(Weapon *weapon, bool isFired, int ID, Vector2 src, Vector2 dest, float deltaTime)
+void updateMeleeWeapon(Weapon *weapon, bool isFired, int ID, Vector2 src, Vector2 dest, float deltaTime, bool isFriendly)
 {
   float *reloadTime = &(weapon->weapon.melee.stats.lastUseTime);
 
   float cooldown = weapon->weapon.melee.stats.cooldown;
 
-  if (isFired && *reloadTime <= 0.0f)
+  if (isFired && (*reloadTime <= 0.0f || !isFriendly))
   {
-    initSlash(ID, weapon->weapon.melee.slashInfo, src, dest);
+    initSlash(ID, weapon->weapon.melee.slashInfo, src, dest, isFriendly);
+    playSoundEffect(isFriendly ? "sword_slash" : "enemy_slash");
 
     *reloadTime = cooldown;
   }

@@ -40,13 +40,13 @@ void loadAtlasData() {
       int originX, originY, width, height, x, y, padding, trim, trimX, trimY,
           trixW, trimH;
       sscanf(line, "%s %s %d %d %d %d %d %d %d %d %d %d %d %d", filename,
-             filename, &originX, &originY, &width, &height, &x, &y, &padding,
+             filename, &originX, &originY, &x, &y, &width, &height, &padding,
              &trim, &trimX, &trimY, &trixW, &trimH);
       AtlasImage *sprite = malloc(sizeof(AtlasImage));
       sprite->filename = filename;
       sprite->origin.x = originX;
       sprite->origin.y = originY;
-      sprite->source = (Rectangle){width, height, x, y};
+      sprite->source = (Rectangle){x, y, width, height};
       sprite->next = NULL;
       if (images == NULL) {
         gameState->atlasImages = sprite;

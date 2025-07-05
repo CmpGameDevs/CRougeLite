@@ -45,7 +45,7 @@ typedef enum { E_SWORD, E_FIRE_BALL, NUM_OF_E_WEAPON } E_WEAPON;
 typedef enum { CAT, WEREWOLF, PYROMANIAC, KNIGHT, NUM_OF_P_TYPE } P_TYPE;
 
 typedef enum {
-  P_GUN,
+  P_FIRE_BALL,
   P_LONG_SWORD,
   P_MISSILE_LAUNCHER,
   NUM_OF_P_WEAPON
@@ -273,6 +273,8 @@ typedef struct {
   float slashRange;
   float slashDamage;
   bool isActive;
+  float duration;
+  float startTime;
   GameObject object;
 } SlashInfo;
 
@@ -360,6 +362,10 @@ typedef struct {
   EnemyAI ai;
   bool isMoving;
   int drawDirection; // 1 for right, -1 for left
+  
+  // Attack combo system
+  int attackCount; // Tracks which attack in sequence (1st, 2nd, etc.)
+  float lastAttackTime; // Time of last attack for combo timing
 } Enemy;
 
 typedef struct {
@@ -388,6 +394,14 @@ typedef struct Player {
   bool isMoving;
   DIRECTIONS direction; // to get info on the direction the player is facing.
   int interactableTileIndex;
+  
+  // Footstep sound system
+  float lastFootstepTime;
+  float footstepInterval;
+  
+  // Attack combo system
+  int attackCount; // Tracks which attack in sequence (1st, 2nd, etc.)
+  float lastAttackTime; // Time of last attack for combo timing
 } Player;
 
 typedef union {
@@ -420,7 +434,7 @@ typedef struct {
   bool showPaths;
   bool showFPS;
   bool showDebugMenu;
-  bool showInventory;
+  bool showUI;
   float zoom;
   float sfxVolume;
 } Settings;

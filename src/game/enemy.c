@@ -339,19 +339,12 @@ static Enemy *initEnemy(E_TYPE type, E_WEAPON weapon, Vector2 position)
       .currentState = IDLE,
   };
 
-  enemy->ai = (EnemyAI){
-      .patrolStart = (Vector2){0, 0},
-      .patrolEnd = (Vector2){0, 0},
-      .detectionRange = 300.0f,
-      .attackCooldown = 1.0f,
-      .lastAttackTime = 0.0f,
-      .dodgePercentage = 0.1f,
-      .state = IDLE,
-      .path = NULL,
-      .currentPathIndex = 0,
-      .pathLength = 0,
-      .minDistanceToAttack = 0,
-  };
+  enemy->ai.patrolStart = (Vector2){0, 0};
+  enemy->ai.patrolEnd = (Vector2){0, 0};
+  enemy->ai.lastAttackTime = 0.0f;
+  enemy->ai.path = NULL;
+  enemy->ai.currentPathIndex = 0;
+  enemy->ai.pathLength = 0;
 
   switch (type)
   {
@@ -391,8 +384,6 @@ static Enemy *initEnemy(E_TYPE type, E_WEAPON weapon, Vector2 position)
     break;
   case E_SLIME:
   default:
-    enemy->ai.detectionRange = 500.0f;
-    enemy->ai.minDistanceToAttack = 6;
     enemy->object.animator.animations[IDLE] = (SpriteAnimation){
         .frameNames =
             {
@@ -447,6 +438,10 @@ static Enemy *initEnemy(E_TYPE type, E_WEAPON weapon, Vector2 position)
   enemy->object.collider.bounds.y = position.y;
   enemy->object.transform.scale = (Vector2){4, 4};
   enemy->object.rigidBody.type = BODY_GHOST;
+  
+  enemy->attackCount = 0;
+  enemy->lastAttackTime = 0.0f;
+  
   enemy->weapon = initWeapon(weapon, false);
 
   return enemy;
@@ -545,7 +540,7 @@ static void updateStateMachine(Enemy *enemy, Vector2 *velocity, Vector2 *directi
       float maxAttackRange = (randomPaddedDistance + 2) * (gameState->map.tileWidth * gameState->map.scale);
       
       // If target is too far, switch back to RUN state to chase
-      if (distanceToTarget > maxAttackRange || (ai->minDistanceToAttack == 0 && distanceToTarget != 0)) {
+      if (distanceToTarget > maxAttackRange || (ai->minDistanceToAttack == 0 && distanceToTarget > 100.0f)) {
         ai->state = RUN;
         break;
       }
@@ -559,7 +554,6 @@ static void updateStateMachine(Enemy *enemy, Vector2 *velocity, Vector2 *directi
       float deltaTime = GetFrameTime();
       Vector2 srcPos = enemyPos;
       Vector2 destPos = targetPos;
-      
       if (weapon->type == RANGED_WEAPON) {
         if (weapon->weapon.ranged.bulletInfo.isTracking) {
           weapon->weapon.ranged.bulletInfo.targetID = ai->inLineOfSight->ID;
@@ -570,7 +564,7 @@ static void updateStateMachine(Enemy *enemy, Vector2 *velocity, Vector2 *directi
                        deltaTime, false);
       } else if (weapon->type == MELEE_WEAPON) {
         updateMeleeWeapon(weapon, true, enemy->ID, srcPos, destPos,
-                        deltaTime);
+                        deltaTime, false);
       }
     } else {
       ai->state = IDLE;

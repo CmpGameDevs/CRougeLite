@@ -21,6 +21,7 @@
 #include "player.h"
 #include "../system/collision.h"
 #include "../system/draw.h"
+#include "../system/sound.h"
 
 #include "../system/anime.h"
 #include <raylib.h>
@@ -39,6 +40,7 @@ static void handlePlayerInventory(Player *player, int bitmask);
 static void handlePlayerInteraction(Player *player, int bitmask);
 static bool canMovePlayer(float posX, float posY, Vector2 size);
 static void clearPlayer(Player **player);
+static void playRandomFootstep(void);
 
 /**
  * setupPlayers - initialize all enemies manually to the game state
@@ -46,7 +48,7 @@ static void clearPlayer(Player **player);
 void setupPlayers()
 {
   Player *player =
-      initPlayer("Marcus", CAT, P_GUN,
+      initPlayer("Marcus", CAT, P_FIRE_BALL,
                  (Vector2){GetScreenWidth() / 2.0, GetScreenHeight() / 2.0});
 
   player->object.animator = (Animator){
@@ -128,8 +130,12 @@ void setupPlayers()
   };
 
   player->object.transform.scale = (Vector2){4, 4};
+  
+  player->attackCount = 0;
+  player->lastAttackTime = 0.0f;
 
   AddPlayerWeapon(player, P_MISSILE_LAUNCHER);
+  AddPlayerWeapon(player, P_LONG_SWORD);
 }
 
 /**
@@ -176,16 +182,19 @@ void updatePlayers()
 
     allPlayersDead = false;
 
-    int playerInput = handlePlayerInput(player);
-    handlePlayerMovement(player, playerInput);
-
-    if (playerInput)
+    if (player->stats.health.currentHealth > 0)
     {
-      // Swapping between weapons
-      handlePlayerInventory(player, playerInput);
+      int playerInput = handlePlayerInput(player);
+      handlePlayerMovement(player, playerInput);
 
-      // Interact with the map
-      handlePlayerInteraction(player, playerInput);
+      if (playerInput || player->input.mouseWheelMove != 0)
+      {
+        // Swapping between weapons
+        handlePlayerInventory(player, playerInput);
+
+        // Interact with the map
+        handlePlayerInteraction(player, playerInput);
+      }
     }
 
     // NOTE: animation controller is the state machine
@@ -341,6 +350,11 @@ static Player *initPlayer(const char *name, P_TYPE type, P_WEAPON weapon,
   player->direction = RIGHT;
   player->fire = 0;
   player->experience = (Experience){.xp = 0, .level = 0};
+  
+  // Initialize footstep sound system
+  player->lastFootstepTime = 0.0f;
+  player->footstepInterval = 0.4f; // Play footstep every 0.4 seconds when moving
+  
   // TODO: Make dictionary for infos related to each type of character.
   // Input
   int *weapons =
@@ -499,7 +513,15 @@ static void handlePlayerMovement(Player *player, int playerInput)
   player->object.rigidBody.velocity = velocity;
   player->object.transform.position = newPosition;
   player->object.collider.bounds.x = newPosition.x;
-  player->object.collider.bounds.y = newPosition.y;  
+  player->object.collider.bounds.y = newPosition.y;
+  
+  if (player->isMoving) {
+    float currentTime = GetTime();
+    if (currentTime - player->lastFootstepTime >= player->footstepInterval) {
+      playRandomFootstep();
+      player->lastFootstepTime = currentTime;
+    }
+  }  
 }
 
 /**
@@ -596,6 +618,22 @@ static void handlePlayerInteraction(Player *player, int playerInput)
     playSoundEffect("missing_item");
   }
 
+}
+
+/**
+ * playRandomFootstep - plays a random footstep sound effect
+ */
+static void playRandomFootstep(void)
+{
+  // Array of footstep sound names
+  const char* footstepSounds[] = {
+    "footstep_00", "footstep_01", "footstep_02", "footstep_03", "footstep_04"
+  };
+  
+  int numFootsteps = sizeof(footstepSounds) / sizeof(footstepSounds[0]);
+  int randomIndex = GetRandomValue(0, numFootsteps - 1);
+  
+  playSoundEffect(footstepSounds[randomIndex]);
 }
 
 static void clearPlayer(Player **player)

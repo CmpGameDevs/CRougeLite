@@ -1,12 +1,12 @@
 #
 # rTexPacker atlas descriptor file (v2.0)
 #
-# Number of packed sprites:     161
+# Number of packed sprites:     179
 #
 # Atlas info:    a <imagePath> <width> <height> <spriteCount> <isFont> <fontSize>
 # Sprite info:   s <nameId> <originX> <originY> <positionX> <positionY> <sourceWidth> <sourceHeight> <padding> <trimmed> <trimRecX> <trimRecY> <trimRecWidth> <trimRecHeight>
 #
-a atlas.png 512 512 161 0 32
+a atlas.png 512 512 179 0 32
 s fire_1_0_0 0 0 0 0 16 16 0 0 2 1 13 14
 s fire_1_0_1 0 0 16 0 16 16 0 0 1 1 13 14
 s fire_1_0_2 0 0 32 0 16 16 0 0 2 1 13 14
@@ -168,3 +168,39 @@ s vampire_1 0 0 176 80 16 16 0 0 2 1 12 14
 s vampire_2 0 0 192 80 16 16 0 0 2 1 12 14
 s vampire_3 0 0 208 80 16 16 0 0 2 0 12 15
 s vampire_4 0 0 224 80 16 16 0 0 2 0 12 15
+s Slash_color2_frame1 0 0 240 80 16 16 0 0 2 2 12 12
+s Slash_color2_frame2 0 0 256 80 16 16 0 0 2 2 12 12
+s Slash_color2_frame3 0 0 272 80 16 16 0 0 2 2 12 12
+s Slash_color2_frame4 0 0 288 80 16 16 0 0 2 2 12 12
+s Slash_color2_frame5 0 0 304 80 16 16 0 0 2 2 12 12
+s Slash_color2_frame6 0 0 320 80 16 16 0 0 2 2 12 12
+s Slash_color2_frame7 0 0 336 80 16 16 0 0 2 2 12 12
+s Slash_color2_frame8 0 0 352 80 16 16 0 0 2 2 12 12
+s Slash_color2_frame9 0 0 368 80 16 16 0 0 2 2 12 12
+s Slash_color4_frame1 0 0 384 80 16 16 0 0 2 2 12 12
+s Slash_color4_frame2 0 0 400 80 16 16 0 0 2 2 12 12
+s Slash_color4_frame3 0 0 416 80 16 16 0 0 2 2 12 12
+s Slash_color4_frame4 0 0 432 80 16 16 0 0 2 2 12 12
+s Slash_color4_frame5 0 0 448 80 16 16 0 0 2 2 12 12
+s Slash_color4_frame6 0 0 464 80 16 16 0 0 2 2 12 12
+s Slash_color4_frame7 0 0 480 80 16 16 0 0 2 2 12 12
+s Slash_color4_frame8 0 0 496 80 16 16 0 0 2 2 12 12
+s Slash_color4_frame9 0 0 0 96 16 16 0 0 2 2 12 12
+s Slash_color2_frame1 0 0 0 96 16 16 0 0 2 2 12 12
+s Slash_color2_frame2 0 0 16 96 16 16 0 0 2 2 12 12
+s Slash_color2_frame3 0 0 32 96 16 16 0 0 2 2 12 12
+s Slash_color2_frame4 0 0 48 96 16 16 0 0 2 2 12 12
+s Slash_color2_frame5 0 0 64 96 16 16 0 0 2 2 12 12
+s Slash_color2_frame6 0 0 80 96 16 16 0 0 2 2 12 12
+s Slash_color2_frame7 0 0 96 96 16 16 0 0 2 2 12 12
+s Slash_color2_frame8 0 0 112 96 16 16 0 0 2 2 12 12
+s Slash_color2_frame9 0 0 128 96 16 16 0 0 2 2 12 12
+s Slash_color4_frame1 0 0 144 96 16 16 0 0 2 2 12 12
+s Slash_color4_frame2 0 0 160 96 16 16 0 0 2 2 12 12
+s Slash_color4_frame3 0 0 176 96 16 16 0 0 2 2 12 12
+s Slash_color4_frame4 0 0 192 96 16 16 0 0 2 2 12 12
+s Slash_color4_frame5 0 0 208 96 16 16 0 0 2 2 12 12
+s Slash_color4_frame6 0 0 224 96 16 16 0 0 2 2 12 12
+s Slash_color4_frame7 0 0 240 96 16 16 0 0 2 2 12 12
+s Slash_color4_frame8 0 0 256 96 16 16 0 0 2 2 12 12
+s Slash_color4_frame9 0 0 272 96 16 16 0 0 2 2 12 12
