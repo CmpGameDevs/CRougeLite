@@ -222,8 +222,8 @@ https://github.com/CmpGameDevs/CRougeLite/assets/88613195/fe7c7aa0-e9f0-41f7-b0a
       <sub><b>Moamen Hefny</b></sub></a><br />
     </td>
     <td align="center">
-      <a href="https://github.com/YoussefMehany"><img src="https://avatars.githubusercontent.com/YoussefMehany" width="150px;" alt=""/><br />
-      <sub><b>Youssef Mehany</b></sub></a><br />
+      <a href="https://github.com/akramhany"><img src="https://avatars.githubusercontent.com/akramhany" width="150px;" alt=""/><br />
+      <sub><b>Akram Hany</b></sub></a><br />
     </td>
     <td align="center">
       <a href="https://github.com/amir-kedis"><img src="https://avatars.githubusercontent.com/amir-kedis" width="150px;" alt=""/><br />
