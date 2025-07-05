@@ -362,6 +362,10 @@ typedef struct {
   EnemyAI ai;
   bool isMoving;
   int drawDirection; // 1 for right, -1 for left
+  
+  // Attack combo system
+  int attackCount; // Tracks which attack in sequence (1st, 2nd, etc.)
+  float lastAttackTime; // Time of last attack for combo timing
 } Enemy;
 
 typedef struct {
@@ -394,6 +398,10 @@ typedef struct Player {
   // Footstep sound system
   float lastFootstepTime;
   float footstepInterval;
+  
+  // Attack combo system
+  int attackCount; // Tracks which attack in sequence (1st, 2nd, etc.)
+  float lastAttackTime; // Time of last attack for combo timing
 } Player;
 
 typedef union {

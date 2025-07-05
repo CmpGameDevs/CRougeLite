@@ -438,6 +438,10 @@ static Enemy *initEnemy(E_TYPE type, E_WEAPON weapon, Vector2 position)
   enemy->object.collider.bounds.y = position.y;
   enemy->object.transform.scale = (Vector2){4, 4};
   enemy->object.rigidBody.type = BODY_GHOST;
+  
+  enemy->attackCount = 0;
+  enemy->lastAttackTime = 0.0f;
+  
   enemy->weapon = initWeapon(weapon, false);
 
   return enemy;

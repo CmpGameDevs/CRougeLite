@@ -130,6 +130,9 @@ void setupPlayers()
   };
 
   player->object.transform.scale = (Vector2){4, 4};
+  
+  player->attackCount = 0;
+  player->lastAttackTime = 0.0f;
 
   AddPlayerWeapon(player, P_MISSILE_LAUNCHER);
   AddPlayerWeapon(player, P_LONG_SWORD);

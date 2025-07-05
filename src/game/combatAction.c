@@ -24,6 +24,7 @@
 
 #include "../system/anime.h"
 #include "../system/collision.h"
+#include "../system/draw.h"
 // FIXME: delete me later
 #include "../system/init.h"
 #include <math.h>
@@ -241,13 +242,122 @@ CombatAction *initSlash(int ID, SlashInfo slashInfo, Vector2 src,
   object->collider.bounds.y = slashCenter.y - newHeight / 2;
   
   slash.playerID = ID;
-  object->transform = (CTransform){slashCenter, angle, 0, 0, (Vector2){1, 1}};
+  object->transform = (CTransform){slashCenter, angle, 0, 0, (Vector2){4, 4}};
 
   // Set slash timing
   slashInfo.startTime = GetTime();
   slashInfo.isActive = true;
   if (slashInfo.duration <= 0) {
     slashInfo.duration = 0.3f;
+  }
+  
+  object->animator = (Animator){
+      .isFinished = false,
+      .currentState = IDLE,
+  };
+  
+  int attackCount = 1;
+  
+  if (isFriendly) {
+    Player *player = &(gameState->players[ID]);
+    float currentTime = GetTime();
+    
+    // Reset attack count if too much time has passed since last attack (combo timeout)
+    if (currentTime - player->lastAttackTime > 1.8f) {
+      player->attackCount = 0;
+    }
+    
+    player->attackCount++;
+    player->lastAttackTime = currentTime;
+    attackCount = player->attackCount;
+    
+    if (attackCount > 2) {
+      attackCount = 1;
+      player->attackCount = 1;
+    }
+    
+    if (attackCount == 1) {
+      object->animator.animations[IDLE] = (SpriteAnimation){
+          .frameNames = {
+              "Slash_color4_frame1",
+              "Slash_color4_frame2", 
+              "Slash_color4_frame3",
+              "Slash_color4_frame4",
+          },
+          .numOfFrames = 4,
+          .fps = 12,
+          .isLooping = false,
+          .isFinished = false,
+          .currentFrame = 0,
+          .frameCount = 0,
+      };
+    } else {
+      object->animator.animations[IDLE] = (SpriteAnimation){
+          .frameNames = {
+              "Slash_color4_frame5",
+              "Slash_color4_frame6",
+              "Slash_color4_frame7", 
+              "Slash_color4_frame8",
+              "Slash_color4_frame9",
+          },
+          .numOfFrames = 5,
+          .fps = 12,
+          .isLooping = false,
+          .isFinished = false,
+          .currentFrame = 0,
+          .frameCount = 0,
+      };
+    }
+  } else {
+    Enemy *enemy = &(gameState->enemies[ID]);
+    float currentTime = GetTime();
+    
+    // Reset attack count if too much time has passed since last attack (combo timeout)
+    if (currentTime - enemy->lastAttackTime > 3.5f) {
+      enemy->attackCount = 0;
+    }
+    
+    enemy->attackCount++;
+    enemy->lastAttackTime = currentTime;
+    attackCount = enemy->attackCount;
+    
+    if (attackCount > 2) {
+      attackCount = 1;
+      enemy->attackCount = 1;
+    }
+    
+    if (attackCount == 1) {
+      object->animator.animations[IDLE] = (SpriteAnimation){
+          .frameNames = {
+              "Slash_color2_frame1",
+              "Slash_color2_frame2",
+              "Slash_color2_frame3", 
+              "Slash_color2_frame4",
+          },
+          .numOfFrames = 4,
+          .fps = 10,
+          .isLooping = false,
+          .isFinished = false,
+          .currentFrame = 0,
+          .frameCount = 0,
+      };
+    } else {
+      object->animator.animations[IDLE] = (SpriteAnimation){
+          .frameNames = {
+              "Slash_color2_frame5",
+              "Slash_color2_frame6",
+              "Slash_color2_frame7",
+              "Slash_color2_frame8",
+              "Slash_color2_frame9",
+          },
+          .numOfFrames = 5,
+          .fps = 10,
+          .isLooping = false,
+          .isFinished = false,
+          .currentFrame = 0,
+          .frameCount = 0,
+      };
+    }
   }
   
   slash.slashInfo = slashInfo;
@@ -605,10 +715,25 @@ static void drawSlash(CombatAction **combatActions)
   CombatAction *combatAction = *combatActions;
   Slash *slash = &combatAction->action.slash;
   GameObject *object = &(slash->slashInfo.object);
-  Vector2 *pos = &object->transform.position;
-  Rectangle dest = object->collider.bounds;
-  // TODO: add draw here
-  combatAction->angle++;
+  
+  updateAnimator(&(object->animator));
+  
+  SpriteAnimation *anim = &object->animator.animations[object->animator.currentState];
+  Rectangle src = getSrcRect(&object->animator);
+  CTransform *transform = &object->transform;
+
+  Rectangle dest = (Rectangle){
+    transform->position.x, transform->position.y,
+    src.width * transform->scale.x,
+    src.height * transform->scale.y
+  };
+  Vector2 origin = (Vector2){
+    src.width * transform->scale.x / 2,
+    src.height * transform->scale.y / 2
+  };
+  
+  drawAtlasSpritePro(anim->frameNames[anim->currentFrame],
+                     dest, origin, object->transform.rotation, WHITE, false);
 }
 
 /**
