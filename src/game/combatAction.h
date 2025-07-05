@@ -73,7 +73,7 @@ void initRangedWeaponShoot(int ID, RangedWeapon weapon, Vector2 src, Vector2 des
  * by `ID`, its information is provided by the used melee weapon.
  *
  */
-CombatAction *initSlash(int ID, SlashInfo slashInfo, Vector2 src, Vector2 dest);
+CombatAction *initSlash(int ID, SlashInfo slashInfo, Vector2 src, Vector2 dest, bool isFriendly);
 
 /**
  * updateCombatActions - update the combat actions

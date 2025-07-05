@@ -37,13 +37,13 @@ void drawDebugMenu() {
       &gameState->settings.showColliders,
       &gameState->settings.showPaths,
       &gameState->settings.showFPS,
-      &gameState->settings.showInventory,
+      &gameState->settings.showUI,
       &gameState->settings.playMusic,
   };
 
   char *labels[] = {
       "Show Textures", "Show Texture Bounds", "Show Hitboxes", "Show Paths",
-      "Show FPS",   "Show Inventory",   "Play Music",
+      "Show FPS",   "Show UI",   "Play Music",
   };
 
   const int numSliders = 2;

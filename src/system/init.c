@@ -66,7 +66,7 @@ static void initEnemyDictionary()
               .spriteRenderer = {},
               .animator = {0},
           },
-      .ai = {.detectionRange = 100,
+      .ai = {.detectionRange = 200,
              .attackCooldown = 3,
              .dodgePercentage = 0,
              .state = IDLE},
@@ -89,13 +89,14 @@ static void initEnemyDictionary()
               .spriteRenderer = {},
               .animator = {},
           },
-      .ai = {.detectionRange = 100,
-             .attackCooldown = 3,
+      .ai = {.detectionRange = 350,
+             .attackCooldown = 2,
              .dodgePercentage = 0,
+             .minDistanceToAttack = 0,
              .state = IDLE},
       .stats = {.health = {.maxHealth = 100, .currentHealth = 100},
                 .attack = {.power = 1.0f, .cooldown = 5, .speed = 1.0f},
-                .defense = {.value = 3, .nearHitValue = 6, .constant = 45},
+                .defense = {.value = 5, .nearHitValue = 6, .constant = 35},
                 .speed = 3},
   };
 
@@ -114,9 +115,10 @@ static void initEnemyDictionary()
               .spriteRenderer = {},
               .animator = {},
           },
-      .ai = {.detectionRange = 100,
+      .ai = {.detectionRange = 500,
              .attackCooldown = 4,
              .dodgePercentage = 0,
+             .minDistanceToAttack = 6,
              .state = IDLE},
       .stats = {.health = {.maxHealth = 150, .currentHealth = 150},
                 .attack = {.power = 1.0f, .cooldown = 5, .speed = 1.0f},
@@ -142,8 +144,9 @@ static void initPlayerWeaponDictionary()
 
   // Add in asc order
   // Because we fetch the info using binary search.
-  dict[0].opcode = P_GUN;
+  dict[0].opcode = P_FIRE_BALL;
   dict[0].entry.weapon = (Weapon){
+      .name = "Fire Ball",
       .type = RANGED_WEAPON,
       .weapon.ranged = {
           .stats = {10, 0.5, 0, .weaponSprite = {}},
@@ -158,8 +161,30 @@ static void initPlayerWeaponDictionary()
           .ammo = 1000,
           .numBullets = 1}};
 
-  dict[1].opcode = P_MISSILE_LAUNCHER;
+  dict[1].opcode = P_LONG_SWORD;
   dict[1].entry.weapon = (Weapon){
+      .name = "Long Sword",
+      .type = MELEE_WEAPON,
+      .weapon.melee = {
+          .stats = {25, 1.2, 0, .weaponSprite = {}},
+          .slashInfo = {
+              .criticalChance = 0.1,
+              .slashRange = 80,
+              .slashDamage = 25,
+              .isActive = false,
+              .duration = 0.4f,
+              .startTime = 0.0f,
+              .object = {
+                  .collider = {.bounds = {0, 0, 80, 30}},
+                  .transform = {{0, 0}, 0, 0, 0, {2, 2}},
+                  .rigidBody = {.type = BODY_STATIC}
+              }
+          }
+      }};
+
+  dict[2].opcode = P_MISSILE_LAUNCHER;
+  dict[2].entry.weapon = (Weapon){
+      .name = "Missile Launcher",
       .type = RANGED_WEAPON,
       .weapon.ranged = {
           .stats = {10, 1, 0, .weaponSprite = {}},
@@ -193,13 +218,28 @@ static void initEnemyWeaponDictionary()
   // Because we fetch the info using binary search.
   dict[0].opcode = E_SWORD;
   dict[0].entry.weapon = (Weapon){
+      .name = "Enemy Sword",
       .type = MELEE_WEAPON,
       .weapon.melee = {
           .stats = {10, 0.5, 0, .weaponSprite = {}},
-          .slashInfo = {3, 10, true, .object = {}}}};
+          .slashInfo = {
+              .criticalChance = 0.05,
+              .slashRange = 60,
+              .slashDamage = 18,
+              .isActive = false,
+              .duration = 0.3f,
+              .startTime = 0.0f,
+              .object = {
+                  .collider = {.bounds = {0, 0, 60, 24}},
+                  .transform = {{0, 0}, 0, 0, 0, {1.5, 1.5}},
+                  .rigidBody = {.type = BODY_STATIC}
+              }
+          }
+      }};
 
   dict[1].opcode = E_FIRE_BALL;
   dict[1].entry.weapon = (Weapon){
+      .name = "Fire Ball",
       .type = RANGED_WEAPON,
       .weapon.ranged = {
           .stats = {10, 0.5, 0, .weaponSprite = {}},
@@ -279,7 +319,7 @@ void initSettings()
   gameState->settings.showColliders = false;
   gameState->settings.showFPS = false;
   gameState->settings.showDebugMenu = true;
-  gameState->settings.showInventory = true;
+  gameState->settings.showUI = true;
   gameState->settings.zoom = 1.0;
 }
 

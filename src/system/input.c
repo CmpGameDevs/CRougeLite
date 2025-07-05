@@ -64,6 +64,6 @@ static void mouseEventHandler() {
                        deltaTime, true);
   } else if (weapon->type == MELEE_WEAPON) {
     updateMeleeWeapon(weapon, player->fire, player->ID, srcPos, mousePos,
-                      deltaTime);
+                      deltaTime, true);
   }
 }

@@ -163,8 +163,11 @@ void drawScene() {
 
   drawInteractionUI();
 
-  if (gameState->settings.showInventory)
+  if (gameState->settings.showUI)
+  {
     drawInventory();
+    drawWeaponSelectionUI();
+  }
 
   if (gameState->settings.showFPS)
     DrawFPS(10, 10);
@@ -419,4 +422,193 @@ static void drawInteractionUI() {
       drawAtlasSpritePro(fileName, itemDest, (Vector2){0, 0}, 0.0f, WHITE, false);
     }
   }
+}
+
+/**
+ * drawWeaponSelectionUI - draws the weapon selection UI showing current, previous, and next weapons with cooldown indicator
+ */
+void drawWeaponSelectionUI() {
+  int selected_player = 0;
+  Player *player = &(gameState->players[selected_player]);
+  WeaponsInventory *inventory = &(player->inventory);
+  
+  if (inventory->currentNumOfWeapons <= 0) return;
+  
+  int screenWidth = GetScreenWidth();
+  int screenHeight = GetScreenHeight();
+  
+  const int sideWeaponSlotSize = 40;
+  const int currentWeaponSlotSize = 56;
+  const int weaponSpacing = 6;
+  const int totalSlots = 3;
+  const int totalHeight = (sideWeaponSlotSize * 2) + currentWeaponSlotSize + (weaponSpacing * (totalSlots - 1));
+  
+  int startX = screenWidth - currentWeaponSlotSize - 20;
+  int startY = screenHeight - totalHeight - 20;
+  
+  // Background panel (adjust for vertical layout and larger current slot)
+  Rectangle panelBounds = {
+    .x = startX - 6,
+    .y = startY - 6,
+    .width = currentWeaponSlotSize + 12,
+    .height = totalHeight + 12
+  };
+  DrawRectangleRec(panelBounds, (Color){0, 0, 0, 160});
+  DrawRectangleLines(panelBounds.x, panelBounds.y, panelBounds.width, panelBounds.height, (Color){100, 100, 100, 200});
+  
+  // Draw weapon slots (Previous, Current, Next) - vertical layout
+  for (int slot = 0; slot < totalSlots; slot++) {
+    // Calculate slot size and position based on whether it's current weapon
+    bool isCurrentWeapon = (slot == 1);
+    int slotSize = isCurrentWeapon ? currentWeaponSlotSize : sideWeaponSlotSize;
+    
+    // Calculate Y position for vertical stacking
+    int slotY;
+    if (slot == 0) { // Previous weapon (top)
+      slotY = startY;
+    } else if (slot == 1) { // Current weapon (middle)
+      slotY = startY + sideWeaponSlotSize + weaponSpacing;
+    } else { // slot == 2, Next weapon (bottom)
+      slotY = startY + sideWeaponSlotSize + currentWeaponSlotSize + (weaponSpacing * 2);
+    }
+    
+    // Center smaller slots horizontally with the larger current slot
+    int slotX = isCurrentWeapon ? startX : startX + (currentWeaponSlotSize - sideWeaponSlotSize) / 2;
+    
+    Rectangle slotRect = {
+      .x = slotX,
+      .y = slotY,
+      .width = slotSize,
+      .height = slotSize
+    };
+    
+    // Calculate weapon index for each slot
+    int weaponIndex = -1;
+    
+    if (slot == 0) { // Previous weapon
+      weaponIndex = inventory->currentWeapon - 1;
+      if (weaponIndex < 0) weaponIndex = inventory->currentNumOfWeapons - 1;
+    } else if (slot == 1) { // Current weapon
+      weaponIndex = inventory->currentWeapon;
+    } else if (slot == 2) { // Next weapon
+      weaponIndex = inventory->currentWeapon + 1;
+      if (weaponIndex >= inventory->currentNumOfWeapons) weaponIndex = 0;
+    }
+    
+    // Draw slot background using weapon type colors
+    Color slotBgColor, borderColor;
+    if (weaponIndex >= 0 && weaponIndex < inventory->currentNumOfWeapons) {
+      Weapon *weapon = &inventory->weapons[weaponIndex];
+      
+      if (weapon->type == RANGED_WEAPON) {
+        // Blue theme for ranged weapons
+        slotBgColor = isCurrentWeapon ? (Color){30, 60, 120, 200} : (Color){30, 60, 120, 120};
+        borderColor = isCurrentWeapon ? (Color){70, 140, 255, 255} : (Color){70, 140, 255, 120};
+      } else {
+        // Orange/red theme for melee weapons
+        slotBgColor = isCurrentWeapon ? (Color){120, 60, 30, 200} : (Color){120, 60, 30, 120};
+        borderColor = isCurrentWeapon ? (Color){255, 140, 70, 255} : (Color){255, 140, 70, 120};
+      }
+    } else {
+      // Default gray for empty slots
+      slotBgColor = isCurrentWeapon ? (Color){40, 40, 40, 200} : (Color){40, 40, 40, 120};
+      borderColor = isCurrentWeapon ? (Color){100, 100, 100, 255} : (Color){100, 100, 100, 120};
+    }
+    
+    DrawRectangleRec(slotRect, slotBgColor);
+    DrawRectangleLines(slotRect.x, slotRect.y, slotRect.width, slotRect.height, borderColor);
+    
+    // Draw weapon if valid index
+    if (weaponIndex >= 0 && weaponIndex < inventory->currentNumOfWeapons) {
+      Weapon *weapon = &inventory->weapons[weaponIndex];
+      
+      // Draw weapon name in the center of the slot
+      const char *weaponName = weapon->name;
+      int fontSize = isCurrentWeapon ? 8 : 6;
+      int textWidth = MeasureText(weaponName, fontSize);
+      
+      // Word wrap for longer weapon names
+      if (textWidth > slotSize - 8) {
+        // Split weapon name into words
+        char nameCopy[64];
+        strncpy(nameCopy, weaponName, sizeof(nameCopy) - 1);
+        nameCopy[sizeof(nameCopy) - 1] = '\0';
+        
+        char *firstWord = strtok(nameCopy, " ");
+        char *secondWord = strtok(NULL, " ");
+        
+        if (firstWord && secondWord) {
+          // Draw two lines
+          int firstWidth = MeasureText(firstWord, fontSize);
+          int secondWidth = MeasureText(secondWord, fontSize);
+          
+          Color textColor = isCurrentWeapon ? WHITE : (Color){255, 255, 255, 180};
+          
+          DrawText(firstWord, slotX + (slotSize - firstWidth) / 2, slotY + slotSize / 2 - fontSize - 2, fontSize, textColor);
+          DrawText(secondWord, slotX + (slotSize - secondWidth) / 2, slotY + slotSize / 2 + 2, fontSize, textColor);
+        } else {
+          // Single word that's too long, draw it anyway
+          Color textColor = isCurrentWeapon ? WHITE : (Color){255, 255, 255, 180};
+          DrawText(weaponName, slotX + (slotSize - textWidth) / 2, slotY + slotSize / 2 - fontSize / 2, fontSize, textColor);
+        }
+      } else {
+        // Single line text
+        Color textColor = isCurrentWeapon ? WHITE : (Color){255, 255, 255, 180};
+        DrawText(weaponName, slotX + (slotSize - textWidth) / 2, slotY + slotSize / 2 - fontSize / 2, fontSize, textColor);
+      }
+      
+      // Draw cooldown indicator - shrinking overlay from top
+      float cooldown = 0.0f;
+      float remainingTime = 0.0f;
+      
+      if (weapon->type == RANGED_WEAPON) {
+        cooldown = weapon->weapon.ranged.stats.cooldown;
+        remainingTime = weapon->weapon.ranged.stats.lastUseTime;
+      } else if (weapon->type == MELEE_WEAPON) {
+        cooldown = weapon->weapon.melee.stats.cooldown;
+        remainingTime = weapon->weapon.melee.stats.lastUseTime;
+      }
+      
+      if (cooldown > 0.0f && remainingTime > 0.0f) {
+        // Calculate progress: 1.0 = just used (full overlay), 0.0 = ready (no overlay)
+        float cooldownPercent = remainingTime / cooldown;
+        cooldownPercent = fmaxf(0.0f, fminf(1.0f, cooldownPercent)); // Clamp between 0 and 1
+        
+        // Shrinking overlay that covers from top, reducing in height as cooldown progresses
+        int overlayHeight = (int)(slotSize * cooldownPercent);
+        if (overlayHeight > 0) {
+          Rectangle cooldownOverlay = {
+            slotX,
+            slotY,
+            slotSize,
+            overlayHeight
+          };
+          
+          // Semi-transparent dark overlay with subtle red tint
+          DrawRectangleRec(cooldownOverlay, (Color){20, 20, 20, 180});
+          DrawRectangleRec(cooldownOverlay, (Color){60, 20, 20, 100});
+        }
+      }
+      
+      // Draw key binding for current weapon (small number in corner)
+      if (isCurrentWeapon) {
+        char keyText[8];
+        snprintf(keyText, sizeof(keyText), "%d", weaponIndex + 1);
+        
+        // Small background circle for key binding
+        int keySize = 14;
+        Rectangle keyBg = {slotX + slotSize - keySize - 2, slotY + 2, keySize, keySize};
+        DrawRectangleRec(keyBg, (Color){0, 0, 0, 200});
+        DrawRectangleLines(keyBg.x, keyBg.y, keyBg.width, keyBg.height, (Color){255, 255, 100, 255});
+        
+        int keyTextWidth = MeasureText(keyText, 8);
+        DrawText(keyText, keyBg.x + (keySize - keyTextWidth) / 2, keyBg.y + 3, 8, (Color){255, 255, 100, 255});
+      }
+    }
+  }
+  
+  // Draw scroll wheel hint (positioned above the UI)
+  const char *scrollHint = "Scroll";
+  int hintWidth = MeasureText(scrollHint, 10);
+  DrawText(scrollHint, startX + (currentWeaponSlotSize - hintWidth) / 2, startY - 18, 10, (Color){200, 200, 200, 180});
 }

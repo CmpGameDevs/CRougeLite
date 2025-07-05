@@ -26,6 +26,7 @@
 #include "../system/collision.h"
 // FIXME: delete me later
 #include "../system/init.h"
+#include <math.h>
 #include <raymath.h>
 #include <stdbool.h>
 
@@ -192,36 +193,74 @@ void initRangedWeaponShoot(int ID, RangedWeapon weapon, Vector2 src,
  *  initSlash - initialize a slash object
  *
  * @param ID Player's ID
- * @param bulletInfo Slash's information from the used melee weapon
+ * @param slashInfo Slash's information from the used melee weapon
+ * @param src Spawn position of slash
+ * @param dest The target position (typically mouse click position)
+ * @param isFriendly Is the object created by players or enemies
  *
  * @return Pointer to the combat action object
  *
- * @details Initialize a slash object and link it to the player
+ * @details Initialize a slash object and link it to the player/enemy
  * by `ID`, its information is provided by the used melee weapon.
  *
  */
 CombatAction *initSlash(int ID, SlashInfo slashInfo, Vector2 src,
-                        Vector2 dest)
+                        Vector2 dest, bool isFriendly)
 {
   if (gameState->numOfCombatActions == DEFAULT_MAX_COMBAT_ACTIONS)
     return NULL;
+  
+  // Calculate direction and angle
+  float angle = GetAngleBetweenPoints(src, dest);
+  float angleRad = angle * (3.14159265f / 180.0f);
+  Vector2 direction = {cosf(angleRad), sinf(angleRad)};
+  
+  float slashOffset = slashInfo.slashRange * 0.5f;
+  Vector2 slashCenter = {
+    src.x + direction.x * slashOffset,
+    src.y + direction.y * slashOffset
+  };
+  
   // Init slash
   Slash slash;
   GameObject *object = &(slashInfo.object);
-  object->collider.bounds.x = src.x;
-  object->collider.bounds.y = src.y;
+  
+  float originalWidth = object->collider.bounds.width;
+  float originalHeight = object->collider.bounds.height;
+  
+  float absCosDeg = fabsf(cosf(angleRad));
+  float absSinDeg = fabsf(sinf(angleRad));
+  
+  float newWidth = originalWidth * absCosDeg + originalHeight * absSinDeg;
+  float newHeight = originalWidth * absSinDeg + originalHeight * absCosDeg;
+  
+  object->collider.bounds.width = newWidth;
+  object->collider.bounds.height = newHeight;
+  
+  object->collider.bounds.x = slashCenter.x - newWidth / 2;
+  object->collider.bounds.y = slashCenter.y - newHeight / 2;
+  
   slash.playerID = ID;
-  object->transform = (CTransform){src, 0, 0, 0, (Vector2){1, 1}};
+  object->transform = (CTransform){slashCenter, angle, 0, 0, (Vector2){1, 1}};
 
+  // Set slash timing
+  slashInfo.startTime = GetTime();
+  slashInfo.isActive = true;
+  if (slashInfo.duration <= 0) {
+    slashInfo.duration = 0.3f;
+  }
+  
   slash.slashInfo = slashInfo;
 
   // Init combatAction
   CombatAction *combatAction =
       &(gameState->combatActions[gameState->numOfCombatActions++]);
-  combatAction->angle = GetAngleBetweenPoints(src, dest);
-  printf("%f\n", combatAction->angle);
+  combatAction->angle = angle;
   combatAction->type = ACTION_SLASH;
   combatAction->action.slash = slash;
+  combatAction->hit = initHitObject();
+  combatAction->ID = actionID++;
+  combatAction->isFriendly = isFriendly;
   return combatAction;
 }
 
@@ -237,7 +276,7 @@ void updateCombatActions()
     checkHitObject(actions + i);
   }
 
-  // Check Health
+  // Check Health and Duration
   for (int i = 0; i < gameState->numOfCombatActions; i++)
   {
     switch (actions[i].type)
@@ -247,6 +286,17 @@ void updateCombatActions()
       {
         actions[i] = actions[--(gameState->numOfCombatActions)];
         i--;
+      }
+      break;
+    case ACTION_SLASH:
+      {
+        SlashInfo *slashInfo = &(actions[i].action.slash.slashInfo);
+        float currentTime = GetTime();
+        if (!slashInfo->isActive || (currentTime - slashInfo->startTime) > slashInfo->duration)
+        {
+          actions[i] = actions[--(gameState->numOfCombatActions)];
+          i--;
+        }
       }
       break;
     default:
@@ -309,6 +359,10 @@ void drawCombatActions()
     if (combatActions->type == ACTION_BULLET)
     {
       drawBullet(&combatActions);
+    }
+    else if (combatActions->type == ACTION_SLASH)
+    {
+      drawSlash(&combatActions);
     }
     combatActions++;
   }
@@ -401,6 +455,33 @@ static void applyBulletDamage(BulletInfo *bulletInfo, Stats *stats)
 }
 
 /**
+ * applySlashDamage - apply the slash's damage to the hit entity
+ * 
+ * @param slashInfo Pointer to the slash's info
+ * @param stats Pointer to the entity's stats
+ * 
+ * @details calculate the slash's damage after checking for critical
+ * hits, defense, and variance.
+ */
+static void applySlashDamage(SlashInfo *slashInfo, Stats *stats)
+{
+  // Determine if it's a critical hit
+  float isCritical = (rand() / (float)RAND_MAX) < slashInfo->criticalChance;
+  float critMultiplier = isCritical ? 1.5f : 1.0f;
+  float damage = slashInfo->slashDamage * critMultiplier;
+
+  // Calculate the final damage taken
+  float damageTaken = calculateDamageTaken(damage, stats->defense);
+
+  // Apply random variance (±10%)
+  float variance = 0.1f * damageTaken * ((rand() / (float)RAND_MAX) * 2.0f - 1.0f);
+  damageTaken += variance;
+
+  stats->health.currentHealth = fmax(0, stats->health.currentHealth - damageTaken);
+  printf(" %.2f damage (%s), remaining health: %f\n", damageTaken, isCritical ? "Critical Hit" : "Normal Hit", stats->health.currentHealth);
+}
+
+/**
  * damageEntity - Register damage to an entity's stats
  *
  * @param action Pointer to the combat action
@@ -418,6 +499,14 @@ static void damageEntity(CombatAction *action, Stats *stats, GameObject *object)
     applyBulletDamage(bulletInfo, stats);
     printf("Bullet #%d taken %.2f damage, remaining health: %f\n", action->ID, bulletInfo->bulletDamage, bulletInfo->bulletHealth);
     stats->health.lastUpdateTime = GetTime();
+    break;
+  case ACTION_SLASH:
+    {
+      SlashInfo *slashInfo = &(action->action.slash.slashInfo);
+      applySlashDamage(slashInfo, stats);
+      printf("Slash #%d taken %.2f damage, remaining health: %f\n", action->ID, slashInfo->slashDamage, stats->health.currentHealth);
+      stats->health.lastUpdateTime = GetTime();
+    }
     break;
   default:
     break;

@@ -99,6 +99,13 @@ static void loadResources() {
   loadSoundEffect("src/resources/sfx/enemies/death/slime_death.wav", "slime_death");
   loadSoundEffect("src/resources/sfx/player/impactGeneric_light_003.ogg", "missing_item");
   loadSoundEffect("src/resources/sfx/UI/switch2.ogg", "interact");
+  loadSoundEffect("src/resources/sfx/weapons/melee-stick/547600__mateusz_chenc__sword-attack.wav", "sword_slash");
+  loadSoundEffect("src/resources/sfx/weapons/melee-stick/727592__qubodup__knife-attack-slash.wav", "enemy_slash");
+  loadSoundEffect("src/resources/sfx/player/footstep_concrete_000.ogg", "footstep_00");
+  loadSoundEffect("src/resources/sfx/player/footstep_concrete_001.ogg", "footstep_01");
+  loadSoundEffect("src/resources/sfx/player/footstep_concrete_002.ogg", "footstep_02");
+  loadSoundEffect("src/resources/sfx/player/footstep_concrete_003.ogg", "footstep_03");
+  loadSoundEffect("src/resources/sfx/player/footstep_concrete_004.ogg", "footstep_04");
 
   music = LoadMusicStream("./src/"
                           "./resources/ambient.ogg");
