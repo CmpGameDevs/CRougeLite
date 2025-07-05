@@ -150,11 +150,11 @@ static void initPlayerWeaponDictionary()
       .type = RANGED_WEAPON,
       .weapon.ranged = {
           .stats = {10, 0.5, 0, .weaponSprite = {}},
-          .bulletInfo = {.bulletSpeed = 4, .bulletDamage = 15, 
-            .bulletRange = 600, .bulletHealth = 20, 
+          .bulletInfo = {.bulletSpeed = 4, .bulletDamage = 25, 
+            .bulletRange = 600, .bulletHealth = 40, 
             .isTracking = false,
             .critMultiplier = 1.05,
-            .critChance = 0.05,
+            .critChance = 0.1,
             .object = {.collider = {.bounds = {0, 0, 28, 28}}}
             },
           .maxAmmo = 1000,
@@ -168,9 +168,9 @@ static void initPlayerWeaponDictionary()
       .weapon.melee = {
           .stats = {25, 1.2, 0, .weaponSprite = {}},
           .slashInfo = {
-              .criticalChance = 0.1,
+              .criticalChance = 0.25,
               .slashRange = 80,
-              .slashDamage = 25,
+              .slashDamage = 35,
               .isActive = false,
               .duration = 0.4f,
               .startTime = 0.0f,
@@ -188,7 +188,7 @@ static void initPlayerWeaponDictionary()
       .type = RANGED_WEAPON,
       .weapon.ranged = {
           .stats = {10, 1, 0, .weaponSprite = {}},
-          .bulletInfo = {.bulletSpeed = 2, .bulletDamage = 10, 
+          .bulletInfo = {.bulletSpeed = 3, .bulletDamage = 10, 
             .bulletRange = 1000, .bulletHealth = 10, 
             .isTracking = true,
             .critMultiplier = 1.05,
@@ -223,7 +223,7 @@ static void initEnemyWeaponDictionary()
       .weapon.melee = {
           .stats = {10, 0.5, 0, .weaponSprite = {}},
           .slashInfo = {
-              .criticalChance = 0.05,
+              .criticalChance = 0.15,
               .slashRange = 60,
               .slashDamage = 18,
               .isActive = false,
@@ -243,7 +243,7 @@ static void initEnemyWeaponDictionary()
       .type = RANGED_WEAPON,
       .weapon.ranged = {
           .stats = {10, 0.5, 0, .weaponSprite = {}},
-          .bulletInfo = {.bulletSpeed = 4.5, .bulletDamage = 10, 
+          .bulletInfo = {.bulletSpeed = 5.5, .bulletDamage = 10, 
             .bulletRange = 600, .bulletHealth = 10, 
             .isTracking = false,
             .critMultiplier = 1.05,
